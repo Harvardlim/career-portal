@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens mapped from the Figma file
+ * "MyJob – Job Portal" (node 2206-16316) Dev Mode variables.
+ */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Primary */
+  --color-brand: #0a65cc; /* Primary/500 */
+  --color-brand-600: #0851a3; /* Primary/600 */
+  --color-brand-800: #042852; /* Primary/800 */
+  --color-brand-100: #cee0f5; /* Primary/100 */
+  --color-brand-50: #e7f0fa; /* Primary/50 */
+  --color-brand-tint: #e8f1ff; /* Primary/50 (job cards) */
+
+  /* Neutrals */
+  --color-ink: #18191c; /* Gray/900 */
+  --color-ink-heading: #191f33; /* Gray Scale/900 */
+  --color-ink-700: #474c54; /* Gray/700 */
+  --color-ink-600: #5e6670; /* Gray/600 */
+  --color-muted: #767f8c; /* Gray/500 */
+  --color-muted-600: #636a80; /* Gray Scale/600 */
+  --color-muted-400: #9199a3; /* Gray/400 */
+  --color-muted-slate: #939aad; /* Gray Scale/400 */
+  --color-line: #e4e5e8; /* Gray/100 */
+  --color-line-soft: #edeff5; /* Gray Scale/50 */
+  --color-surface: #ffffff;
+  --color-surface-alt: #f1f2f4; /* Gray/50 */
+
+  /* Accents */
+  --color-star: #ffaa00; /* Warning/500 */
+  --color-danger: #e05151; /* Danger/500 */
+  --color-danger-50: #fceeee; /* Danger/50 */
+
+  /* Shadows */
+  --shadow-search: 0 12px 40px rgba(0, 44, 109, 0.05);
+  --shadow-feature: 0 12px 24px rgba(0, 44, 109, 0.1);
+  --shadow-card: 0 12px 80px rgba(0, 44, 109, 0.05);
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: var(--color-surface);
+}

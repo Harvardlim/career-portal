@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens mapped from the Figma file
+ * "Free Dark Admin Dashboards (Community)" — Dashdark X (node 54-3148) Dev Mode variables.
+ */
+@theme {
+  --font-sans: "Mona Sans", "Mona-Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Neutral colors */
+  --color-bg: #081028; /* Neutral Colors/800 — page background */
+  --color-bg-sidebar: #0a1330; /* Neutral Colors/700 */
+  --color-surface: #0b1739; /* Neutral Colors/600 — cards */
+  --color-surface-2: #0a1330; /* nested panels */
+  --color-line: #343b4f; /* Secondary Colors/Color 4 — borders */
+  --color-line-soft: #1b2b4b; /* softer divider */
+
+  --color-ink: #ffffff; /* Neutral Colors/100 */
+  --color-ink-200: #d9e1fa; /* Neutral Colors/200 */
+  --color-ink-300: #e9eaf3; /* Neutral Colors/300 */
+  --color-ink-400: #aeb9e1; /* Neutral Colors/400 */
+  --color-muted: #7e89ac; /* Neutral Colors/500 */
+
+  /* Brand / accents */
+  --color-brand: #cb3cff; /* Primary Colors/Color 1 */
+  --color-brand-2: #9a91fb; /* Secondary Colors/Color 2 */
+  --color-cyan: #00c2ff; /* Secondary Colors/Color 3 */
+  --color-yellow: #fdb52a; /* Secondary Colors/Color 5 */
+
+  /* System */
+  --color-success: #14ca74; /* System Colors/Green 300 */
+  --color-success-strong: #05c168; /* Other/Green 50 */
+  --color-danger: #ff5a65; /* System Colors/Red 300 */
+  --color-warning: #ffb016; /* Other/Yellow 50 */
+
+  /* Effects */
+  --shadow-card: 0 8px 28px rgba(1, 5, 17, 0.30);
+  --shadow-pop: 0 12px 40px rgba(1, 5, 17, 0.45);
+
+  --radius-card: 12px;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--color-ink-200);
+  background: var(--color-bg);
+}
+
+.gradient-brand {
+  background-image: linear-gradient(90deg, #cb3cff 0%, #7f45ff 50%, #00c2ff 100%);
+}
+
+.gradient-brand-text {
+  background-image: linear-gradient(90deg, #cb3cff 0%, #00c2ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Thin custom scrollbars for panels */
+.scroll-slim::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-slim::-webkit-scrollbar-thumb {
+  background: #26304d;
+  border-radius: 999px;
+}
+.scroll-slim::-webkit-scrollbar-track {
+  background: transparent;
+}
