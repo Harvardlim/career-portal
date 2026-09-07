@@ -1,16 +1,14 @@
-import { NavLink } from 'react-router-dom'
+import { useState } from 'react'
+import { NavLink, useNavigate } from 'react-router-dom'
 import {
-  IconArrowRight,
   IconChevronDown,
   IconChevronRight,
   IconDollar,
-  IconGear,
   IconGrid,
-  IconPlug,
-  IconSearch,
-  IconStar,
+  IconLock,
   IconUsers,
 } from './Icons'
+import { signOut, useAdminSession } from '../lib/admin'
 
 const Logo = () => (
   <div className="flex items-center gap-2.5">
@@ -29,11 +27,11 @@ const Logo = () => (
         <circle cx="21" cy="11" r="3" fill="#CB3CFF" />
       </svg>
     </span>
-    <span className="text-[19px] font-semibold tracking-tight text-ink">Dashdark X</span>
+    <span className="text-[19px] font-semibold tracking-tight text-ink">Career Portal</span>
   </div>
 )
 
-type LeafProps = { label: string; to?: string }
+type LeafProps = { label: string; to: string }
 
 const Leaf = ({ label, to }: LeafProps) => {
   const cls = ({ isActive }: { isActive: boolean }) =>
@@ -43,13 +41,6 @@ const Leaf = ({ label, to }: LeafProps) => {
         ? 'bg-white/[0.04] font-medium text-ink before:absolute before:-left-3 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-full before:bg-brand'
         : 'text-muted hover:text-ink-200',
     ].join(' ')
-  if (!to) {
-    return (
-      <span className="block cursor-default rounded-md py-2 pl-3 pr-2 text-[14px] text-muted hover:text-ink-200">
-        {label}
-      </span>
-    )
-  }
   return (
     <NavLink to={to} end className={cls}>
       {label}
@@ -64,91 +55,90 @@ type GroupProps = {
   children?: React.ReactNode
 }
 
-const Group = ({ icon, label, open, children }: GroupProps) => (
-  <div>
-    <button
-      type="button"
-      className="flex w-full items-center gap-3 rounded-md px-2 py-2.5 text-[15px] font-medium text-ink-200 hover:text-ink"
-    >
-      <span className={open ? 'text-brand' : 'text-ink-400'}>{icon}</span>
-      <span className="flex-1 text-left">{label}</span>
-      {open ? (
-        <IconChevronDown width={16} height={16} className="text-muted" />
-      ) : (
-        <IconChevronRight width={16} height={16} className="text-muted" />
-      )}
-    </button>
-    {open && children ? (
-      <div className="mt-1 space-y-0.5 border-l border-line-soft pl-4">{children}</div>
-    ) : null}
-  </div>
-)
-
-export const Sidebar = () => (
-  <aside className="flex h-full w-[300px] shrink-0 flex-col gap-6 border-r border-line bg-bg-sidebar px-6 py-7">
-    <div className="flex items-center justify-between">
-      <Logo />
+const Group = ({ icon, label, open = false, children }: GroupProps) => {
+  const [isOpen, setIsOpen] = useState(open)
+  return (
+    <div>
       <button
         type="button"
-        aria-label="Collapse sidebar"
-        className="grid size-7 place-items-center rounded-md border border-line text-muted hover:text-ink-200"
+        onClick={() => setIsOpen((v) => !v)}
+        aria-expanded={isOpen}
+        className="flex w-full items-center gap-3 rounded-md px-2 py-2.5 text-[15px] font-medium text-ink-200 hover:text-ink"
       >
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="m11 7-5 5 5 5M18 7l-5 5 5 5" />
-        </svg>
+        <span className={isOpen ? 'text-brand' : 'text-ink-400'}>{icon}</span>
+        <span className="flex-1 text-left">{label}</span>
+        {isOpen ? (
+          <IconChevronDown width={16} height={16} className="text-muted" />
+        ) : (
+          <IconChevronRight width={16} height={16} className="text-muted" />
+        )}
       </button>
+      {isOpen && children ? (
+        <div className="mt-1 space-y-0.5 border-l border-line-soft pl-4">{children}</div>
+      ) : null}
     </div>
+  )
+}
 
-    <label className="flex items-center gap-2.5 rounded-lg border border-line bg-surface/60 px-3.5 py-2.5">
-      <IconSearch width={18} height={18} className="text-muted" />
-      <input
-        placeholder="Search for..."
-        className="w-full bg-transparent text-[14px] text-ink-200 placeholder:text-muted focus:outline-none"
-      />
-    </label>
+export const Sidebar = () => {
+  const session = useAdminSession()
+  const navigate = useNavigate()
 
-    <nav className="flex-1 space-y-1 overflow-y-auto">
-      <Group icon={<IconGrid width={19} height={19} />} label="Dashboard" open>
-        <Leaf label="All pages" to="/pages" />
-        <Leaf label="Reports" to="/" />
-        <Leaf label="Products" to="/jobs" />
-        <Leaf label="Task" to="/task" />
-      </Group>
-      <Group icon={<IconStar width={19} height={19} />} label="Features" />
-      <Group icon={<IconUsers width={19} height={19} />} label="Users" />
-      <Group icon={<IconDollar width={19} height={19} />} label="Pricing" />
-      <Group icon={<IconPlug width={19} height={19} />} label="Integrations" />
+  const handleSignOut = () => {
+    signOut()
+    navigate('/login', { replace: true })
+  }
 
-      <div className="my-3 border-t border-line" />
+  return (
+    <aside className="flex h-full w-[300px] shrink-0 flex-col gap-6 border-r border-line bg-bg-sidebar px-6 py-7">
+      <Logo />
 
-      <Group icon={<IconGear width={19} height={19} />} label="Settings" />
-      <Group
-        icon={<span className="text-[15px] font-bold italic text-ink-400">w</span>}
-        label="Template pages"
-      />
+      <nav className="flex-1 space-y-1 overflow-y-auto">
+        <Group icon={<IconGrid width={19} height={19} />} label="Dashboard" open>
+          <Leaf label="Reports" to="/" />
+          <Leaf label="Jobs" to="/jobs" />
+          <Leaf label="Categories" to="/categories" />
+        </Group>
+        <Group icon={<IconUsers width={19} height={19} />} label="Users" open>
+          <Leaf label="Candidates" to="/users/candidates" />
+          <Leaf label="Employers" to="/users/employers" />
+        </Group>
+        <Group icon={<IconDollar width={19} height={19} />} label="Finance" open>
+          <Leaf label="Purchases & Credits" to="/finance" />
+          <Leaf label="Affiliate payouts" to="/affiliates" />
+        </Group>
+        <Group icon={<IconLock width={19} height={19} />} label="Admins" open>
+          <Leaf label="Admin list" to="/admins" />
+          <Leaf label="Account settings" to="/account" />
+        </Group>
+      </nav>
 
-      <NavLink
-        to="/users"
-        className="mt-1 flex items-center gap-3 rounded-lg px-2 py-2.5 hover:bg-white/[0.03]"
-      >
-        <img
-          src="https://i.pravatar.cc/72?img=12"
-          alt=""
-          className="size-9 rounded-full object-cover"
-        />
-        <span className="flex-1">
-          <span className="block text-[14px] font-semibold text-ink">John Carter</span>
-          <span className="block text-[12px] text-muted">Account settings</span>
-        </span>
-        <IconChevronRight width={16} height={16} className="text-muted" />
-      </NavLink>
-    </nav>
-
-    <button
-      type="button"
-      className="gradient-brand flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-[14px] font-semibold text-white shadow-pop"
-    >
-      Get template <IconArrowRight width={17} height={17} />
-    </button>
-  </aside>
-)
+      <div className="border-t border-line pt-3">
+        <NavLink
+          to="/account"
+          className="flex items-center gap-3 rounded-lg px-2 py-2.5 hover:bg-white/[0.03]"
+        >
+          <span className="grid size-9 place-items-center rounded-full bg-white/[0.06] text-[13px] font-semibold text-ink">
+            {(session?.name ?? 'A').charAt(0).toUpperCase()}
+          </span>
+          <span className="flex-1 overflow-hidden">
+            <span className="block truncate text-[14px] font-semibold text-ink">
+              {session?.name ?? 'Admin'}
+            </span>
+            <span className="block truncate text-[12px] text-muted">
+              {session?.email ?? 'Account settings'}
+            </span>
+          </span>
+          <IconChevronRight width={16} height={16} className="text-muted" />
+        </NavLink>
+        <button
+          type="button"
+          onClick={handleSignOut}
+          className="mt-1 w-full rounded-lg px-2 py-2 text-left text-[13px] font-medium text-muted hover:text-ink-200"
+        >
+          Sign out
+        </button>
+      </div>
+    </aside>
+  )
+}

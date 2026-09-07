@@ -7,7 +7,7 @@ function Logo({ className }: { className?: string }) {
   return (
     <Link to="/" className={`flex items-center gap-2 ${className ?? ''}`}>
       <BriefcaseIcon className="size-10 text-brand" />
-      <span className="text-2xl font-semibold text-ink">MyJob</span>
+      <span className="text-2xl font-semibold text-ink">Partly Asia</span>
     </Link>
   )
 }

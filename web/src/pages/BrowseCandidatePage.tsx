@@ -8,7 +8,7 @@ import { candidates } from '@/data/candidates'
 
 export function BrowseCandidatePage() {
   return (
-    <AppShell variant="employer">
+    <AppShell>
       <Breadcrumb
         title="Find Candidate"
         trail={[{ label: 'Home', to: '/' }, { label: 'Find Candidate' }]}

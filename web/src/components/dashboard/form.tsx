@@ -1,5 +1,11 @@
-import type { ReactNode } from 'react'
-import { ChevronDownIcon, UploadIcon } from '@/components/icons'
+import { useState } from 'react'
+import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react'
+import {
+  ChevronDownIcon,
+  EyeIcon,
+  EyeOffIcon,
+  UploadIcon,
+} from '@/components/icons'
 
 export function Field({
   label,
@@ -17,14 +23,18 @@ export function Field({
 }
 
 export function TextInput({
-  placeholder,
-  type = 'text',
   icon,
-}: {
-  placeholder?: string
-  type?: string
+  className,
+  type = 'text',
+  ...rest
+}: Omit<InputHTMLAttributes<HTMLInputElement>, 'className'> & {
   icon?: ReactNode
+  className?: string
 }) {
+  const [reveal, setReveal] = useState(false)
+  const isPassword = type === 'password'
+  const resolvedType = isPassword && reveal ? 'text' : type
+
   return (
     <div className="relative">
       {icon && (
@@ -33,26 +43,46 @@ export function TextInput({
         </span>
       )}
       <input
-        type={type}
-        placeholder={placeholder}
+        type={resolvedType}
         className={`h-12 w-full rounded-md border border-line bg-surface text-base text-ink outline-none focus:border-brand placeholder:text-muted-400 ${
-          icon ? 'pl-10 pr-4' : 'px-4'
-        }`}
+          icon ? 'pl-10' : 'pl-4'
+        } ${isPassword ? 'pr-11' : 'pr-4'} ${className ?? ''}`}
+        {...rest}
       />
+      {isPassword && (
+        <button
+          type="button"
+          onClick={() => setReveal((v) => !v)}
+          aria-label={reveal ? 'Hide password' : 'Show password'}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink"
+        >
+          {reveal ? (
+            <EyeOffIcon className="size-5" />
+          ) : (
+            <EyeIcon className="size-5" />
+          )}
+        </button>
+      )}
     </div>
   )
 }
 
 export function Select({
   options = ['Select...'],
-}: {
+  ...rest
+}: Omit<SelectHTMLAttributes<HTMLSelectElement>, 'className'> & {
   options?: string[]
 }) {
   return (
     <div className="relative">
-      <select className="h-12 w-full appearance-none rounded-md border border-line bg-surface px-4 pr-10 text-base text-muted-600 outline-none focus:border-brand">
-        {options.map((o) => (
-          <option key={o}>{o}</option>
+      <select
+        className="h-12 w-full appearance-none rounded-md border border-line bg-surface px-4 pr-10 text-base text-muted-600 outline-none focus:border-brand"
+        {...rest}
+      >
+        {options.map((o, i) => (
+          <option key={o} value={i === 0 ? '' : o}>
+            {o}
+          </option>
         ))}
       </select>
       <ChevronDownIcon className="pointer-events-none absolute right-3 top-1/2 size-5 -translate-y-1/2 text-muted" />
@@ -103,13 +133,20 @@ export function Dropzone({
   )
 }
 
-export function SaveButton() {
+export function SaveButton({
+  children = 'Save Changes',
+  disabled,
+}: {
+  children?: ReactNode
+  disabled?: boolean
+}) {
   return (
     <button
       type="submit"
-      className="w-fit rounded-[4px] bg-brand px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-brand-600"
+      disabled={disabled}
+      className="w-fit rounded-[4px] bg-brand px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
     >
-      Save Changes
+      {children}
     </button>
   )
 }

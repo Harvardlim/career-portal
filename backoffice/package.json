@@ -10,6 +10,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@lexical/html": "^0.50.0",
+    "@lexical/list": "^0.50.0",
+    "@lexical/markdown": "^0.50.0",
+    "@lexical/react": "^0.50.0",
+    "@lexical/rich-text": "^0.50.0",
+    "@lexical/table": "^0.50.0",
+    "@lexical/utils": "^0.50.0",
+    "@supabase/supabase-js": "^2.114.0",
+    "lexical": "^0.50.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.2"

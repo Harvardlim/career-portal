@@ -1,17 +1,11 @@
 import type { ReactNode } from 'react'
-import { AppHeader } from '@/components/app/AppHeader'
+import { SiteHeader } from '@/components/SiteHeader'
 import { SiteFooter } from '@/components/SiteFooter'
 
-export function AppShell({
-  children,
-  variant = 'candidate',
-}: {
-  children: ReactNode
-  variant?: 'candidate' | 'employer'
-}) {
+export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-surface">
-      <AppHeader variant={variant} />
+      <SiteHeader />
       <main className="flex-1">{children}</main>
       <SiteFooter />
     </div>

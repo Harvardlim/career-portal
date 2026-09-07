@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { ArrowRightIcon } from '@/components/icons'
 
 export function CtaSection() {
@@ -14,13 +15,13 @@ export function CtaSection() {
               cursus a dolor convallis efficitur.
             </p>
           </div>
-          <a
-            href="#"
+          <Link
+            to="/candidate/register"
             className="flex w-fit items-center gap-3 rounded-[3px] bg-surface px-6 py-3 text-base font-semibold text-brand"
           >
             Register now
             <ArrowRightIcon className="size-6" />
-          </a>
+          </Link>
         </div>
 
         <div className="flex flex-col gap-6 rounded-xl bg-brand-600 p-8 text-white lg:p-[50px]">
@@ -33,13 +34,13 @@ export function CtaSection() {
               sed efficitur dolor. Pelque augue risus, aliqu.
             </p>
           </div>
-          <a
-            href="#"
+          <Link
+            to="/employer/register"
             className="flex w-fit items-center gap-3 rounded-[3px] bg-surface px-6 py-3 text-base font-semibold text-brand"
           >
             Register now
             <ArrowRightIcon className="size-6" />
-          </a>
+          </Link>
         </div>
       </div>
     </section>

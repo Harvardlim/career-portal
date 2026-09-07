@@ -23,7 +23,7 @@ export function CompanyRegLayout({
       <header className="mx-auto flex w-full max-w-[1320px] items-center justify-between px-6 py-8 lg:px-10">
         <NavLink to="/" className="flex items-center gap-2">
           <BriefcaseIcon className="size-9 text-brand" />
-          <span className="text-2xl font-semibold text-ink">MyJob</span>
+          <span className="text-2xl font-semibold text-ink">Partly Asia</span>
         </NavLink>
         <div className="flex w-[280px] flex-col gap-2">
           <div className="flex items-center justify-between text-sm">
@@ -65,7 +65,7 @@ export function CompanyRegLayout({
       </main>
 
       <div className="border-t border-line py-6 text-center text-sm text-muted">
-        @ 2024 MyJob - Job Portal. All rights Rserved
+        © 2024 Partly Asia. All rights reserved
       </div>
     </div>
   )

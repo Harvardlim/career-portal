@@ -1,12 +1,6 @@
 import { useId, useState } from 'react'
 import type { InputHTMLAttributes, ReactNode } from 'react'
-import {
-  ArrowRightIcon,
-  EyeIcon,
-  EyeOffIcon,
-  FacebookIcon,
-  GoogleIcon,
-} from '@/components/icons'
+import { ArrowRightIcon, EyeIcon, EyeOffIcon } from '@/components/icons'
 
 /* ---------- Input field ---------- */
 
@@ -64,11 +58,18 @@ export function AuthField({
 
 /* ---------- Submit button ---------- */
 
-export function AuthSubmit({ children }: { children: ReactNode }) {
+export function AuthSubmit({
+  children,
+  disabled,
+}: {
+  children: ReactNode
+  disabled?: boolean
+}) {
   return (
     <button
       type="submit"
-      className="flex w-full items-center justify-center gap-3 rounded-[4px] bg-brand px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-brand-600"
+      disabled={disabled}
+      className="flex w-full items-center justify-center gap-3 rounded-[4px] bg-brand px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
     >
       {children}
       <ArrowRightIcon className="size-6" />
@@ -94,28 +95,6 @@ export function AuthCheckbox({
       <label htmlFor={id} className="text-sm text-muted">
         {children}
       </label>
-    </div>
-  )
-}
-
-/* ---------- Social sign-in ---------- */
-
-export function AuthSocial({ verb }: { verb: 'Sign up' | 'Sign in' }) {
-  const buttonClass =
-    'flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-[4px] border border-line bg-surface px-3 py-3 text-sm text-ink-700 transition-colors hover:bg-surface-alt'
-  return (
-    <div className="flex w-full flex-col items-center gap-4">
-      <p className="text-sm text-muted">or</p>
-      <div className="flex w-full flex-col gap-5 sm:flex-row">
-        <button type="button" className={buttonClass}>
-          <FacebookIcon className="size-5 text-[#1877f2]" />
-          {verb} with Facebook
-        </button>
-        <button type="button" className={buttonClass}>
-          <GoogleIcon className="size-5" />
-          {verb} with Google
-        </button>
-      </div>
     </div>
   )
 }

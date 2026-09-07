@@ -1,82 +1,60 @@
 import { Link } from 'react-router-dom'
 import { AuthLayout } from '@/components/auth/AuthLayout'
-import {
-  AuthCheckbox,
-  AuthField,
-  AuthSocial,
-  AuthSubmit,
-} from '@/components/auth/fields'
-import { ChevronDownIcon } from '@/components/icons'
+import { ArrowRightIcon, BuildingIcon, UserIcon } from '@/components/icons'
+
+const paths = [
+  {
+    to: '/candidate/register',
+    title: "I'm a Candidate",
+    description: "I'm looking for a job and want to register my profile.",
+    Icon: UserIcon,
+  },
+  {
+    to: '/employer/register',
+    title: "I'm an Employer",
+    description: "I'm hiring and want to register my company.",
+    Icon: BuildingIcon,
+  },
+]
 
 export function CreateAccountPage() {
   return (
     <AuthLayout>
-      <form
-        onSubmit={(e) => e.preventDefault()}
-        className="flex flex-col gap-8"
-      >
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex flex-col gap-4">
-            <h1 className="text-3xl font-medium leading-10 text-ink">
-              Create account.
-            </h1>
-            <p className="text-base text-ink-600">
-              Already have account?{' '}
-              <Link to="/sign-in" className="font-medium text-brand">
-                Log In
-              </Link>
-            </p>
-          </div>
-          <div className="relative w-[150px] shrink-0">
-            <label htmlFor="account-type" className="sr-only">
-              Account type
-            </label>
-            <select
-              id="account-type"
-              defaultValue="Employers"
-              className="h-12 w-full appearance-none rounded-[6px] border border-line bg-surface px-[17px] pr-9 text-sm text-muted-600 outline-none focus:border-brand"
-            >
-              <option value="Candidates">Candidates</option>
-              <option value="Employers">Employers</option>
-            </select>
-            <ChevronDownIcon className="pointer-events-none absolute right-[15px] top-1/2 size-5 -translate-y-1/2 text-muted-600" />
-          </div>
+      <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-4">
+          <h1 className="text-3xl font-medium leading-10 text-ink">
+            Create account.
+          </h1>
+          <p className="text-base text-ink-600">
+            Already have account?{' '}
+            <Link to="/sign-in" className="font-medium text-brand">
+              Log In
+            </Link>
+          </p>
         </div>
 
         <div className="flex flex-col gap-5">
-          <div className="flex flex-col gap-5 sm:flex-row">
-            <AuthField label="Full Name" name="fullName" autoComplete="name" />
-            <AuthField label="Username" name="username" autoComplete="username" />
-          </div>
-          <AuthField
-            label="Email address"
-            name="email"
-            type="email"
-            autoComplete="email"
-          />
-          <AuthField
-            label="Password"
-            name="password"
-            password
-            autoComplete="new-password"
-          />
-          <AuthField
-            label="Confirm Password"
-            name="confirmPassword"
-            password
-            autoComplete="new-password"
-          />
-          <AuthCheckbox name="terms">
-            I&apos;ve read and agree with your{' '}
-            <a href="#" className="font-medium text-brand">
-              Terms of Services
-            </a>
-          </AuthCheckbox>
+          <p className="text-sm font-medium text-ink-200">
+            First, tell us who you are
+          </p>
+          {paths.map(({ to, title, description, Icon }) => (
+            <Link
+              key={to}
+              to={to}
+              className="group flex items-center gap-5 rounded-xl border border-line bg-surface p-6 transition-colors hover:border-brand hover:bg-brand-50/40"
+            >
+              <span className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand">
+                <Icon className="size-7" />
+              </span>
+              <span className="flex flex-1 flex-col gap-1">
+                <span className="text-lg font-medium text-ink">{title}</span>
+                <span className="text-sm text-ink-600">{description}</span>
+              </span>
+              <ArrowRightIcon className="size-6 shrink-0 text-muted transition-colors group-hover:text-brand" />
+            </Link>
+          ))}
         </div>
-
-        <AuthSubmit>Create account</AuthSubmit>
-        <AuthSocial verb="Sign up" />
-      </form>
+      </div>
     </AuthLayout>
   )
 }

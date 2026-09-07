@@ -1,162 +1,203 @@
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
+import { confirmCheckout, readCheckoutParams } from '@/lib/stripe'
 import { EmployerDashboardLayout } from '@/components/dashboard/EmployerDashboardLayout'
 import { InfoCard } from '@/components/app/InfoCard'
-import { Pagination } from '@/components/app/Pagination'
-import { ArrowRightIcon, CheckIcon, DownloadIcon, PencilIcon, XCircleIcon } from '@/components/icons'
+import { ArrowRightIcon, DownloadIcon } from '@/components/icons'
+import { downloadInvoice } from '@/lib/invoice'
+import {
+  fetchEmployerBilling,
+  useEmployer,
+  type CreditBalance,
+  type PurchaseRow,
+  type UsageRow,
+} from '@/lib/employers'
 
-const benefits = [
-  '6 Active Jobs',
-  'Urgents & Featured Jobs',
-  'Highlights Job with Colors',
-  'Access & Saved 20 Candidates',
-  '60 Days Resume Visibility',
-  '24/7 Critical Support',
-]
-
-const remaining = ['9 Resume Access', '21 Days resume visibility', '4 Active Jobs']
-
-const invoices = [
-  { id: '#487441', plan: 'Premium' },
-  { id: '#653518', plan: 'Standard' },
-  { id: '#267400', plan: 'Premium' },
-  { id: '#651535', plan: 'Premium' },
-  { id: '#449003', plan: 'Premium' },
-  { id: '#558612', plan: 'Premium' },
-]
+const dateFmt = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+})
 
 export function PlansBillingPage() {
+  const { employer, loading: employerLoading } = useEmployer()
+  const [balance, setBalance] = useState<CreditBalance | null>(null)
+  const [purchases, setPurchases] = useState<PurchaseRow[]>([])
+  const [usage, setUsage] = useState<UsageRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const { outcome, sessionId } = readCheckoutParams(location.search)
+    if (!outcome) return
+    let alive = true
+    ;(async () => {
+      if (outcome === 'success') {
+        const active = sessionId ? await confirmCheckout(sessionId) : false
+        if (!alive) return
+        toast.success(
+          active
+            ? 'Payment confirmed — your credits are ready.'
+            : 'Payment received — your credits will appear here shortly.',
+        )
+        setRefreshKey((k) => k + 1)
+      } else {
+        toast('Checkout cancelled — no charge was made.')
+      }
+      if (alive) navigate('/employer/billing', { replace: true })
+    })()
+    return () => {
+      alive = false
+    }
+  }, [location.search, navigate])
+
+  useEffect(() => {
+    if (!employer) {
+      if (!employerLoading) setLoading(false)
+      return
+    }
+    let alive = true
+    fetchEmployerBilling(employer.id)
+      .then(({ balance, purchases, usage }) => {
+        if (!alive) return
+        setBalance(balance)
+        setPurchases(purchases)
+        setUsage(usage)
+      })
+      .catch((err) => console.error('billing', err))
+      .finally(() => alive && setLoading(false))
+    return () => {
+      alive = false
+    }
+  }, [employer, employerLoading, refreshKey])
+
+  const left = balance?.credits_left ?? 0
+  const purchased = balance?.credits_purchased ?? 0
+
   return (
     <EmployerDashboardLayout>
       <div className="flex flex-col gap-6">
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="flex flex-col gap-6">
-            <InfoCard>
-              <p className="text-sm font-medium text-ink">Current Plan</p>
-              <p className="mt-2 text-3xl font-medium text-ink">Premium</p>
-              <p className="mt-2 text-sm text-muted-600">
-                Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
-                posuere.
-              </p>
-              <div className="mt-5 flex items-center gap-4">
-                <button
-                  type="button"
-                  className="rounded-[4px] bg-brand-50 px-5 py-2.5 text-sm font-semibold text-brand"
-                >
-                  Change Plans
-                </button>
-                <button type="button" className="text-sm text-muted-600">
-                  Cancel Plan
-                </button>
-              </div>
-            </InfoCard>
+          <InfoCard title="Credit Balance">
+            <div className="flex items-end gap-2">
+              <span className="text-4xl font-medium text-ink">
+                {loading ? '—' : left}
+              </span>
+              <span className="pb-1 text-sm text-muted">
+                credit{left === 1 ? '' : 's'} remaining
+              </span>
+            </div>
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-surface-alt">
+              <div
+                className="h-full rounded-full bg-brand"
+                style={{
+                  width: purchased
+                    ? `${Math.max(0, Math.min(100, (left / purchased) * 100))}%`
+                    : '0%',
+                }}
+              />
+            </div>
+            <p className="mt-3 text-sm text-muted-600">
+              {purchased} purchased · {balance?.credits_used ?? 0} used ·{' '}
+              {balance?.last_purchase_at
+                ? `last purchase ${dateFmt.format(new Date(balance.last_purchase_at))}`
+                : 'no purchases yet'}
+            </p>
+            <Link
+              to="/employer/pricing"
+              className="mt-5 flex w-fit items-center gap-2 rounded-[4px] bg-brand px-6 py-3 text-sm font-semibold text-white hover:bg-brand-600"
+            >
+              Buy more credits
+              <ArrowRightIcon className="size-4" />
+            </Link>
+          </InfoCard>
 
-            <InfoCard>
-              <p className="text-sm font-medium text-ink">Next Invoices</p>
-              <p className="mt-3 text-2xl font-medium text-brand">$59.00 USD</p>
-              <p className="mt-1 text-sm text-ink">Nov 28, 2021</p>
-              <p className="mt-2 text-xs text-muted">
-                Package started: Jan 28, 2021
-              </p>
-              <p className="mt-1 text-xs text-muted">
-                You have to pay this amount of money every month.
-              </p>
-              <button
-                type="button"
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-[4px] bg-brand px-6 py-3 text-sm font-semibold text-white"
-              >
-                Pay Now
-                <ArrowRightIcon className="size-4" />
-              </button>
-            </InfoCard>
-          </div>
-
-          <div className="flex flex-col gap-6">
-            <InfoCard title="Plan Benefits">
-              <p className="-mt-4 mb-4 text-sm text-muted-600">
-                Proin porta enim sit amet placerat finibus. Sed eget laoreet
-                lorem.
-              </p>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {benefits.map((b) => (
-                  <span key={b} className="flex items-center gap-2 text-sm text-ink-600">
-                    <CheckIcon className="size-4 text-brand" />
-                    {b}
-                  </span>
-                ))}
-              </div>
-              <p className="mt-5 text-xs uppercase tracking-wide text-muted-400">
-                Remaining
-              </p>
-              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {remaining.map((r) => (
-                  <span key={r} className="flex items-center gap-2 text-sm text-ink-600">
-                    <XCircleIcon className="size-4 text-danger" />
-                    {r}
-                  </span>
-                ))}
-              </div>
-            </InfoCard>
-
-            <InfoCard>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-ink">Payment Card</p>
-                <button
-                  type="button"
-                  className="flex items-center gap-1.5 text-sm text-muted-600"
-                >
-                  <PencilIcon className="size-4" />
-                  Edit Card
-                </button>
-              </div>
-              <div className="mt-4 flex items-center justify-between border-b border-line pb-4">
-                <span className="flex items-center gap-3">
-                  <span className="grid h-7 w-11 place-items-center rounded bg-surface-alt text-[10px] font-bold text-ink">
-                    MC
-                  </span>
-                  <span className="flex flex-col">
-                    <span className="text-xs text-muted">Name on card</span>
-                    <span className="font-medium text-ink">Esther Howard</span>
-                  </span>
-                </span>
-                <span className="flex flex-col text-right">
-                  <span className="text-xs text-muted">Expire date</span>
-                  <span className="font-medium text-ink">12/29</span>
-                </span>
-              </div>
-              <p className="mt-4 text-lg tracking-widest text-ink">
-                6714 **** **** ****
-              </p>
-            </InfoCard>
-          </div>
+          <InfoCard title="Total Spent">
+            <span className="text-4xl font-medium text-ink">
+              {loading
+                ? '—'
+                : `$${(balance?.total_spent_usd ?? 0).toLocaleString()}`}
+            </span>
+            <p className="mt-3 text-sm text-muted-600">
+              Across {purchases.length} purchase{purchases.length === 1 ? '' : 's'}.
+            </p>
+          </InfoCard>
         </div>
 
-        <InfoCard title="Latest Invoices">
-          <div className="grid grid-cols-[1fr_1.4fr_1fr_1fr_auto] gap-4 rounded bg-surface-alt px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-600">
-            <span>#ID</span>
-            <span>Date</span>
-            <span>Plan</span>
-            <span>Amount</span>
-            <span />
-          </div>
-          <div className="flex flex-col divide-y divide-line">
-            {invoices.map((inv) => (
-              <div
-                key={inv.id}
-                className="grid grid-cols-[1fr_1.4fr_1fr_1fr_auto] items-center gap-4 px-4 py-4 text-sm text-ink-600"
-              >
-                <span>{inv.id}</span>
-                <span>Dec 7, 2019 23:26</span>
-                <span>{inv.plan}</span>
-                <span>$999 USD</span>
-                <button type="button" aria-label="Download invoice" className="text-muted">
-                  <DownloadIcon className="size-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-          <div className="pt-6">
-            <Pagination current={1} />
-          </div>
+        <InfoCard title="Purchase History">
+          {purchases.length > 0 ? (
+            <div className="flex flex-col divide-y divide-line">
+              {purchases.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"
+                >
+                  <span className="font-medium text-ink">{p.package}</span>
+                  <span className="text-muted-600">{p.credits} credits</span>
+                  <span className="text-muted-600">
+                    {dateFmt.format(new Date(p.created_at))}
+                  </span>
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 text-xs ${
+                      p.status === 'paid'
+                        ? 'bg-[#e7f6ec] text-[#0ba02c]'
+                        : 'bg-surface-alt text-muted'
+                    }`}
+                  >
+                    {p.status}
+                  </span>
+                  <span className="font-medium text-ink">
+                    ${p.amount_usd.toLocaleString()}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      downloadInvoice(p, {
+                        company_name: employer?.company_name,
+                        business_email: employer?.business_email,
+                      })
+                    }
+                    className="flex items-center gap-1.5 rounded-[3px] border border-line px-3 py-1.5 text-xs font-semibold text-ink-600 hover:bg-surface-alt"
+                  >
+                    <DownloadIcon className="size-4" />
+                    Invoice
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="py-6 text-center text-sm text-muted">
+              {loading ? 'Loading…' : 'No purchases yet.'}
+            </p>
+          )}
         </InfoCard>
+
+        <InfoCard title="Credit Usage">
+          {usage.length > 0 ? (
+            <div className="flex flex-col divide-y divide-line">
+              {usage.map((u) => (
+                <div
+                  key={u.id}
+                  className="flex items-center justify-between gap-3 py-3 text-sm"
+                >
+                  <span className="text-ink-600">{u.reason ?? 'Credit spent'}</span>
+                  <span className="text-muted-600">
+                    {dateFmt.format(new Date(u.created_at))}
+                  </span>
+                  <span className="font-medium text-ink">-{u.credits}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="py-6 text-center text-sm text-muted">
+              {loading ? 'Loading…' : 'No credits spent yet.'}
+            </p>
+          )}
+        </InfoCard>
+
       </div>
     </EmployerDashboardLayout>
   )

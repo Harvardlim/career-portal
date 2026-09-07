@@ -2,12 +2,13 @@ import { Link } from 'react-router-dom'
 import type { Job } from '@/data/jobs'
 import { MapPinIcon } from '@/components/icons'
 import { CompanyLogo } from '@/components/jobs/CompanyLogo'
+import { SaveJobButton } from '@/components/jobs/SaveJobButton'
 
 export function JobCard({ job }: { job: Job }) {
   return (
     <Link
-      to="/job-detail"
-      className={`flex flex-col gap-6 rounded-xl border p-8 transition-shadow ${
+      to={job.slug ? `/job/${job.slug}` : '/job-detail'}
+      className={`relative flex flex-col gap-6 rounded-xl border p-8 transition-shadow ${
         job.highlighted
           ? 'border-brand shadow-feature'
           : job.featured
@@ -15,6 +16,13 @@ export function JobCard({ job }: { job: Job }) {
             : 'border-line-soft hover:shadow-feature'
       }`}
     >
+      {job.jobId && (
+        <SaveJobButton
+          jobId={job.jobId}
+          size="sm"
+          className="absolute right-4 top-4"
+        />
+      )}
       <div className="flex items-start gap-4">
         <CompanyLogo bg={job.logoBg} lightLogo={job.lightLogo} />
         <div className="flex flex-col gap-1.5">

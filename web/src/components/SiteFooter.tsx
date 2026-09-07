@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import {
   ArrowRightIcon,
   BriefcaseIcon,
@@ -8,7 +9,7 @@ import {
   YoutubeIcon,
 } from '@/components/icons'
 
-type FooterLink = { label: string; active?: boolean }
+type FooterLink = { label: string; active?: boolean; to?: string }
 
 const columns: { title: string; links: FooterLink[] }[] = [
   {
@@ -16,7 +17,7 @@ const columns: { title: string; links: FooterLink[] }[] = [
     links: [
       { label: 'About' },
       { label: 'Contact', active: true },
-      { label: 'Pricing' },
+      { label: 'Affiliate Program', to: '/affiliate' },
       { label: 'Blog' },
     ],
   },
@@ -58,7 +59,7 @@ export function SiteFooter() {
           <div className="flex flex-col gap-6">
             <div className="flex items-center gap-2">
               <BriefcaseIcon className="size-10 text-white" />
-              <span className="text-2xl font-semibold">MyJob</span>
+              <span className="text-2xl font-semibold">Partly Asia</span>
             </div>
             <div className="flex flex-col gap-3">
               <p className="text-lg">
@@ -76,21 +77,30 @@ export function SiteFooter() {
             <div key={col.title} className="flex flex-col gap-4">
               <h3 className="text-xl font-medium">{col.title}</h3>
               <ul className="flex flex-col gap-1">
-                {col.links.map((link) => (
-                  <li key={link.label}>
-                    <a
-                      href="#"
-                      className={
-                        link.active
-                          ? 'flex items-center gap-1.5 py-1.5 text-base font-medium text-white'
-                          : 'flex items-center gap-1 py-1.5 text-base text-muted-400 transition-colors hover:text-white'
-                      }
-                    >
+                {col.links.map((link) => {
+                  const className = link.active
+                    ? 'flex items-center gap-1.5 py-1.5 text-base font-medium text-white'
+                    : 'flex items-center gap-1 py-1.5 text-base text-muted-400 transition-colors hover:text-white'
+                  const content = (
+                    <>
                       {link.active && <ArrowRightIcon className="size-5" />}
                       {link.label}
-                    </a>
-                  </li>
-                ))}
+                    </>
+                  )
+                  return (
+                    <li key={link.label}>
+                      {link.to ? (
+                        <Link to={link.to} className={className}>
+                          {content}
+                        </Link>
+                      ) : (
+                        <a href="#" className={className}>
+                          {content}
+                        </a>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           ))}
@@ -100,7 +110,7 @@ export function SiteFooter() {
       <div className="border-t border-white/10">
         <div className="mx-auto flex w-full max-w-[1320px] flex-col items-center justify-between gap-4 px-6 py-6 sm:flex-row lg:px-10">
           <p className="text-sm text-muted">
-            @ 2024 MyJob - Job Portal. All rights Rserved
+            © 2024 Partly Asia. All rights reserved
           </p>
           <div className="flex items-center gap-3">
             {socials.map((Icon, i) => (

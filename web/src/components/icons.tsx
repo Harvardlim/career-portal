@@ -1,7 +1,7 @@
 import type { SVGProps } from 'react'
 
 /**
- * Icon set for the MyJob home page.
+ * Icon set for the Partly Asia home page.
  *
  * The Figma design uses Feather (UI) and Phosphor "duotone" (feature) icon
  * families. These are re-authored as single-colour inline SVGs that inherit

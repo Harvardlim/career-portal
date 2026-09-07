@@ -6,8 +6,8 @@ type Props = {
   icon: ReactNode
   label: string
   value: string
-  delta: string
-  dir: 'up' | 'down'
+  delta?: string
+  dir?: 'up' | 'down'
 }
 
 export const StatCard = ({ icon, label, value, delta, dir }: Props) => (
@@ -23,7 +23,7 @@ export const StatCard = ({ icon, label, value, delta, dir }: Props) => (
     </div>
     <div className="mt-3 flex items-center gap-2">
       <span className="text-[24px] font-semibold text-ink">{value}</span>
-      <Delta value={delta} dir={dir} />
+      {delta && dir ? <Delta value={delta} dir={dir} /> : null}
     </div>
   </Card>
 )

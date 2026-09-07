@@ -1,86 +1,66 @@
+import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { PostJobPricingPage } from '@/pages/employer/PostJobPricingPage'
 import { Dialog } from '@/components/app/Dialog'
+import { startCheckout, type CreditPackageKey } from '@/lib/stripe'
 import { ArrowRightIcon } from '@/components/icons'
 
+const PACKAGES: Record<CreditPackageKey, { label: string; price: string; credits: string }> = {
+  standard: { label: 'Standard', price: '$999.00', credits: '3 credits' },
+  referral: { label: 'Referral', price: '$499.00', credits: '3 credits' },
+  repeat_1: { label: '1st repeat purchase', price: '$399.00', credits: '3 credits' },
+  repeat_2: { label: '2nd repeat purchase', price: '$199.00', credits: '5 credits' },
+}
+
 export function CheckoutPage() {
+  const [params] = useSearchParams()
+  const raw = params.get('pkg') as CreditPackageKey | null
+  const pkg: CreditPackageKey = raw && raw in PACKAGES ? raw : 'standard'
+  const info = PACKAGES[pkg]
+  const [pending, setPending] = useState(false)
+
+  async function pay() {
+    setPending(true)
+    try {
+      await startCheckout({ kind: 'credits', pkg })
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not start checkout')
+      setPending(false)
+    }
+  }
+
   return (
     <>
       <PostJobPricingPage />
-      <Dialog closeTo="/employer/pricing" width="max-w-[720px]">
+      <Dialog closeTo="/employer/pricing" width="max-w-[480px]">
         <div className="flex flex-col gap-6 p-8">
           <h2 className="text-xl font-medium text-ink">Checkout</h2>
-          <div className="grid gap-8 border-t border-line pt-6 sm:grid-cols-[1fr_280px]">
-            <div className="flex flex-col gap-4">
-              <p className="text-sm font-medium text-ink">Payment System</p>
-              <div className="flex gap-6 border-b border-line text-sm">
-                <span className="-mb-px border-b-2 border-brand pb-2 font-medium text-brand">
-                  Debit/Credit Card
-                </span>
-                <span className="pb-2 text-muted-600">Paypal</span>
-              </div>
-
-              <label className="flex items-center gap-3 rounded-lg border border-line p-3 text-sm">
-                <input type="radio" name="card" className="size-4 accent-brand" />
-                <span className="flex flex-1 items-center justify-between">
-                  <span className="flex flex-col">
-                    <span className="text-xs text-muted">Card Number</span>
-                    <span className="font-medium text-ink">5847 **** **** ****</span>
-                  </span>
-                  <span className="flex flex-col text-right">
-                    <span className="text-xs text-muted">Name on Card</span>
-                    <span className="font-medium text-ink">Esther Howard</span>
-                  </span>
-                </span>
-              </label>
-              <label className="flex items-center gap-3 rounded-lg border border-brand p-3 text-sm">
-                <input type="radio" name="card" defaultChecked className="size-4 accent-brand" />
-                New payment card
-              </label>
-
-              <label className="flex flex-col gap-2 text-sm text-ink">
-                Name on Card
-                <input
-                  placeholder="Name"
-                  className="h-12 rounded-md border border-line px-4 text-base text-ink outline-none focus:border-brand placeholder:text-muted-400"
-                />
-              </label>
-              <label className="flex flex-col gap-2 text-sm text-ink">
-                Credit Card
-                <div className="flex h-12 items-center gap-3 rounded-md border border-line px-4 text-base text-muted-400">
-                  <input
-                    placeholder="Card number"
-                    className="flex-1 bg-transparent text-ink outline-none placeholder:text-muted-400"
-                  />
-                  <span>MM/YY</span>
-                  <span>CVC</span>
-                </div>
-              </label>
+          <div className="flex flex-col gap-3 rounded-lg border border-line p-4">
+            <div className="flex justify-between text-sm text-muted-600">
+              <span>
+                Package: <span className="text-ink">{info.label}</span>
+              </span>
+              <span>{info.credits}</span>
             </div>
-
-            <div className="flex flex-col gap-3 rounded-lg border border-line p-4">
-              <p className="text-sm font-medium text-ink">Summery</p>
-              <div className="flex justify-between text-sm text-muted-600">
-                <span>
-                  Pricing Plans: <span className="text-ink">Premium</span>
-                </span>
-                <span>$59.00</span>
-              </div>
-              <div className="flex justify-between border-t border-line pt-3 text-sm font-medium text-ink">
-                <span>Total:</span>
-                <span>$59 USD</span>
-              </div>
-              <button
-                type="button"
-                className="mt-2 flex items-center justify-center gap-2 rounded-[4px] bg-brand px-6 py-3 text-sm font-semibold text-white"
-              >
-                Choose Plan
-                <ArrowRightIcon className="size-4" />
-              </button>
-              <p className="text-center text-xs text-muted">
-                This package will expire after one month.
-              </p>
+            <div className="flex justify-between border-t border-line pt-3 text-sm font-medium text-ink">
+              <span>Total</span>
+              <span>{info.price} USD</span>
             </div>
           </div>
+          <p className="text-sm text-muted-600">
+            Payments are processed securely by Stripe. You&apos;ll be redirected to
+            Stripe to enter your card details, then brought back here.
+          </p>
+          <button
+            type="button"
+            onClick={pay}
+            disabled={pending}
+            className="flex items-center justify-center gap-2 rounded-[4px] bg-brand px-6 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {pending ? 'Redirecting…' : 'Pay with Stripe'}
+            <ArrowRightIcon className="size-4" />
+          </button>
         </div>
       </Dialog>
     </>

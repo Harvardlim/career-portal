@@ -1,6 +1,38 @@
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Button } from './ui'
-import { IconChevronDown, IconChevronLeft, IconChevronRight, IconSearch } from './Icons'
+import { SelectMenu } from './SelectMenu'
+import { IconChevronLeft, IconChevronRight, IconSearch } from './Icons'
+
+export const PAGE_SIZES = [10, 25, 50]
+
+export const lc = (v: string | null | undefined) => (v ?? '').toLowerCase()
+
+/** Client-side search + pagination for a list table. */
+export function useTableView<T>(rows: T[], matches: (row: T, q: string) => boolean) {
+  const [query, setQuery] = useState('')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+
+  const q = query.trim().toLowerCase()
+  const filtered = q ? rows.filter((r) => matches(r, q)) : rows
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize))
+
+  useEffect(() => setPage(1), [query, pageSize])
+  useEffect(() => {
+    if (page > pageCount) setPage(pageCount)
+  }, [page, pageCount])
+
+  return {
+    query,
+    setQuery,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    filtered,
+    paged: filtered.slice((page - 1) * pageSize, page * pageSize),
+  }
+}
 
 export const ListTopBar = ({
   title,
@@ -59,44 +91,116 @@ export const SortHead = ({ icon, label }: { icon: ReactNode; label: string }) =>
 export const ListCard = ({
   title,
   range,
+  toolbar,
   children,
 }: {
   title: string
   range: string
+  toolbar?: ReactNode
   children: ReactNode
 }) => (
   <div className="rounded-[12px] border border-line bg-surface shadow-card">
-    <div className="flex items-center justify-between px-6 py-5">
+    <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-5">
       <h2 className="text-[17px] font-semibold text-ink">{title}</h2>
-      <span className="text-[13px] font-medium text-muted">
-        <span className="gradient-brand-text font-semibold">{range}</span>
-      </span>
+      <div className="flex items-center gap-3">
+        {toolbar}
+        <span className="text-[13px] font-medium text-muted">
+          <span className="gradient-brand-text font-semibold">{range}</span>
+        </span>
+      </div>
     </div>
     <div className="overflow-x-auto">{children}</div>
   </div>
 )
 
+/** Compact search box for list toolbars. */
+export const TableSearch = ({
+  value,
+  onChange,
+  placeholder = 'Search…',
+}: {
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+}) => (
+  <label className="flex w-[220px] items-center gap-2 rounded-lg border border-line bg-surface-2 px-3 py-1.5">
+    <IconSearch width={15} height={15} className="text-muted" />
+    <input
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="w-full bg-transparent text-[13px] text-ink-200 placeholder:text-muted focus:outline-none"
+    />
+  </label>
+)
+
 export const ListFooter = ({ total }: { total: string }) => (
-  <div className="flex flex-wrap items-center justify-between gap-4 px-1 pt-2 text-[13px] text-muted">
-    <span>{total}</span>
-    <div className="flex items-center gap-4">
-      <span className="flex items-center gap-2">
-        Rows per page:
-        <button className="flex items-center gap-1.5 rounded-md border border-line px-2 py-1 text-ink-200">
-          10 <IconChevronDown width={12} height={12} />
-        </button>
+  <div className="px-1 pt-2 text-[13px] text-muted">{total}</div>
+)
+
+const DEFAULT_PAGE_SIZES = [10, 20, 50]
+
+export const Pagination = ({
+  page,
+  pageSize,
+  total,
+  onPageChange,
+  onPageSizeChange,
+  pageSizeOptions = DEFAULT_PAGE_SIZES,
+}: {
+  page: number
+  pageSize: number
+  total: number
+  onPageChange: (page: number) => void
+  onPageSizeChange: (size: number) => void
+  pageSizeOptions?: number[]
+}) => {
+  const pageCount = Math.max(1, Math.ceil(total / pageSize))
+  const from = total === 0 ? 0 : (page - 1) * pageSize + 1
+  const to = Math.min(page * pageSize, total)
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-4 px-1 pt-3 text-[13px] text-muted">
+      <span>
+        {from}–{to} of {total}
       </span>
-      <div className="flex items-center gap-2">
-        <button className="grid size-8 place-items-center rounded-md border border-line hover:text-ink-200">
-          <IconChevronLeft width={15} height={15} />
-        </button>
-        <button className="grid size-8 place-items-center rounded-md border border-line hover:text-ink-200">
-          <IconChevronRight width={15} height={15} />
-        </button>
+      <div className="flex items-center gap-4">
+        <span className="flex items-center gap-2">
+          Rows per page:
+          <SelectMenu
+            className="w-[76px]"
+            value={String(pageSize)}
+            onChange={(v) => onPageSizeChange(Number(v))}
+            options={pageSizeOptions.map((n) => ({ value: String(n), label: String(n) }))}
+          />
+        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="Previous page"
+            disabled={page <= 1}
+            onClick={() => onPageChange(page - 1)}
+            className="grid size-8 place-items-center rounded-md border border-line hover:text-ink-200 disabled:opacity-40"
+          >
+            <IconChevronLeft width={15} height={15} />
+          </button>
+          <span className="tabular-nums text-ink-200">
+            {page} / {pageCount}
+          </span>
+          <button
+            type="button"
+            aria-label="Next page"
+            disabled={page >= pageCount}
+            onClick={() => onPageChange(page + 1)}
+            className="grid size-8 place-items-center rounded-md border border-line hover:text-ink-200 disabled:opacity-40"
+          >
+            <IconChevronRight width={15} height={15} />
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-)
+  )
+}
 
 export const RowActions = () => (
   <span className="flex items-center justify-end gap-3 text-muted">

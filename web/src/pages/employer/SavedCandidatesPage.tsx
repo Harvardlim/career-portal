@@ -1,89 +1,114 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
 import { EmployerDashboardLayout } from '@/components/dashboard/EmployerDashboardLayout'
-import { ArrowRightIcon, BookmarkIcon, MoreIcon } from '@/components/icons'
-
-const saved = [
-  { name: 'Guy Hawkins', role: 'Techical Support Specialist' },
-  { name: 'Jacob Jones', role: 'Product Designer' },
-  { name: 'Cameron Williamson', role: 'Marketing Officer', highlighted: true },
-  { name: 'Robert Fox', role: 'Marketing Manager' },
-  { name: 'Kathryn Murphy', role: 'Junior Graphic Designer' },
-  { name: 'Darlene Robertson', role: 'Visual Designer' },
-  { name: 'Kristin Watson', role: 'Senior UX Designer' },
-  { name: 'Jenny Wilson', role: 'Interaction Designer' },
-  { name: 'Marvin McKinney', role: 'Networking Engineer' },
-  { name: 'Theresa Webb', role: 'Software Engineer' },
-]
-
-function Row({ c }: { c: (typeof saved)[number] }) {
-  const [menu, setMenu] = useState(false)
-  return (
-    <div
-      className={`flex items-center justify-between gap-4 rounded-lg border p-4 ${
-        c.highlighted ? 'border-brand shadow-feature' : 'border-transparent'
-      }`}
-    >
-      <div className="flex items-center gap-4">
-        <span className="size-12 shrink-0 rounded-md bg-muted-slate/40" />
-        <span className="flex flex-col">
-          <span className="font-medium text-ink">{c.name}</span>
-          <span className="text-sm text-muted">{c.role}</span>
-        </span>
-      </div>
-      <div className="flex items-center gap-3">
-        <button type="button" aria-label="Saved" className="text-brand">
-          <BookmarkIcon className="size-6 fill-current" />
-        </button>
-        <Link
-          to="/send-email"
-          className={`flex items-center gap-2 rounded-[3px] px-5 py-2.5 text-sm font-semibold ${
-            c.highlighted ? 'bg-brand text-white' : 'bg-brand-50 text-brand hover:bg-brand-100'
-          }`}
-        >
-          View Profile
-          <ArrowRightIcon className="size-4" />
-        </Link>
-        <div className="relative">
-          <button
-            type="button"
-            aria-label="Options"
-            onClick={() => setMenu((v) => !v)}
-            className="grid size-9 place-items-center rounded text-muted hover:bg-surface-alt"
-          >
-            <MoreIcon className="size-5" />
-          </button>
-          {menu && (
-            <div className="absolute right-0 top-10 z-10 w-40 rounded-lg border border-line bg-surface py-1 text-sm shadow-lg">
-              <button className="block w-full px-4 py-2 text-left text-ink-600 hover:bg-surface-alt">
-                Send Email
-              </button>
-              <button className="block w-full px-4 py-2 text-left text-ink-600 hover:bg-surface-alt">
-                Download Cv
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
+import { BookmarkIcon } from '@/components/icons'
+import { errMessage } from '@/lib/errors'
+import { initialsFromName } from '@/lib/name'
+import {
+  fetchSavedCandidates,
+  unsaveCandidate,
+  useEmployer,
+  type SavedCandidateRow,
+} from '@/lib/employers'
 
 export function SavedCandidatesPage() {
+  const { employer, loading: employerLoading } = useEmployer()
+  const [rows, setRows] = useState<SavedCandidateRow[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const load = useCallback(() => {
+    if (!employer) return
+    setLoading(true)
+    fetchSavedCandidates(employer.id)
+      .then(setRows)
+      .catch((err) => console.error('saved candidates', err))
+      .finally(() => setLoading(false))
+  }, [employer])
+
+  useEffect(() => {
+    if (!employer) {
+      if (!employerLoading) setLoading(false)
+      return
+    }
+    load()
+  }, [employer, employerLoading, load])
+
+  async function remove(candidateId: string) {
+    if (!employer) return
+    setRows((r) => r.filter((x) => x.candidate?.id !== candidateId))
+    try {
+      await unsaveCandidate(employer.id, candidateId)
+    } catch (err) {
+      toast.error(errMessage(err))
+      load()
+    }
+  }
+
   return (
     <EmployerDashboardLayout>
       <div className="flex flex-col gap-5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-lg font-medium text-ink">Saved Cadidates</h1>
-          <p className="text-sm text-muted">
-            All of the candidates are visible until 24 march, 2021
+        <h1 className="text-lg font-medium text-ink">
+          Saved Candidates <span className="text-muted">({rows.length})</span>
+        </h1>
+
+        {rows.length > 0 ? (
+          <div className="flex flex-col gap-3">
+            {rows.map((rec) => {
+              const c = rec.candidate
+              if (!c) return null
+              return (
+                <div
+                  key={rec.id}
+                  className="flex items-center justify-between gap-4 rounded-lg border border-line p-4"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="grid size-12 shrink-0 place-items-center rounded-md bg-brand-50 text-sm font-semibold text-brand">
+                      {initialsFromName(c.full_name) || '?'}
+                    </span>
+                    <span className="flex flex-col">
+                      <span className="font-medium text-ink">{c.full_name}</span>
+                      <span className="text-sm text-muted">
+                        {c.title || c.expertise_field?.[0] || '—'}
+                        {c.years_experience ? ` · ${c.years_experience}` : ''}
+                      </span>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {rec.application_id && (
+                      <Link
+                        to={`/employer/applications/applicant?id=${rec.application_id}`}
+                        className="rounded-[3px] border border-line px-4 py-2 text-sm font-semibold text-ink-600 hover:bg-surface-alt"
+                      >
+                        View Details
+                      </Link>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => remove(c.id)}
+                      aria-label="Remove from saved"
+                      className="grid size-9 place-items-center rounded text-brand hover:bg-surface-alt"
+                    >
+                      <BookmarkIcon className="size-5 fill-current" />
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <p className="rounded-lg bg-surface-alt px-4 py-12 text-center text-sm text-muted">
+            {loading
+              ? 'Loading…'
+              : 'No saved candidates yet. Save applicants from the '}
+            {!loading && (
+              <Link to="/employer/applications" className="font-medium text-brand">
+                Applications
+              </Link>
+            )}
+            {!loading && ' board.'}
           </p>
-        </div>
-        <div className="flex flex-col divide-y divide-line">
-          {saved.map((c) => (
-            <Row key={c.name} c={c} />
-          ))}
-        </div>
+        )}
       </div>
     </EmployerDashboardLayout>
   )

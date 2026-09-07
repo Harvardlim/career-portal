@@ -1,6 +1,11 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { IconArrowDownRight, IconArrowUpRight } from './Icons'
 
+/** Shared styling for single-line form controls (text inputs and the
+ *  SelectMenu trigger) so they line up on height, radius, border and padding. */
+export const controlClass =
+  'h-9 w-full rounded-lg border border-line bg-surface-2 px-3 text-[13px] text-ink placeholder:text-muted transition focus:border-brand-2 focus:outline-none disabled:opacity-50'
+
 export const Card = ({
   children,
   className = '',

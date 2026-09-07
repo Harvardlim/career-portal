@@ -15,9 +15,11 @@ import { EmployerDetailPage } from './pages/EmployerDetailPage'
 import { BrowseCandidatePage } from './pages/BrowseCandidatePage'
 import { SendEmailPage } from './pages/SendEmailPage'
 import { DashboardOverviewPage } from './pages/dashboard/DashboardOverviewPage'
+import { MembershipPage } from './pages/dashboard/MembershipPage'
 import { AppliedJobsPage } from './pages/dashboard/AppliedJobsPage'
 import { FavoriteJobsPage } from './pages/dashboard/FavoriteJobsPage'
-import { JobAlertsPage } from './pages/dashboard/JobAlertsPage'
+import { PriorityMatchPage } from './pages/dashboard/PriorityMatchPage'
+import { CandidateAffiliatePage } from './pages/dashboard/CandidateAffiliatePage'
 import { SettingsPage } from './pages/dashboard/SettingsPage'
 import {
   CompanyInfoStep,
@@ -26,6 +28,8 @@ import {
   CompanyContactStep,
   CompanyRegisterSuccess,
 } from './pages/company/CompanyRegisterPages'
+import { CandidateRegisterPage } from './pages/candidate/CandidateRegisterPage'
+import { EmployerRegisterPage } from './pages/employer/EmployerRegisterPage'
 import { EmployerDashboardPage } from './pages/employer/EmployerDashboardPage'
 import { PostJobPage } from './pages/employer/PostJobPage'
 import { MyJobsPage } from './pages/employer/MyJobsPage'
@@ -35,6 +39,8 @@ import { JobApplicationsPage } from './pages/employer/JobApplicationsPage'
 import { SingleApplicantPage } from './pages/employer/SingleApplicantPage'
 import { SavedCandidatesPage } from './pages/employer/SavedCandidatesPage'
 import { PlansBillingPage } from './pages/employer/PlansBillingPage'
+import { EmployerAffiliatePage } from './pages/employer/EmployerAffiliatePage'
+import { EmployerSettingsPage } from './pages/employer/EmployerSettingsPage'
 import {
   AddColumnPage,
   PostJobSuccessPage,
@@ -43,11 +49,13 @@ import {
 import { BlogPage } from './pages/BlogPage'
 import { SingleBlogPage } from './pages/SingleBlogPage'
 import { AboutPage } from './pages/AboutPage'
+import { AffiliatePage } from './pages/AffiliatePage'
 import { ContactPage } from './pages/ContactPage'
 import { FaqPage } from './pages/FaqPage'
 import { TermsPage } from './pages/TermsPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { ComingSoonPage } from './pages/ComingSoonPage'
+import { PricingPage } from './pages/pricing/PricingPage'
 
 export const router = createBrowserRouter([
   {
@@ -57,6 +65,7 @@ export const router = createBrowserRouter([
       { path: '/blog', element: <BlogPage /> },
       { path: '/blog/post', element: <SingleBlogPage /> },
       { path: '/about', element: <AboutPage /> },
+      { path: '/affiliate', element: <AffiliatePage /> },
       { path: '/contact', element: <ContactPage /> },
       { path: '/faq', element: <FaqPage /> },
       { path: '/terms', element: <TermsPage /> },
@@ -69,23 +78,31 @@ export const router = createBrowserRouter([
   { path: '/forgot-password', element: <ForgotPasswordPage /> },
   { path: '/email-verification', element: <EmailVerificationPage /> },
   { path: '/reset-password', element: <ResetPasswordPage /> },
+  { path: '/pricing', element: <PricingPage audience="candidate" /> },
+  { path: '/pricing/candidate', element: <PricingPage audience="candidate" /> },
+  { path: '/pricing/employer', element: <PricingPage audience="employer" /> },
   { path: '/find-job', element: <FindJobPage /> },
   { path: '/find-job-list', element: <FindJobListPage /> },
   { path: '/find-job-filter', element: <FindJobPage filterOpen /> },
   { path: '/job-detail', element: <JobDetailPage /> },
+  { path: '/job/:slug', element: <JobDetailPage /> },
   { path: '/apply-job', element: <ApplyJobPage /> },
   { path: '/browse-employer', element: <BrowseEmployerPage /> },
   { path: '/employer-detail', element: <EmployerDetailPage /> },
   { path: '/browse-candidate', element: <BrowseCandidatePage /> },
   { path: '/send-email', element: <SendEmailPage /> },
   { path: '/dashboard', element: <DashboardOverviewPage /> },
+  { path: '/dashboard/membership', element: <MembershipPage /> },
   { path: '/dashboard/applied-jobs', element: <AppliedJobsPage /> },
   { path: '/dashboard/favorite-jobs', element: <FavoriteJobsPage /> },
-  { path: '/dashboard/job-alerts', element: <JobAlertsPage /> },
+  { path: '/dashboard/priority-match', element: <PriorityMatchPage /> },
+  { path: '/dashboard/affiliate', element: <CandidateAffiliatePage /> },
   { path: '/dashboard/settings', element: <SettingsPage tab="personal" /> },
   { path: '/dashboard/settings/profile', element: <SettingsPage tab="profile" /> },
-  { path: '/dashboard/settings/social', element: <SettingsPage tab="social" /> },
   { path: '/dashboard/settings/account', element: <SettingsPage tab="account" /> },
+
+  { path: '/candidate/register', element: <CandidateRegisterPage /> },
+  { path: '/employer/register', element: <EmployerRegisterPage /> },
 
   { path: '/company/register', element: <CompanyInfoStep /> },
   { path: '/company/register/founding', element: <FoundingInfoStep /> },
@@ -105,4 +122,6 @@ export const router = createBrowserRouter([
   { path: '/employer/applications/add-column', element: <AddColumnPage /> },
   { path: '/employer/saved-candidates', element: <SavedCandidatesPage /> },
   { path: '/employer/billing', element: <PlansBillingPage /> },
+  { path: '/employer/affiliate', element: <EmployerAffiliatePage /> },
+  { path: '/employer/settings', element: <EmployerSettingsPage /> },
 ])

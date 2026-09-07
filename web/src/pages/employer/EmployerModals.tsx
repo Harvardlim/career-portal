@@ -1,55 +1,13 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { PostJobPage } from '@/pages/employer/PostJobPage'
 import { MyJobsPage } from '@/pages/employer/MyJobsPage'
-import { JobApplicationsPage } from '@/pages/employer/JobApplicationsPage'
 import { Dialog } from '@/components/app/Dialog'
 import { ArrowRightIcon, CheckIcon } from '@/components/icons'
 
+/** Custom kanban columns were dropped in favour of the four fixed statuses. */
 export function AddColumnPage() {
-  const navigate = useNavigate()
-  return (
-    <>
-      <JobApplicationsPage />
-      <Dialog closeTo="/employer/applications" width="max-w-[480px]">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            navigate('/employer/applications')
-          }}
-          className="flex flex-col gap-6 p-8"
-        >
-          <h2 className="text-lg font-medium text-ink">Add New Column</h2>
-          <label className="flex flex-col gap-2 text-sm text-ink">
-            Column Name
-            <input
-              className="h-12 rounded-md border border-line px-4 text-base text-ink outline-none focus:border-brand"
-            />
-          </label>
-          <div className="flex items-center justify-between">
-            <button
-              type="button"
-              onClick={() => navigate('/employer/applications')}
-              className="rounded-[4px] bg-brand-50 px-6 py-3 text-sm font-semibold text-brand"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="rounded-[4px] bg-brand px-6 py-3 text-sm font-semibold text-white"
-            >
-              Add Column
-            </button>
-          </div>
-        </form>
-      </Dialog>
-    </>
-  )
+  return <Navigate to="/employer/applications" replace />
 }
-
-/**
- * The Figma nodes for these two modals only contain the dark overlay rectangle,
- * so the content follows the MyJob template's standard success / promote dialogs.
- */
 
 export function PostJobSuccessPage() {
   return (
