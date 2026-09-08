@@ -8,23 +8,51 @@ export type ResolvedAccount = {
   needsConfirm: boolean
 }
 
+export type EmailLookup = {
+  /** Existing profile role for this email, if any. */
+  role: 'candidate' | 'employer' | null
+  /** The current session already belongs to this same email. */
+  signedInSameUser: boolean
+}
+
+/** Check whether an email is already registered (and as which role), and
+ *  whether the person is already signed in with that same email. */
+export async function lookupEmail(email: string): Promise<EmailLookup> {
+  const e = email.trim()
+  const [sessionRes, candRes, empRes] = await Promise.all([
+    supabase.auth.getSession(),
+    supabase.from('candidates').select('id').ilike('email', e).maybeSingle(),
+    supabase.from('employers').select('id').ilike('business_email', e).maybeSingle(),
+  ])
+  const sessionEmail = sessionRes.data.session?.user.email?.toLowerCase()
+  return {
+    role: candRes.data ? 'candidate' : empRes.data ? 'employer' : null,
+    signedInSameUser: !!sessionEmail && sessionEmail === e.toLowerCase(),
+  }
+}
+
 /**
  * Work out which auth user a new candidate/employer profile should attach to.
  *
+ * - Already signed in as this same email → use that account (no new password).
  * - New email → sign up. With email confirmation on there's no session yet.
  * - Email already registered + the same password → sign in, so a second profile
- *   (e.g. an employer profile on an account that already has a candidate one)
  *   can be added to the SAME auth user.
  * - Email already registered + a different password → throws.
- *
- * This avoids the `employers_user_id_fkey` / `candidates_user_id_fkey` violation
- * that happened when a duplicate signUp returned an obfuscated user whose id
- * isn't a real auth.users row.
  */
 export async function resolveAccountForRegister(
   email: string,
   password: string,
 ): Promise<ResolvedAccount> {
+  const { data: sessionData } = await supabase.auth.getSession()
+  const session = sessionData.session
+  if (
+    session?.user.email &&
+    session.user.email.toLowerCase() === email.trim().toLowerCase()
+  ) {
+    return { userId: session.user.id, needsConfirm: false }
+  }
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -45,7 +73,7 @@ export async function resolveAccountForRegister(
     await supabase.auth.signInWithPassword({ email, password })
   if (signInError || !signIn.user) {
     throw new Error(
-      'This email is already registered. Enter its existing password to add this profile to your account, or sign in.',
+      'This email is already registered. Sign in to that account first, then add this profile.',
     )
   }
   return { userId: signIn.user.id, needsConfirm: false }

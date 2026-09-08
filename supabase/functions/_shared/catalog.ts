@@ -62,7 +62,7 @@ export const MEMBERSHIP_PLANS: Record<MembershipPlanKey, MembershipPlan> = {
 // first qualifying purchase. USD. Keep in sync with the tiers shown on
 // web/src/pages/AffiliatePage.tsx. Packages not listed pay nothing.
 export const CREDIT_COMMISSION_USD: Record<CreditPackageKey, number> = {
-  standard: 150, // $999
+  standard: 99, // $999
   referral: 99, // $499
   repeat_1: 0,
   repeat_2: 30, // $199

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
@@ -13,7 +13,9 @@ import { supabase } from '@/lib/supabase'
 import { useCategoryNames } from '@/lib/categories'
 import { errMessage } from '@/lib/errors'
 import { recordReferralAtSignup } from '@/lib/affiliate'
-import { resolveAccountForRegister } from '@/lib/registerAccount'
+import { lookupEmail, resolveAccountForRegister } from '@/lib/registerAccount'
+import { RegisteredEmailDialog } from '@/components/auth/RegisteredEmailDialog'
+import { useSession } from '@/lib/useSession'
 import {
   BriefcaseIcon,
   BuildingIcon,
@@ -53,6 +55,7 @@ const initialState: FormState = {
 export function EmployerRegisterPage() {
   const categoryOptions = useCategoryNames()
   const navigate = useNavigate()
+  const { session } = useSession()
   const [step, setStep] = useState(0)
   const [form, setForm] = useState<FormState>(initialState)
   const [consented, setConsented] = useState(false)
@@ -60,6 +63,13 @@ export function EmployerRegisterPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+  const [dupRole, setDupRole] = useState<'candidate' | 'employer' | null>(null)
+
+  // Already signed in — adding an employer profile to the same account.
+  const signedInEmail = session?.user.email ?? ''
+  useEffect(() => {
+    if (signedInEmail) setForm((f) => ({ ...f, businessEmail: signedInEmail }))
+  }, [signedInEmail])
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }))
@@ -83,7 +93,7 @@ export function EmployerRegisterPage() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
-    if (step === 0 && form.password !== form.confirmPassword) {
+    if (step === 0 && !session && form.password !== form.confirmPassword) {
       setError('Passwords do not match.')
       return
     }
@@ -110,6 +120,15 @@ export function EmployerRegisterPage() {
     setSubmitting(true)
     setError(null)
     try {
+      // If this email already belongs to a different account, stop and ask the
+      // person to sign in there first so the credentials stay the same.
+      const check = await lookupEmail(form.businessEmail)
+      if (check.role && !check.signedInSameUser) {
+        setDupRole(check.role)
+        setSubmitting(false)
+        return
+      }
+
       const { userId, needsConfirm } = await resolveAccountForRegister(
         form.businessEmail,
         form.password,
@@ -194,6 +213,13 @@ export function EmployerRegisterPage() {
 
         {step === 0 && (
           <>
+            {session && (
+              <p className="rounded-md bg-brand-50 px-4 py-3 text-sm text-brand">
+                You&apos;re signed in as <b>{signedInEmail}</b>. This will add an
+                employer profile to your existing account — no new password
+                needed.
+              </p>
+            )}
             <Field label="Company Name">
               <TextInput
                 required
@@ -217,31 +243,36 @@ export function EmployerRegisterPage() {
                 placeholder="you@company.com"
                 icon={<MailIcon className="size-5" />}
                 value={form.businessEmail}
+                readOnly={!!session}
                 onChange={(e) => update('businessEmail', e.target.value)}
               />
             </Field>
-            <Field label="Password">
-              <TextInput
-                required
-                type="password"
-                minLength={6}
-                placeholder="At least 6 characters"
-                autoComplete="new-password"
-                value={form.password}
-                onChange={(e) => update('password', e.target.value)}
-              />
-            </Field>
-            <Field label="Confirm Password">
-              <TextInput
-                required
-                type="password"
-                minLength={6}
-                placeholder="Re-enter your password"
-                autoComplete="new-password"
-                value={form.confirmPassword}
-                onChange={(e) => update('confirmPassword', e.target.value)}
-              />
-            </Field>
+            {!session && (
+              <>
+                <Field label="Password">
+                  <TextInput
+                    required
+                    type="password"
+                    minLength={6}
+                    placeholder="At least 6 characters"
+                    autoComplete="new-password"
+                    value={form.password}
+                    onChange={(e) => update('password', e.target.value)}
+                  />
+                </Field>
+                <Field label="Confirm Password">
+                  <TextInput
+                    required
+                    type="password"
+                    minLength={6}
+                    placeholder="Re-enter your password"
+                    autoComplete="new-password"
+                    value={form.confirmPassword}
+                    onChange={(e) => update('confirmPassword', e.target.value)}
+                  />
+                </Field>
+              </>
+            )}
           </>
         )}
 
@@ -287,6 +318,15 @@ export function EmployerRegisterPage() {
           nextDisabled={submitting || (isLastStep && !consented)}
         />
       </form>
+
+      {dupRole && (
+        <RegisteredEmailDialog
+          email={form.businessEmail}
+          existingRole={dupRole}
+          targetRole="employer"
+          onClose={() => setDupRole(null)}
+        />
+      )}
     </RegWizardLayout>
   )
 }

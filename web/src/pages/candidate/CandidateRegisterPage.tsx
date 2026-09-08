@@ -1,4 +1,4 @@
-import { useId, useState, type FormEvent } from 'react'
+import { useEffect, useId, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
@@ -13,7 +13,9 @@ import { experienceRanges } from '@/data/categories'
 import { supabase } from '@/lib/supabase'
 import { errMessage } from '@/lib/errors'
 import { recordReferralAtSignup } from '@/lib/affiliate'
-import { resolveAccountForRegister } from '@/lib/registerAccount'
+import { lookupEmail, resolveAccountForRegister } from '@/lib/registerAccount'
+import { RegisteredEmailDialog } from '@/components/auth/RegisteredEmailDialog'
+import { useSession } from '@/lib/useSession'
 import { useCategoryNames } from '@/lib/categories'
 import {
   BriefcaseIcon,
@@ -95,6 +97,7 @@ function ResumeUpload({
 export function CandidateRegisterPage() {
   const categoryOptions = useCategoryNames()
   const navigate = useNavigate()
+  const { session } = useSession()
   const [step, setStep] = useState(0)
   const [form, setForm] = useState<FormState>(initialState)
   const [resumeFile, setResumeFile] = useState<File | null>(null)
@@ -103,6 +106,12 @@ export function CandidateRegisterPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+  const [dupRole, setDupRole] = useState<'candidate' | 'employer' | null>(null)
+
+  const signedInEmail = session?.user.email ?? ''
+  useEffect(() => {
+    if (signedInEmail) setForm((f) => ({ ...f, email: signedInEmail }))
+  }, [signedInEmail])
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }))
@@ -147,7 +156,7 @@ export function CandidateRegisterPage() {
         toast.error('Please enter a valid email address.')
         return
       }
-      if (form.password !== form.confirmPassword) {
+      if (!session && form.password !== form.confirmPassword) {
         toast.error('Passwords do not match.')
         return
       }
@@ -171,6 +180,13 @@ export function CandidateRegisterPage() {
     setSubmitting(true)
     setError(null)
     try {
+      const check = await lookupEmail(form.email)
+      if (check.role && !check.signedInSameUser) {
+        setDupRole(check.role)
+        setSubmitting(false)
+        return
+      }
+
       const { userId, needsConfirm } = await resolveAccountForRegister(
         form.email,
         form.password,
@@ -267,8 +283,8 @@ export function CandidateRegisterPage() {
     form.fullName.trim() !== '' &&
     form.contactNumber.trim() !== '' &&
     isValidEmail(form.email) &&
-    form.password.length >= 6 &&
-    form.password === form.confirmPassword
+    (!!session ||
+      (form.password.length >= 6 && form.password === form.confirmPassword))
 
   return (
     <RegWizardLayout steps={steps} activeStep={step} progress={progress}>
@@ -279,6 +295,13 @@ export function CandidateRegisterPage() {
 
         {step === 0 && (
           <>
+            {session && (
+              <p className="rounded-md bg-brand-50 px-4 py-3 text-sm text-brand">
+                You&apos;re signed in as <b>{signedInEmail}</b>. This will add a
+                candidate profile to your existing account — no new password
+                needed.
+              </p>
+            )}
             <Field label="Name as Per IC">
               <TextInput
                 required
@@ -304,33 +327,38 @@ export function CandidateRegisterPage() {
                 placeholder="you@example.com"
                 icon={<MailIcon className="size-5" />}
                 value={form.email}
+                readOnly={!!session}
                 onChange={(e) => update('email', e.target.value)}
                 onBlur={handleEmailBlur}
               />
             </Field>
-            <Field label="Password">
-              <TextInput
-                required
-                type="password"
-                minLength={6}
-                placeholder="At least 6 characters"
-                autoComplete="new-password"
-                value={form.password}
-                onChange={(e) => update('password', e.target.value)}
-              />
-            </Field>
-            <Field label="Confirm Password">
-              <TextInput
-                required
-                type="password"
-                minLength={6}
-                placeholder="Re-enter your password"
-                autoComplete="new-password"
-                value={form.confirmPassword}
-                onChange={(e) => update('confirmPassword', e.target.value)}
-                onBlur={handleConfirmPasswordBlur}
-              />
-            </Field>
+            {!session && (
+              <>
+                <Field label="Password">
+                  <TextInput
+                    required
+                    type="password"
+                    minLength={6}
+                    placeholder="At least 6 characters"
+                    autoComplete="new-password"
+                    value={form.password}
+                    onChange={(e) => update('password', e.target.value)}
+                  />
+                </Field>
+                <Field label="Confirm Password">
+                  <TextInput
+                    required
+                    type="password"
+                    minLength={6}
+                    placeholder="Re-enter your password"
+                    autoComplete="new-password"
+                    value={form.confirmPassword}
+                    onChange={(e) => update('confirmPassword', e.target.value)}
+                    onBlur={handleConfirmPasswordBlur}
+                  />
+                </Field>
+              </>
+            )}
           </>
         )}
 
@@ -389,6 +417,15 @@ export function CandidateRegisterPage() {
           }
         />
       </form>
+
+      {dupRole && (
+        <RegisteredEmailDialog
+          email={form.email}
+          existingRole={dupRole}
+          targetRole="candidate"
+          onClose={() => setDupRole(null)}
+        />
+      )}
     </RegWizardLayout>
   )
 }

@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import {
   fetchMembership,
+  fetchMembershipHistory,
   membershipEndDate,
   useCandidate,
   type MembershipRecord,
@@ -14,7 +15,19 @@ import {
   startCheckout,
   type MembershipPlanKey,
 } from '@/lib/stripe'
-import { ArrowRightIcon, CheckIcon, StarIcon } from '@/components/icons'
+import { downloadInvoice } from '@/lib/invoice'
+import {
+  ArrowRightIcon,
+  CheckIcon,
+  DownloadIcon,
+  StarIcon,
+} from '@/components/icons'
+
+const dateFmt = new Intl.DateTimeFormat('en-US', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+})
 
 const plans: {
   name: string
@@ -63,6 +76,7 @@ const plans: {
 export function MembershipPage() {
   const { candidate } = useCandidate()
   const [membership, setMembership] = useState<MembershipRecord | null>(null)
+  const [history, setHistory] = useState<MembershipRecord[]>([])
   const [pendingPlan, setPendingPlan] = useState<MembershipPlanKey | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
   const location = useLocation()
@@ -95,8 +109,15 @@ export function MembershipPage() {
   useEffect(() => {
     if (!candidate) return
     let alive = true
-    fetchMembership(candidate.id)
-      .then((m) => alive && setMembership(m))
+    Promise.all([
+      fetchMembership(candidate.id),
+      fetchMembershipHistory(candidate.id),
+    ])
+      .then(([m, h]) => {
+        if (!alive) return
+        setMembership(m)
+        setHistory(h)
+      })
       .catch((err) => console.error('membership', err))
     return () => {
       alive = false
@@ -208,6 +229,59 @@ export function MembershipPage() {
             )
           })}
         </div>
+
+        {history.length > 0 && (
+          <div className="flex flex-col gap-2 rounded-xl border border-line p-6">
+            <h2 className="text-base font-medium text-ink">Purchase History</h2>
+            <div className="flex flex-col divide-y divide-line">
+              {history.map((h) => (
+                <div
+                  key={h.id}
+                  className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"
+                >
+                  <span className="font-medium text-ink">{h.plan}</span>
+                  <span className="text-muted-600">
+                    {dateFmt.format(new Date(h.created_at ?? h.started_at))}
+                  </span>
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 text-xs capitalize ${
+                      h.status === 'active'
+                        ? 'bg-[#e7f6ec] text-[#0ba02c]'
+                        : 'bg-surface-alt text-muted'
+                    }`}
+                  >
+                    {h.status}
+                  </span>
+                  <span className="font-medium text-ink">
+                    ${h.amount_usd.toLocaleString()}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      downloadInvoice(
+                        {
+                          id: h.id,
+                          description: h.plan,
+                          amount_usd: h.amount_usd,
+                          status: h.status,
+                          created_at: h.created_at ?? h.started_at,
+                        },
+                        {
+                          company_name: candidate?.full_name,
+                          business_email: candidate?.email,
+                        },
+                      )
+                    }
+                    className="flex items-center gap-1.5 rounded-[3px] border border-line px-3 py-1.5 text-xs font-semibold text-ink-600 hover:bg-surface-alt"
+                  >
+                    <DownloadIcon className="size-4" />
+                    Invoice
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-col items-start gap-3 rounded-lg bg-surface-alt p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">

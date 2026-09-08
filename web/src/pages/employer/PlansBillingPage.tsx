@@ -155,10 +155,19 @@ export function PlansBillingPage() {
                   <button
                     type="button"
                     onClick={() =>
-                      downloadInvoice(p, {
-                        company_name: employer?.company_name,
-                        business_email: employer?.business_email,
-                      })
+                      downloadInvoice(
+                        {
+                          id: p.id,
+                          description: `${p.package} — ${p.credits} credit${p.credits === 1 ? '' : 's'}`,
+                          amount_usd: p.amount_usd,
+                          status: p.status,
+                          created_at: p.created_at,
+                        },
+                        {
+                          company_name: employer?.company_name,
+                          business_email: employer?.business_email,
+                        },
+                      )
                     }
                     className="flex items-center gap-1.5 rounded-[3px] border border-line px-3 py-1.5 text-xs font-semibold text-ink-600 hover:bg-surface-alt"
                   >

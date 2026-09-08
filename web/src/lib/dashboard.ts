@@ -42,6 +42,7 @@ export type MembershipRecord = {
   amount_usd: number
   started_at: string
   expires_at: string | null
+  created_at?: string
 }
 
 /**
@@ -142,7 +143,7 @@ export async function fetchPriorityJobs(
 export async function fetchMembership(candidateId: string): Promise<MembershipRecord | null> {
   const { data, error } = await supabase
     .from('memberships')
-    .select('id,plan,period,status,amount_usd,started_at,expires_at')
+    .select('id,plan,period,status,amount_usd,started_at,expires_at,created_at')
     .eq('candidate_id', candidateId)
     .eq('status', 'active')
     .order('started_at', { ascending: false })
@@ -150,6 +151,21 @@ export async function fetchMembership(candidateId: string): Promise<MembershipRe
     .maybeSingle()
   if (error) throw error
   return (data as MembershipRecord | null) ?? null
+}
+
+/** All completed membership purchases for this candidate, newest first
+ *  (excludes never-completed 'pending' checkouts). */
+export async function fetchMembershipHistory(
+  candidateId: string,
+): Promise<MembershipRecord[]> {
+  const { data, error } = await supabase
+    .from('memberships')
+    .select('id,plan,period,status,amount_usd,started_at,expires_at,created_at')
+    .eq('candidate_id', candidateId)
+    .neq('status', 'pending')
+    .order('started_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as MembershipRecord[]
 }
 
 /** The membership's end date: the real `expires_at` if set, else one billing
