@@ -150,7 +150,16 @@ export async function fetchMembership(candidateId: string): Promise<MembershipRe
     .limit(1)
     .maybeSingle()
   if (error) throw error
-  return (data as MembershipRecord | null) ?? null
+  const m = (data as MembershipRecord | null) ?? null
+  // An 'active' row whose term has ended is effectively over -> Free plan.
+  return m && membershipIsCurrent(m) ? m : null
+}
+
+/** True while the membership term is still running (not past its end date). */
+export function membershipIsCurrent(m: MembershipRecord | null): boolean {
+  if (!m) return false
+  const end = membershipEndDate(m)
+  return !end || end.getTime() > Date.now()
 }
 
 /** All completed membership purchases for this candidate, newest first

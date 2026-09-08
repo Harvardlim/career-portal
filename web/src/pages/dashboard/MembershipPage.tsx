@@ -6,6 +6,7 @@ import {
   fetchMembership,
   fetchMembershipHistory,
   membershipEndDate,
+  membershipIsCurrent,
   useCandidate,
   type MembershipRecord,
 } from '@/lib/dashboard'
@@ -143,6 +144,11 @@ export function MembershipPage() {
         year: 'numeric',
       }).format(endsAt)
     : null
+  // Most recent membership whose term has run out — shown as an "expired" note.
+  const expiredPlan = membership
+    ? null
+    : history.find((h) => h.status === 'active' && !membershipIsCurrent(h)) ?? null
+  const expiredEnd = expiredPlan ? membershipEndDate(expiredPlan) : null
 
   return (
     <DashboardLayout>
@@ -167,6 +173,21 @@ export function MembershipPage() {
                 <span className="font-medium text-ink">{endFmt}</span>
               </span>
             )}
+          </div>
+        )}
+
+        {expiredPlan && (
+          <div className="rounded-lg bg-[#fff6e6] px-6 py-4 text-sm text-[#8a6d1a]">
+            Your <b>{expiredPlan.plan}</b> membership ended
+            {expiredEnd
+              ? ` on ${new Intl.DateTimeFormat('en-US', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                }).format(expiredEnd)}`
+              : ''}
+            . You&apos;re now on the <b>Free</b> plan — renew below to restore
+            Priority Match.
           </div>
         )}
 
@@ -234,7 +255,12 @@ export function MembershipPage() {
           <div className="flex flex-col gap-2 rounded-xl border border-line p-6">
             <h2 className="text-base font-medium text-ink">Purchase History</h2>
             <div className="flex flex-col divide-y divide-line">
-              {history.map((h) => (
+              {history.map((h) => {
+                const effStatus =
+                  h.status === 'active' && !membershipIsCurrent(h)
+                    ? 'expired'
+                    : h.status
+                return (
                 <div
                   key={h.id}
                   className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"
@@ -245,12 +271,12 @@ export function MembershipPage() {
                   </span>
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-xs capitalize ${
-                      h.status === 'active'
+                      effStatus === 'active'
                         ? 'bg-[#e7f6ec] text-[#0ba02c]'
                         : 'bg-surface-alt text-muted'
                     }`}
                   >
-                    {h.status}
+                    {effStatus}
                   </span>
                   <span className="font-medium text-ink">
                     ${h.amount_usd.toLocaleString()}
@@ -263,7 +289,7 @@ export function MembershipPage() {
                           id: h.id,
                           description: h.plan,
                           amount_usd: h.amount_usd,
-                          status: h.status,
+                          status: effStatus,
                           created_at: h.created_at ?? h.started_at,
                         },
                         {
@@ -278,7 +304,8 @@ export function MembershipPage() {
                     Invoice
                   </button>
                 </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}
