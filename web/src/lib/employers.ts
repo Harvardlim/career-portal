@@ -28,10 +28,13 @@ export type EmployerRow = {
   location: string | null
   phone: string | null
   founded: string | null
+  country_code: string | null
+  registration_verified: boolean
+  registration_verified_at: string | null
 }
 
 const EMPLOYER_COLS =
-  'id, company_name, reg_no, field, looking_for, business_email, business_details, logo_url, about, website, industry, size, location, phone, founded'
+  'id, company_name, reg_no, field, looking_for, business_email, business_details, logo_url, about, website, industry, size, location, phone, founded, country_code, registration_verified, registration_verified_at'
 
 export async function fetchMyEmployer(userId: string): Promise<EmployerRow | null> {
   const { data, error } = await supabase

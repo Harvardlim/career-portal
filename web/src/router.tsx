@@ -56,6 +56,24 @@ import { TermsPage } from './pages/TermsPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { ComingSoonPage } from './pages/ComingSoonPage'
 import { PricingPage } from './pages/pricing/PricingPage'
+import { BrowseNeedsPage } from './pages/BrowseNeedsPage'
+import { ForBusinessesPage } from './pages/marketing/ForBusinessesPage'
+import { ForExpertsPage } from './pages/marketing/ForExpertsPage'
+import { CategoriesPage } from './pages/marketing/CategoriesPage'
+import { HowItWorksPage } from './pages/marketing/HowItWorksPage'
+import { TrustPage } from './pages/marketing/TrustPage'
+import { ExpertProfilePage } from './pages/ExpertProfilePage'
+import { NotificationsPage } from './pages/NotificationsPage'
+import { DashboardLayout } from './components/dashboard/DashboardLayout'
+import { EmployerDashboardLayout } from './components/dashboard/EmployerDashboardLayout'
+import { LeadsPage } from './pages/dashboard/LeadsPage'
+import { LeadUnlockPage } from './pages/dashboard/LeadUnlockPage'
+import { VerificationPage } from './pages/dashboard/VerificationPage'
+import { HireMePage } from './pages/dashboard/HireMePage'
+import { PostNeedPage } from './pages/employer/PostNeedPage'
+import { MyPostingsPage } from './pages/employer/MyPostingsPage'
+import { PostingMatchesPage } from './pages/employer/PostingMatchesPage'
+import { EmployerVerificationPage } from './pages/employer/EmployerVerificationPage'
 
 export const router = createBrowserRouter([
   {
@@ -69,6 +87,13 @@ export const router = createBrowserRouter([
       { path: '/contact', element: <ContactPage /> },
       { path: '/faq', element: <FaqPage /> },
       { path: '/terms', element: <TermsPage /> },
+      { path: '/needs', element: <BrowseNeedsPage /> },
+      { path: '/for-businesses', element: <ForBusinessesPage /> },
+      { path: '/for-experts', element: <ForExpertsPage /> },
+      { path: '/categories', element: <CategoriesPage /> },
+      { path: '/how-it-works', element: <HowItWorksPage /> },
+      { path: '/trust', element: <TrustPage /> },
+      { path: '/expert/:slug', element: <ExpertProfilePage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
@@ -93,6 +118,11 @@ export const router = createBrowserRouter([
   { path: '/send-email', element: <SendEmailPage /> },
   { path: '/dashboard', element: <DashboardOverviewPage /> },
   { path: '/dashboard/membership', element: <MembershipPage /> },
+  { path: '/dashboard/leads', element: <LeadsPage /> },
+  { path: '/dashboard/leads/:id', element: <LeadUnlockPage /> },
+  { path: '/dashboard/verification', element: <VerificationPage /> },
+  { path: '/dashboard/hire-me', element: <HireMePage /> },
+  { path: '/dashboard/notifications', element: <NotificationsPage Layout={DashboardLayout} /> },
   { path: '/dashboard/applied-jobs', element: <AppliedJobsPage /> },
   { path: '/dashboard/favorite-jobs', element: <FavoriteJobsPage /> },
   { path: '/dashboard/priority-match', element: <PriorityMatchPage /> },
@@ -111,6 +141,11 @@ export const router = createBrowserRouter([
   { path: '/company/register/success', element: <CompanyRegisterSuccess /> },
 
   { path: '/employer/dashboard', element: <EmployerDashboardPage /> },
+  { path: '/employer/post-need', element: <PostNeedPage /> },
+  { path: '/employer/postings', element: <MyPostingsPage /> },
+  { path: '/employer/postings/:id/matches', element: <PostingMatchesPage /> },
+  { path: '/employer/verification', element: <EmployerVerificationPage /> },
+  { path: '/employer/notifications', element: <NotificationsPage Layout={EmployerDashboardLayout} /> },
   { path: '/employer/post-job', element: <PostJobPage /> },
   { path: '/employer/post-job/success', element: <PostJobSuccessPage /> },
   { path: '/employer/my-jobs', element: <MyJobsPage /> },

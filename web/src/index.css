@@ -30,6 +30,10 @@
   --color-surface-alt: #f1f2f4; /* Gray/50 */
 
   /* Accents */
+  --color-navy: #1b2a4a; /* partly.asia deck navy */
+  --color-gold: #d4a12a; /* partly.asia deck gold */
+  --color-gold-50: #fbf5e6;
+  --color-cream: #f7f5ef; /* deck card background */
   --color-star: #ffaa00; /* Warning/500 */
   --color-danger: #e05151; /* Danger/500 */
   --color-danger-50: #fceeee; /* Danger/50 */

@@ -27,7 +27,7 @@ const Logo = () => (
         <circle cx="21" cy="11" r="3" fill="#CB3CFF" />
       </svg>
     </span>
-    <span className="text-[19px] font-semibold tracking-tight text-ink">Career Portal</span>
+    <span className="text-[19px] font-semibold tracking-tight text-ink">partly.asia</span>
   </div>
 )
 
@@ -96,16 +96,21 @@ export const Sidebar = () => {
       <nav className="flex-1 space-y-1 overflow-y-auto">
         <Group icon={<IconGrid width={19} height={19} />} label="Dashboard" open>
           <Leaf label="Reports" to="/" />
-          <Leaf label="Jobs" to="/jobs" />
+          <Leaf label="Postings & leads" to="/postings" />
+          <Leaf label="Jobs (legacy)" to="/jobs" />
           <Leaf label="Categories" to="/categories" />
         </Group>
         <Group icon={<IconUsers width={19} height={19} />} label="Users" open>
-          <Leaf label="Candidates" to="/users/candidates" />
-          <Leaf label="Employers" to="/users/employers" />
+          <Leaf label="Verification queue" to="/verification" />
+          <Leaf label="Experts" to="/users/candidates" />
+          <Leaf label="Businesses" to="/users/employers" />
         </Group>
         <Group icon={<IconDollar width={19} height={19} />} label="Finance" open>
-          <Leaf label="Purchases & Credits" to="/finance" />
-          <Leaf label="Affiliate payouts" to="/affiliates" />
+          <Leaf label="Lead & badge revenue" to="/revenue" />
+          <Leaf label="Pricing by country" to="/pricing" />
+          <Leaf label="Affiliate commissions" to="/commissions" />
+          <Leaf label="Legacy purchases" to="/finance" />
+          <Leaf label="Legacy affiliate payouts" to="/affiliates" />
         </Group>
         <Group icon={<IconLock width={19} height={19} />} label="Admins" open>
           <Leaf label="Admin list" to="/admins" />

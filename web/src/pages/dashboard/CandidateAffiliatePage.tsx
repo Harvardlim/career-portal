@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { InfoCard } from '@/components/app/InfoCard'
+import { AffiliateLedger } from '@/components/partly/AffiliateLedger'
 import { ArrowRightIcon, CheckIcon } from '@/components/icons'
 import { errMessage } from '@/lib/errors'
 import { sendHrInvite } from '@/lib/employers'
@@ -11,7 +12,6 @@ import {
   fetchMyReferrals,
   joinAffiliate,
   referralLink,
-  summariseCommission,
   type AffiliateRow,
   type ReferralRow,
 } from '@/lib/affiliate'
@@ -117,7 +117,6 @@ export function CandidateAffiliatePage() {
     }
   }
 
-  const commission = summariseCommission(referrals)
 
   return (
     <DashboardLayout>
@@ -137,8 +136,9 @@ export function CandidateAffiliatePage() {
             </p>
             <ul className="mt-4 flex flex-col gap-2 text-sm text-ink-600">
               {[
-                'USD 30 / 70 for a referred candidate’s monthly / yearly membership',
-                'USD 150 / 99 / 30 for a referred company’s $999 / $499 / $199 package',
+                '~20% of the fixed local lead fee, every time a referred expert unlocks a released lead (one-time per lead)',
+                '~20% of the fixed local badge fee when a referred expert buys a Verified badge — and again on every annual renewal',
+                'Paid in USD once your balance clears USD 50',
               ].map((f) => (
                 <li key={f} className="flex items-center gap-2">
                   <CheckIcon className="size-4 text-brand" />
@@ -214,23 +214,10 @@ export function CandidateAffiliatePage() {
               </div>
             </InfoCard>
 
-            <InfoCard title="Affiliate Commission">
-              <div className="grid gap-4 sm:grid-cols-3">
-                {[
-                  { label: 'Commission earned', value: commission.earned },
-                  { label: 'Paid to you', value: commission.paid },
-                  { label: 'Balance owed', value: commission.balance },
-                ].map((s) => (
-                  <div key={s.label} className="flex flex-col gap-1">
-                    <span className="text-sm text-muted-600">{s.label}</span>
-                    <span className="text-2xl font-medium text-ink">
-                      ${s.value.toLocaleString()}
-                    </span>
-                  </div>
-                ))}
-              </div>
+            <AffiliateLedger affiliateId={affiliate.id} userId={userId!} />
+            <InfoCard title="People you referred">
               {referrals.length > 0 ? (
-                <div className="mt-4 flex flex-col divide-y divide-line border-t border-line">
+                <div className="flex flex-col divide-y divide-line">
                   {referrals.map((r) => {
                     const pending = !r.referred_user_id
                     return (
@@ -274,7 +261,7 @@ export function CandidateAffiliatePage() {
                   })}
                 </div>
               ) : (
-                <p className="mt-4 border-t border-line py-4 text-center text-sm text-muted">
+                <p className="py-4 text-center text-sm text-muted">
                   No referrals yet — share your link or send an invitation.
                 </p>
               )}

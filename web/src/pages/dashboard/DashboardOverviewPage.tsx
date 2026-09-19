@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
+import { InviteFriendPanel } from '@/components/partly/InviteFriendPanel'
 import { AppliedJobRow } from '@/components/dashboard/JobRows'
 import {
   fetchAppliedJobs,
@@ -182,6 +183,7 @@ export function DashboardOverviewPage() {
             </p>
           )}
         </div>
+        <InviteFriendPanel audience="expert" />
       </div>
     </DashboardLayout>
   )

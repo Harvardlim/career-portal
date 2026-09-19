@@ -22,6 +22,15 @@ export type CandidateProfileRow = {
   social_links: SocialLink[]
   preferred_category: string | null
   preferred_subcategory: string | null
+  country_code: string | null
+  id_type: string | null
+  identity_verified: boolean
+  identity_verified_at: string | null
+  linkedin_url: string | null
+  headline: string | null
+  portfolio_links: { label: string; url: string }[]
+  public_slug: string | null
+  verified_badge_until: string | null
 }
 
 export type ResumeRow = {
@@ -34,7 +43,7 @@ export type ResumeRow = {
 }
 
 const PROFILE_COLUMNS =
-  'id, full_name, avatar_path, title, personal_website, education, years_experience, nationality, date_of_birth, gender, marital_status, biography, map_location, contact_number, email, social_links, preferred_category, preferred_subcategory'
+  'id, full_name, avatar_path, title, personal_website, education, years_experience, nationality, date_of_birth, gender, marital_status, biography, map_location, contact_number, email, social_links, preferred_category, preferred_subcategory, country_code, id_type, identity_verified, identity_verified_at, linkedin_url, headline, portfolio_links, public_slug, verified_badge_until'
 
 /** Uploads a candidate profile photo to the public `avatars` bucket, returns its URL. */
 export async function uploadCandidateAvatar(

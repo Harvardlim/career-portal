@@ -166,5 +166,36 @@ export async function fulfilCheckoutSession(
     return 'granted'
   }
 
+  // partly.asia: the DB functions own the state change (contact exchange /
+  // badge activation), the notifications and the fixed affiliate commission,
+  // and are idempotent through their status guards.
+  if (meta.kind === 'lead_unlock') {
+    if (!meta.release_id) throw new Error('lead_unlock session missing release_id')
+    if (meta.payment_id) {
+      await admin
+        .from('lead_unlock_payments')
+        .update({ stripe_payment_intent: paymentIntent })
+        .eq('id', meta.payment_id)
+    }
+    const { data, error } = await admin.rpc('confirm_lead_unlock', {
+      p_release_id: meta.release_id,
+    })
+    if (error) throw error
+    return data === true ? 'granted' : 'already_done'
+  }
+
+  if (meta.kind === 'verified_badge') {
+    if (!meta.badge_id) throw new Error('verified_badge session missing badge_id')
+    await admin
+      .from('verified_badges')
+      .update({ stripe_payment_intent: paymentIntent })
+      .eq('id', meta.badge_id)
+    const { data, error } = await admin.rpc('confirm_badge_purchase', {
+      p_badge_id: meta.badge_id,
+    })
+    if (error) throw error
+    return data === true ? 'granted' : 'already_done'
+  }
+
   return 'ignored'
 }

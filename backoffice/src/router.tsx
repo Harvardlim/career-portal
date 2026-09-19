@@ -11,6 +11,11 @@ import { AffiliatePage } from './pages/AffiliatePage'
 import { AdminListPage } from './pages/AdminListPage'
 import { AccountSettingsPage } from './pages/AccountSettingsPage'
 import { LoginPage } from './pages/LoginPage'
+import { VerificationPage } from './pages/VerificationPage'
+import { PricingPage } from './pages/PricingPage'
+import { PostingsPage } from './pages/PostingsPage'
+import { RevenuePage } from './pages/RevenuePage'
+import { CommissionsPage } from './pages/CommissionsPage'
 
 export const router = createBrowserRouter([
   {
@@ -28,6 +33,11 @@ export const router = createBrowserRouter([
       { path: 'categories', element: <CategoriesPage /> },
       { path: 'finance', element: <FinancePage /> },
       { path: 'affiliates', element: <AffiliatePage /> },
+      { path: 'verification', element: <VerificationPage /> },
+      { path: 'pricing', element: <PricingPage /> },
+      { path: 'postings', element: <PostingsPage /> },
+      { path: 'revenue', element: <RevenuePage /> },
+      { path: 'commissions', element: <CommissionsPage /> },
       { path: 'admins', element: <AdminListPage /> },
       { path: 'account', element: <AccountSettingsPage /> },
     ],

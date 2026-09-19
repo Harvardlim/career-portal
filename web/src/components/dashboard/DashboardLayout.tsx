@@ -2,36 +2,47 @@ import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { useDisplayUser } from '@/lib/useDisplayUser'
+import { useNotifications } from '@/lib/partly'
 import {
-  BookmarkIcon,
+  BellIcon,
   BriefcaseIcon,
+  CircleCheckIcon,
   GearIcon,
   LayersIcon,
-  SearchPlusIcon,
+  SearchIcon,
   ShareIcon,
   StarIcon,
+  UserCircleIcon,
 } from '@/components/icons'
-
-const nav = [
-  { label: 'Overview', to: '/dashboard', end: true, Icon: LayersIcon },
-  { label: 'Applied Jobs', to: '/dashboard/applied-jobs', Icon: BriefcaseIcon },
-  { label: 'Favorite Jobs', to: '/dashboard/favorite-jobs', Icon: BookmarkIcon },
-  { label: 'Priority Match', to: '/dashboard/priority-match', Icon: SearchPlusIcon },
-  { label: 'Membership', to: '/dashboard/membership', Icon: StarIcon },
-  { label: 'Affiliate', to: '/dashboard/affiliate', Icon: ShareIcon },
-  { label: 'Settings', to: '/dashboard/settings', Icon: GearIcon },
-]
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, loading } = useDisplayUser()
+  const { unread } = useNotifications()
 
-  // Candidate-only area — send employers to their own dashboard.
+  // Expert-only area — send businesses to their own dashboard.
   if (!loading && user?.role === 'employer') {
     return <Navigate to="/employer/dashboard" replace />
   }
 
+  const nav = [
+    { label: 'Overview', to: '/dashboard', end: true, Icon: LayersIcon },
+    { label: 'Warm leads', to: '/dashboard/leads', Icon: StarIcon },
+    { label: 'Browse open needs', to: '/needs', Icon: SearchIcon },
+    { label: 'Applied', to: '/dashboard/applied-jobs', Icon: BriefcaseIcon },
+    {
+      label: 'Notifications',
+      to: '/dashboard/notifications',
+      Icon: BellIcon,
+      badge: unread > 0 ? String(unread) : undefined,
+    },
+    { label: 'Verification & badge', to: '/dashboard/verification', Icon: CircleCheckIcon },
+    { label: 'Hire-me badge', to: '/dashboard/hire-me', Icon: UserCircleIcon },
+    { label: 'Affiliate', to: '/dashboard/affiliate', Icon: ShareIcon },
+    { label: 'Settings', to: '/dashboard/settings', Icon: GearIcon },
+  ]
+
   return (
-    <DashboardShell heading="Candidate Dashboard" nav={nav}>
+    <DashboardShell heading="Expert Dashboard" nav={nav}>
       {children}
     </DashboardShell>
   )

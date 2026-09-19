@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
       if (!emp || emp.id !== meta.employer_id) {
         return json({ error: 'Not your checkout session' }, 403)
       }
-    } else if (meta.kind === 'membership') {
+    } else if (meta.kind === 'membership' || meta.kind === 'lead_unlock' || meta.kind === 'verified_badge') {
       const { data: cand } = await admin
         .from('candidates')
         .select('id')

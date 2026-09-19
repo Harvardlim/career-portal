@@ -434,3 +434,11 @@ enabled = true
 # declarative_schema_path = "./database"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# partly.asia — stores an expert's encrypted ID digits; called with the user's JWT.
+[functions.expert-identity]
+verify_jwt = true
+
+# partly.asia — scheduled sweep (cold leads, badge reminders/expiry); shared-secret auth.
+[functions.partly-sweep]
+verify_jwt = false

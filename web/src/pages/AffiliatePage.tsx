@@ -1,73 +1,41 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Breadcrumb } from '@/components/app/Breadcrumb'
-import { ArrowRightIcon, CheckIcon, UserIcon, UsersIcon } from '@/components/icons'
-import { useSession } from '@/lib/useSession'
+import { ArrowRightIcon } from '@/components/icons'
+import { CtaButton, Eyebrow, GoldCircle, Headline, Section, Steps } from '@/components/marketing/blocks'
 import { errMessage } from '@/lib/errors'
-import {
-  fetchMyAffiliate,
-  fetchMyReferrals,
-  joinAffiliate,
-  referralLink,
-  summariseCommission,
-  type AffiliateRow,
-  type ReferralRow,
-} from '@/lib/affiliate'
+import { fetchMyAffiliate, joinAffiliate, referralLink, type AffiliateRow } from '@/lib/affiliate'
+import { useT } from '@/lib/i18n'
+import { COUNTRY_NAMES, formatLocal, usePricing } from '@/lib/partly'
+import { useDisplayUser } from '@/lib/useDisplayUser'
+import { useSession } from '@/lib/useSession'
 
-const dateFmt = new Intl.DateTimeFormat('en-US', {
-  month: 'short',
-  day: 'numeric',
-  year: 'numeric',
-})
-
-const individualTiers = [
-  { plan: 'Monthly Member', price: '99', commission: '30' },
-  { plan: 'Yearly Member', price: '199', commission: '70' },
-]
-
-const companyTiers = [
-  { plan: '999 Credit Package', price: '999', commission: '150' },
-  { plan: '499 Credit Package', price: '499', commission: '99' },
-  { plan: '199 Credit Package', price: '199', commission: '30' },
-]
-
+/**
+ * "Become an Affiliate" — a standing earnings program, distinct from the
+ * one-off Hire-me badge and Invite-a-friend modules.
+ */
 export function AffiliatePage() {
-  const { session, loading: sessionLoading } = useSession()
+  const t = useT()
+  const { pricing } = usePricing()
+  const { session } = useSession()
+  const { user } = useDisplayUser()
   const userId = session?.user.id ?? null
   const [affiliate, setAffiliate] = useState<AffiliateRow | null>(null)
-  const [referrals, setReferrals] = useState<ReferralRow[]>([])
-  const [loadingAffiliate, setLoadingAffiliate] = useState(false)
   const [joining, setJoining] = useState(false)
 
   useEffect(() => {
     if (!userId) {
       setAffiliate(null)
-      setReferrals([])
       return
     }
-    let alive = true
-    setLoadingAffiliate(true)
-    fetchMyAffiliate(userId)
-      .then(async (row) => {
-        if (!alive) return
-        setAffiliate(row)
-        if (row) setReferrals(await fetchMyReferrals(row.id))
-      })
-      .catch((err) => console.error('affiliate', err))
-      .finally(() => alive && setLoadingAffiliate(false))
-    return () => {
-      alive = false
-    }
+    fetchMyAffiliate(userId).then(setAffiliate).catch((err) => console.error('affiliate', err))
   }, [userId])
 
   async function handleJoin() {
     if (!userId) return
     setJoining(true)
     try {
-      const row = await joinAffiliate(userId)
-      setAffiliate(row)
-      setReferrals(await fetchMyReferrals(row.id))
+      setAffiliate(await joinAffiliate(userId))
       toast.success("You're now an affiliate — share your referral link below.")
     } catch (err) {
       toast.error(errMessage(err))
@@ -75,8 +43,6 @@ export function AffiliatePage() {
       setJoining(false)
     }
   }
-
-  const commission = summariseCommission(referrals)
 
   async function copyLink() {
     if (!affiliate) return
@@ -88,225 +54,106 @@ export function AffiliatePage() {
     }
   }
 
-  const busy = sessionLoading || loadingAffiliate
+  const dashboardAffiliate = user?.role === 'employer' ? '/employer/affiliate' : '/dashboard/affiliate'
 
   return (
     <>
-      <Breadcrumb
-        title="Affiliate Program"
-        trail={[{ label: 'Home', to: '/' }, { label: 'Affiliate Program' }]}
-      />
-
-      <div className="mx-auto flex w-full max-w-[1000px] flex-col gap-16 px-6 py-16">
-        <div className="flex flex-col gap-4 text-center">
-          <h1 className="text-3xl font-medium text-ink lg:text-4xl">
-            Earn commission by referring Partly Asia
-          </h1>
-          <p className="mx-auto max-w-xl text-muted-600">
-            Registering and applying to jobs is always free. When someone you refer
-            upgrades to a paid plan, you earn a commission.
-          </p>
-        </div>
-
-        <section className="flex flex-col gap-6">
-          <div className="flex items-center gap-3">
-            <span className="grid size-12 place-items-center rounded-lg bg-brand-50 text-brand">
-              <UserIcon className="size-6" />
-            </span>
-            <div>
-              <h2 className="text-xl font-medium text-ink">Individual Affiliate</h2>
-              <p className="text-sm text-muted-600">
-                Refer a candidate who upgrades to a paid Membership.
-              </p>
-            </div>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2">
-            {individualTiers.map((t) => (
-              <div
-                key={t.plan}
-                className="flex flex-col gap-3 rounded-xl border border-line p-6"
-              >
-                <p className="text-sm text-muted-600">
-                  When they join the{' '}
-                  <span className="font-medium text-ink">{t.plan}</span> (USD {t.price})
-                </p>
-                <p className="text-3xl font-medium text-brand">
-                  USD {t.commission}
-                  <span className="text-sm text-muted"> commission</span>
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="flex flex-col gap-6">
-          <div className="flex items-center gap-3">
-            <span className="grid size-12 place-items-center rounded-lg bg-brand-50 text-brand">
-              <UsersIcon className="size-6" />
-            </span>
-            <div>
-              <h2 className="text-xl font-medium text-ink">Company Affiliate</h2>
-              <p className="text-sm text-muted-600">
-                Refer a company that buys a job-posting credit package.
-              </p>
-            </div>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2">
-            {companyTiers.map((t) => (
-              <div
-                key={t.plan}
-                className="flex flex-col gap-3 rounded-xl border border-line p-6"
-              >
-                <p className="text-sm text-muted-600">
-                  When they buy the{' '}
-                  <span className="font-medium text-ink">USD {t.price} credit package</span>
-                </p>
-                <p className="text-3xl font-medium text-brand">
-                  USD {t.commission}
-                  <span className="text-sm text-muted"> commission</span>
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="flex flex-col items-center gap-6 rounded-xl bg-surface-alt p-10 text-center">
-          <ul className="flex flex-col gap-2 text-left text-sm text-ink-600">
-            {[
-              'Get a personal referral link when you join',
-              'Track referrals and commissions from your dashboard',
-              'Get paid out once a referral completes their purchase',
-            ].map((f) => (
-              <li key={f} className="flex items-center gap-2">
-                <CheckIcon className="size-4 text-brand" />
-                {f}
-              </li>
-            ))}
-          </ul>
-
-          {busy ? (
-            <span className="rounded-[3px] bg-brand/60 px-6 py-3 text-base font-semibold text-white">
-              Loading…
-            </span>
-          ) : affiliate ? (
-            <div className="flex w-full max-w-md flex-col gap-3">
-              <p className="flex items-center justify-center gap-2 text-sm font-medium text-brand">
-                <CheckIcon className="size-4" />
-                You&apos;re an affiliate. Share your link:
-              </p>
-              <div className="flex items-center gap-2">
+      <Section tone="alt">
+        <div className="flex max-w-3xl flex-col gap-6">
+          <Eyebrow>{t('footer.affiliate')}</Eyebrow>
+          <Headline>{t('aff.headline')}</Headline>
+          <p className="text-lg leading-7 text-ink-600">{t('aff.sub')}</p>
+          <div className="flex flex-wrap items-center gap-3">
+            {!session ? (
+              <CtaButton to="/create-account">{t('aff.cta')}</CtaButton>
+            ) : affiliate ? (
+              <>
                 <input
                   readOnly
                   value={referralLink(affiliate.referral_code)}
                   onFocus={(e) => e.currentTarget.select()}
-                  className="flex-1 rounded-[3px] border border-line bg-surface px-3 py-2.5 text-sm text-ink"
+                  className="h-12 min-w-[280px] flex-1 rounded-md border border-line bg-surface px-3 text-sm text-ink"
                 />
                 <button
                   type="button"
                   onClick={copyLink}
-                  className="shrink-0 rounded-[3px] bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-600"
+                  className="h-12 rounded-md bg-gold px-5 text-sm font-semibold text-navy hover:bg-amber-400"
                 >
-                  Copy
+                  Copy link
                 </button>
-              </div>
-              <p className="text-xs text-muted">
-                Affiliate since {dateFmt.format(new Date(affiliate.joined_at))}.
-                Commission is earned on purchases by people who register through
-                your link after this date.
-              </p>
-            </div>
-          ) : session ? (
-            <button
-              type="button"
-              onClick={handleJoin}
-              disabled={joining}
-              className="flex items-center gap-3 rounded-[3px] bg-brand px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {joining ? 'Joining…' : 'Become an Affiliate'}
-              <ArrowRightIcon className="size-5" />
-            </button>
-          ) : (
-            <Link
-              to="/sign-in"
-              className="flex items-center gap-3 rounded-[3px] bg-brand px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-brand-600"
-            >
-              Sign in to become an Affiliate
-              <ArrowRightIcon className="size-5" />
-            </Link>
-          )}
-        </section>
-
-        {affiliate && !busy && (
-          <section className="flex flex-col gap-4">
-            <h2 className="text-xl font-medium text-ink">Your referrals</h2>
-            <div className="grid gap-4 sm:grid-cols-3">
-              {[
-                { label: 'Commission earned', value: commission.earned },
-                { label: 'Paid out', value: commission.paid },
-                { label: 'Balance owed', value: commission.balance },
-              ].map((s) => (
-                <div
-                  key={s.label}
-                  className="flex flex-col gap-1 rounded-xl border border-line p-5"
-                >
-                  <span className="text-sm text-muted-600">{s.label}</span>
-                  <span className="text-2xl font-medium text-ink">
-                    USD {s.value.toLocaleString()}
-                  </span>
-                </div>
-              ))}
-            </div>
-            {referrals.length > 0 ? (
-              <div className="flex flex-col divide-y divide-line rounded-xl border border-line">
-                {referrals.map((r) => {
-                  const pendingSignup = !r.referred_user_id
-                  return (
-                    <div
-                      key={r.id}
-                      className="flex flex-wrap items-center justify-between gap-3 p-4 text-sm"
-                    >
-                      <span className="font-medium text-ink">
-                        {pendingSignup ? (
-                          r.invited_email
-                        ) : (
-                          <span className="capitalize">{r.referred_role}</span>
-                        )}
-                      </span>
-                      <span className="text-muted-600">
-                        {pendingSignup ? 'Invited' : 'Joined'}{' '}
-                        {dateFmt.format(new Date(r.referred_at))}
-                      </span>
-                      <span className="text-muted-600">
-                        {pendingSignup
-                          ? 'Not signed up yet'
-                          : (r.purchase_ref ?? 'No purchase yet')}
-                      </span>
-                      {r.commission_status === 'paid' ? (
-                        <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand">
-                          USD {(r.commission_usd ?? 0).toLocaleString()} paid
-                        </span>
-                      ) : r.commission_status === 'earned' ? (
-                        <span className="rounded-full bg-[#e7f6ec] px-2.5 py-0.5 text-xs font-medium text-[#0ba02c]">
-                          USD {(r.commission_usd ?? 0).toLocaleString()} earned
-                        </span>
-                      ) : (
-                        <span className="rounded-full bg-surface-alt px-2.5 py-0.5 text-xs text-muted">
-                          {pendingSignup ? 'Awaiting sign-up' : 'Pending purchase'}
-                        </span>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
+                <Link to={dashboardAffiliate} className="flex items-center gap-1 text-sm font-medium text-brand">
+                  Ledger & payouts <ArrowRightIcon className="size-4" />
+                </Link>
+              </>
             ) : (
-              <p className="rounded-xl border border-line p-6 text-center text-sm text-muted">
-                No referrals yet. Share your link above — you earn once someone
-                who signs up through it makes a qualifying purchase.
-              </p>
+              <button
+                type="button"
+                onClick={handleJoin}
+                disabled={joining}
+                className="inline-flex h-12 items-center rounded-md bg-gold px-6 text-sm font-semibold text-navy hover:bg-amber-400 disabled:opacity-50"
+              >
+                {joining ? 'Joining…' : t('aff.cta')}
+              </button>
             )}
-          </section>
-        )}
-      </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* Two commission types, side by side */}
+      <Section>
+        <div className="grid gap-6 md:grid-cols-2">
+          {[
+            { title: t('aff.card1.title'), tag: t('aff.card1.tag'), body: t('aff.card1.body'), key: 'badge' as const },
+            { title: t('aff.card2.title'), tag: t('aff.card2.tag'), body: t('aff.card2.body'), key: 'lead' as const },
+          ].map((c) => (
+            <div key={c.title} className="rounded-2xl border border-line bg-cream p-8">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-xl font-semibold text-navy">{c.title}</h2>
+                <span className="rounded-full bg-gold px-3 py-1 text-xs font-semibold text-white">{c.tag}</span>
+              </div>
+              <p className="mt-3 text-ink-600">{c.body}</p>
+              <table className="mt-5 w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs uppercase tracking-wide text-muted">
+                    <th className="py-1 font-medium">{t('pay.table.country')}</th>
+                    <th className="py-1 font-medium">{t('aff.table.full')}</th>
+                    <th className="py-1 font-medium">{t('aff.table.you')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pricing.map((p) => (
+                    <tr key={p.code} className="border-t border-line/70">
+                      <td className="py-2 text-navy">{COUNTRY_NAMES[p.code] ?? p.name}</td>
+                      <td className="py-2 text-ink-600">
+                        {formatLocal(p, c.key === 'badge' ? p.badge_fee_local : p.lead_fee_local)}
+                        {c.key === 'badge' ? ' / yr' : ''}
+                      </td>
+                      <td className="py-2 font-semibold text-navy">
+                        {formatLocal(p, c.key === 'badge' ? p.affiliate_badge_local : p.affiliate_lead_local)}
+                        <span className="ml-1 text-xs font-normal text-muted">
+                          (~USD {c.key === 'badge' ? p.affiliate_badge_usd : p.affiliate_lead_usd})
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </div>
+        <p className="mt-4 text-sm text-muted">{t('aff.payout')}</p>
+      </Section>
+
+      <Section tone="alt">
+        <h2 className="mb-8 text-2xl font-semibold text-navy">{t('aff.how.title')}</h2>
+        <Steps steps={[{ title: t('aff.how1') }, { title: t('aff.how2') }, { title: t('aff.how3') }]} />
+        <div className="mt-8 flex items-start gap-3 rounded-xl border border-line bg-surface p-5 text-sm text-ink-600">
+          <GoldCircle size={32}>
+            <ArrowRightIcon className="size-4" />
+          </GoldCircle>
+          {t('aff.attribution')}
+        </div>
+      </Section>
     </>
   )
 }

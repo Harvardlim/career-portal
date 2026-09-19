@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { EmployerDashboardLayout } from '@/components/dashboard/EmployerDashboardLayout'
+import { InviteFriendPanel } from '@/components/partly/InviteFriendPanel'
 import {
   ArrowRightIcon,
   BriefcaseIcon,
@@ -113,6 +114,7 @@ export function EmployerDashboardPage() {
             </p>
           )}
         </div>
+        <InviteFriendPanel audience="business" />
       </div>
     </EmployerDashboardLayout>
   )
