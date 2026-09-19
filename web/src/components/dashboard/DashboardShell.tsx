@@ -108,7 +108,7 @@ export function DashboardShell({
         <main className="flex-1 py-8 lg:pl-10">{children}</main>
       </div>
       <div className="border-t border-line py-6 text-center text-sm text-muted">
-        © 2024 Partly Asia. All rights reserved
+        © {new Date().getFullYear()} partly.asia. All rights reserved
       </div>
     </div>
   )

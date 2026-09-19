@@ -70,6 +70,7 @@ import { LeadsPage } from './pages/dashboard/LeadsPage'
 import { LeadUnlockPage } from './pages/dashboard/LeadUnlockPage'
 import { VerificationPage } from './pages/dashboard/VerificationPage'
 import { HireMePage } from './pages/dashboard/HireMePage'
+import { ExpertProfileEditPage } from './pages/dashboard/ExpertProfileEditPage'
 import { PostNeedPage } from './pages/employer/PostNeedPage'
 import { MyPostingsPage } from './pages/employer/MyPostingsPage'
 import { PostingMatchesPage } from './pages/employer/PostingMatchesPage'
@@ -122,6 +123,7 @@ export const router = createBrowserRouter([
   { path: '/dashboard/leads/:id', element: <LeadUnlockPage /> },
   { path: '/dashboard/verification', element: <VerificationPage /> },
   { path: '/dashboard/hire-me', element: <HireMePage /> },
+  { path: '/dashboard/expert-profile', element: <ExpertProfileEditPage /> },
   { path: '/dashboard/notifications', element: <NotificationsPage Layout={DashboardLayout} /> },
   { path: '/dashboard/applied-jobs', element: <AppliedJobsPage /> },
   { path: '/dashboard/favorite-jobs', element: <FavoriteJobsPage /> },

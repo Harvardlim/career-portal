@@ -57,6 +57,11 @@ export function AffiliateLedger({ affiliateId, userId }: { affiliateId: string; 
   const owed = balance?.owed_usd ?? 0
   const pct = Math.min(100, Math.round((owed / 50) * 100))
   const nextPayout = payouts.find((p) => p.status !== 'paid')
+  const nextCycle = (() => {
+    const d = new Date()
+    const q = Math.floor(d.getMonth() / 3) + 1
+    return new Date(d.getFullYear() + (q === 4 ? 1 : 0), (q % 4) * 3, 1)
+  })()
 
   return (
     <>
@@ -84,7 +89,7 @@ export function AffiliateLedger({ affiliateId, userId }: { affiliateId: string; 
           <p className="mt-2 text-xs text-muted">
             {nextPayout
               ? `Next payout: USD ${nextPayout.amount_usd.toLocaleString()} — ${nextPayout.status}`
-              : 'Payouts run quarterly, in USD, less FX and transaction fees.'}
+              : `Next payout cycle: ${nextCycle.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })} — in USD, less FX and transaction fees.`}
           </p>
         </div>
       </InfoCard>

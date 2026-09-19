@@ -612,7 +612,7 @@ function AccountTab({
       <div className="flex flex-col gap-4">
         <h2 className="text-lg font-medium text-ink">Delete Your Account</h2>
         <p className="text-sm text-muted-600">
-          If you delete your Partly Asia account, you will no longer be able to get
+          If you delete your partly.asia account, you will no longer be able to get
           information about the matched jobs, following employers, and job alert,
           shortlisted jobs and more. You will be abandoned from all the services
           of partly.asia.

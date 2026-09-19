@@ -177,10 +177,15 @@ export type PostingRow = {
   closed_at: string | null
   posted_at: string
   description: string | null
+  // Legacy job-board columns, used when the partly fields are empty.
+  job_type: string | null
+  location: string | null
+  salary_label: string | null
+  tags: string[] | null
 }
 
 const POSTING_COLUMNS =
-  'id,slug,title,company_name,country,project_type,project_duration,budget_min,budget_max,budget_currency,people_required,skill_requirements,category,main_category_id,status,matching_status,matches_generated_at,closed_at,posted_at,description'
+  'id,slug,title,company_name,country,project_type,project_duration,budget_min,budget_max,budget_currency,people_required,skill_requirements,category,main_category_id,status,matching_status,matches_generated_at,closed_at,posted_at,description,job_type,location,salary_label,tags'
 
 export type MyPostingRow = PostingRow & {
   applications: number
@@ -224,8 +229,10 @@ export async function fetchPosting(id: string): Promise<PostingRow | null> {
 
 export type NeedFilters = {
   categoryId?: string
+  categoryName?: string
   country?: string
   projectType?: ProjectType | ''
+  minBudget?: number
   q?: string
 }
 
@@ -235,17 +242,27 @@ export type OpenNeedRow = PostingRow & {
 }
 
 export async function fetchOpenNeeds(filters: NeedFilters, candidateId?: string): Promise<OpenNeedRow[]> {
+  // Every active job is an open need -- including rows created in the
+  // backoffice before the partly fields existed, which carry only the legacy
+  // category name / location / job_type columns.
   let q = supabase
     .from('jobs')
     .select(`${POSTING_COLUMNS}, job_subcategories(subcategories(id,name))`)
     .eq('status', 'active')
     .in('matching_status', ['open', 'matched'])
-    .not('main_category_id', 'is', null)
     .order('posted_at', { ascending: false })
     .limit(100)
-  if (filters.categoryId) q = q.eq('main_category_id', filters.categoryId)
-  if (filters.country) q = q.eq('country', filters.country)
+  if (filters.categoryId) {
+    q = filters.categoryName
+      ? q.or(`main_category_id.eq.${filters.categoryId},category.eq.${filters.categoryName.replace(/,/g, ' ')}`)
+      : q.eq('main_category_id', filters.categoryId)
+  }
+  if (filters.country) {
+    const name = COUNTRY_NAMES[filters.country]
+    q = name ? q.or(`country.eq.${filters.country},location.ilike.%${name}%`) : q.eq('country', filters.country)
+  }
   if (filters.projectType) q = q.eq('project_type', filters.projectType)
+  if (filters.minBudget) q = q.or(`budget_max.gte.${filters.minBudget},salary_max.gte.${filters.minBudget}`)
   if (filters.q) q = q.ilike('title', `%${filters.q}%`)
   const { data, error } = await q
   if (error) throw error
@@ -626,8 +643,13 @@ export function useNotifications() {
   useEffect(() => {
     void reload()
     if (!session) return
+    // Topic must be unique per hook instance: supabase-js returns the existing
+    // channel for a repeated topic, and calling .on() on an already-subscribed
+    // channel throws. The layout badge and the notifications page both mount
+    // this hook at once (and StrictMode double-mounts it in dev).
+    const topic = `notifications:${session.user.id}:${Math.random().toString(36).slice(2, 10)}`
     const channel = supabase
-      .channel(`notifications:${session.user.id}`)
+      .channel(topic)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${session.user.id}` },
@@ -635,7 +657,7 @@ export function useNotifications() {
       )
       .subscribe()
     return () => {
-      void supabase.removeChannel(channel)
+      void channel.unsubscribe().then(() => supabase.removeChannel(channel))
     }
   }, [session, reload])
 
@@ -693,17 +715,25 @@ export function budgetLabel(p: {
   budget_min: number | null
   budget_max: number | null
   budget_currency: string | null
+  salary_label?: string | null
 }): string {
   const cur = p.budget_currency ?? 'USD'
   const fmt = (n: number) => n.toLocaleString('en-US')
   if (p.budget_min != null && p.budget_max != null) return `${cur} ${fmt(p.budget_min)} – ${fmt(p.budget_max)}`
   if (p.budget_min != null) return `From ${cur} ${fmt(p.budget_min)}`
   if (p.budget_max != null) return `Up to ${cur} ${fmt(p.budget_max)}`
+  if (p.salary_label) return p.salary_label
   return 'Budget on request'
 }
 
-export function projectTypeLabel(t: ProjectType | null | undefined): string {
-  return PROJECT_TYPES.find((p) => p.value === t)?.label ?? '—'
+export function projectTypeLabel(t: ProjectType | null | undefined, legacyJobType?: string | null): string {
+  return PROJECT_TYPES.find((p) => p.value === t)?.label ?? legacyJobType ?? '—'
+}
+
+/** Country name for a posting: the new ISO code, else the legacy free-text location. */
+export function postingCountry(p: { country: string | null; location?: string | null }): string {
+  if (p.country) return countryName(p.country)
+  return p.location ?? '—'
 }
 
 export const COUNTRY_NAMES: Record<string, string> = {
@@ -753,4 +783,22 @@ export function useCountdown(until: string | null | undefined): {
   const label =
     d > 0 ? `${d}d ${h}h ${m}m` : h > 0 ? `${h}h ${m}m ${s}s` : `${m}m ${s}s`
   return { label, expired: secondsLeft === 0, secondsLeft }
+}
+
+/** Business registration number formats, per the spec's per-country validation. */
+export const BUSINESS_REG_FORMATS: Record<string, { label: string; placeholder: string; pattern: RegExp; hint: string }> = {
+  SG: { label: 'UEN', placeholder: '202412345K', pattern: /^[0-9]{8,9}[A-Z]$|^[TSR][0-9]{2}[A-Z]{2}[0-9]{4}[A-Z]$/i, hint: 'ACRA UEN, e.g. 202412345K or T08LL1234A' },
+  MY: { label: 'SSM registration no.', placeholder: '202301012345 (1234567-X)', pattern: /^[0-9]{12}$|^[0-9]{6,7}-[A-Z]$/i, hint: 'New 12-digit SSM number, or the old 1234567-X format' },
+  ID: { label: 'NIB', placeholder: '1234567890123', pattern: /^[0-9]{13}$/, hint: '13-digit Nomor Induk Berusaha (OSS)' },
+  TH: { label: 'Juristic person ID', placeholder: '0105561012345', pattern: /^[0-9]{13}$/, hint: '13-digit DBD registration number' },
+  VN: { label: 'Enterprise code', placeholder: '0312345678', pattern: /^[0-9]{10}(-[0-9]{3})?$/, hint: '10-digit Mã số doanh nghiệp (tax code)' },
+}
+
+export function validateBusinessRegNo(country: string, value: string): string | null {
+  const f = BUSINESS_REG_FORMATS[country]
+  const v = value.trim()
+  if (!v) return 'Enter your business registration number.'
+  if (f && !f.pattern.test(v)) return `That doesn't look like a ${f.label} — ${f.hint}.`
+  if (!f && v.length < 4) return 'Enter your full registration number.'
+  return null
 }

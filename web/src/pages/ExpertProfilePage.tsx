@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { Avatar, Card, EmptyState, Pill, PrimaryButton, VerifiedChips } from '@/components/partly/ui'
 import { countryName } from '@/lib/partly'
 import { supabase } from '@/lib/supabase'
@@ -23,6 +23,7 @@ type PublicProfile = {
 /** The page a "Hire me on partly.asia" badge links to. Contact-free by design. */
 export function ExpertProfilePage() {
   const { slug = '' } = useParams()
+  const [params] = useSearchParams()
   const [profile, setProfile] = useState<PublicProfile | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -33,11 +34,24 @@ export function ExpertProfilePage() {
       .select('*')
       .eq('public_slug', slug)
       .maybeSingle()
-      .then(({ data }) => alive && setProfile((data as PublicProfile | null) ?? null))
+      .then(({ data }) => {
+        const p = (data as PublicProfile | null) ?? null
+        if (!alive) return
+        setProfile(p)
+        // Badge traffic is measured per expert; the badge link carries ?src=badge.
+        if (p) {
+          void supabase.from('expert_profile_views').insert({
+            candidate_id: p.candidate_id,
+            source: params.get('src') === 'badge' ? 'badge' : params.get('src') === 'share' ? 'share' : 'direct',
+            referrer: document.referrer ? document.referrer.slice(0, 500) : null,
+          })
+        }
+      })
       .then(() => alive && setLoading(false))
     return () => {
       alive = false
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug])
 
   if (loading) return <div className="px-6 py-16 text-center text-sm text-muted">Loading…</div>

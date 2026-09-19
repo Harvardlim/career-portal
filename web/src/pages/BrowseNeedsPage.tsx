@@ -9,8 +9,8 @@ import {
   PROJECT_TYPES,
   applyToNeed,
   budgetLabel,
-  countryName,
   fetchOpenNeeds,
+  postingCountry,
   projectTypeLabel,
   type OpenNeedRow,
   type ProjectType,
@@ -33,7 +33,9 @@ export function BrowseNeedsPage() {
   const categoryId = params.get('category') ?? ''
   const country = params.get('country') ?? ''
   const projectType = (params.get('type') ?? '') as ProjectType | ''
+  const minBudget = Number(params.get('budget') ?? '') || 0
   const q = params.get('q') ?? ''
+  const categoryName = categories.find((c) => c.id === categoryId)?.name
 
   function setParam(key: string, value: string) {
     const next = new URLSearchParams(params)
@@ -45,14 +47,14 @@ export function BrowseNeedsPage() {
   useEffect(() => {
     let alive = true
     setLoading(true)
-    fetchOpenNeeds({ categoryId, country, projectType, q }, candidate?.id)
+    fetchOpenNeeds({ categoryId, categoryName, country, projectType, minBudget, q }, candidate?.id)
       .then((d) => alive && setRows(d))
       .catch((err) => console.error('open needs', err))
       .finally(() => alive && setLoading(false))
     return () => {
       alive = false
     }
-  }, [categoryId, country, projectType, q, candidate?.id])
+  }, [categoryId, categoryName, country, projectType, minBudget, q, candidate?.id])
 
   async function handleApply(row: OpenNeedRow) {
     if (!session) {
@@ -90,7 +92,7 @@ export function BrowseNeedsPage() {
         </p>
       </div>
 
-      <div className="mb-6 grid gap-3 md:grid-cols-4">
+      <div className="mb-6 grid gap-3 md:grid-cols-5">
         <input
           value={q}
           onChange={(e) => setParam('q', e.target.value)}
@@ -121,6 +123,14 @@ export function BrowseNeedsPage() {
             </option>
           ))}
         </select>
+        <select value={minBudget ? String(minBudget) : ''} onChange={(e) => setParam('budget', e.target.value)} className={selectCls}>
+          <option value="">Any budget</option>
+          {[1000, 3000, 5000, 10000, 25000].map((n) => (
+            <option key={n} value={n}>
+              Budget from {n.toLocaleString()}
+            </option>
+          ))}
+        </select>
       </div>
 
       {!session && (
@@ -142,19 +152,26 @@ export function BrowseNeedsPage() {
             <Card key={row.id} className="flex flex-col gap-3 md:flex-row md:items-start">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="font-semibold text-ink">{row.title}</h2>
+                  <h2 className="font-semibold text-ink">
+                    <Link to={`/job/${row.slug}`} className="hover:text-brand">
+                      {row.title}
+                    </Link>
+                  </h2>
                   {row.matching_status === 'matched' && <Pill tone="warning">Shortlist drawn</Pill>}
                 </div>
                 <p className="mt-1 text-sm text-muted">
-                  {row.category ?? 'Uncategorised'} · {countryName(row.country)} · {projectTypeLabel(row.project_type)}
+                  {row.category ?? 'Uncategorised'} · {postingCountry(row)} · {projectTypeLabel(row.project_type, row.job_type)}
                   {row.project_duration ? ` · ${row.project_duration}` : ''} · {budgetLabel(row)}
                 </p>
-                {row.description && <p className="mt-2 line-clamp-3 text-sm text-ink-600">{row.description}</p>}
-                {row.subcategories.length > 0 && (
+                {row.description && (
+                  <p className="mt-2 line-clamp-3 text-sm text-ink-600">{row.description.replace(/<[^>]+>/g, ' ')}</p>
+                )}
+                {(row.subcategories.length > 0 || (row.tags?.length ?? 0) > 0) && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {row.subcategories.map((s) => (
                       <Pill key={s.id}>{s.name}</Pill>
                     ))}
+                    {row.subcategories.length === 0 && row.tags?.map((t) => <Pill key={t}>{t}</Pill>)}
                   </div>
                 )}
                 <p className="mt-2 text-xs text-muted">

@@ -65,7 +65,7 @@ export function SignInPage() {
         return
       }
 
-      setError('No candidate or employer profile found for this account.')
+      setError('No expert or business profile found for this account.')
     } catch (err) {
       setError(errMessage(err))
     } finally {
@@ -81,7 +81,7 @@ export function SignInPage() {
             Continue as…
           </h1>
           <p className="text-base text-ink-600">
-            This email has both a candidate and an employer profile. You can
+            This email has both an expert and a business profile. You can
             switch anytime from the menu.
           </p>
           <div className="flex w-full flex-col gap-3">
@@ -90,14 +90,14 @@ export function SignInPage() {
               onClick={() => goAs('candidate')}
               className="rounded-[4px] bg-brand px-6 py-3 text-base font-semibold text-white hover:bg-brand-600"
             >
-              Candidate
+              Expert
             </button>
             <button
               type="button"
               onClick={() => goAs('employer')}
               className="rounded-[4px] border border-brand px-6 py-3 text-base font-semibold text-brand hover:bg-brand-50"
             >
-              Employer
+              Business
             </button>
           </div>
         </div>

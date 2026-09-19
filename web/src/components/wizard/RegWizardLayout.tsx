@@ -1,6 +1,5 @@
 import type { ComponentType, ReactNode, SVGProps } from 'react'
-import { NavLink } from 'react-router-dom'
-import { BriefcaseIcon } from '@/components/icons'
+import { Logo } from '@/components/app/Logo'
 
 export type WizardStep = {
   label: string
@@ -21,18 +20,15 @@ export function RegWizardLayout({
   return (
     <div className="flex min-h-screen flex-col bg-surface">
       <header className="mx-auto flex w-full max-w-[1320px] items-center justify-between px-6 py-8 lg:px-10">
-        <NavLink to="/" className="flex items-center gap-2">
-          <BriefcaseIcon className="size-9 text-brand" />
-          <span className="text-2xl font-semibold text-ink">Partly Asia</span>
-        </NavLink>
+        <Logo />
         <div className="flex w-[280px] flex-col gap-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-600">Setup Progress</span>
-            <span className="font-medium text-brand">{progress}% Completed</span>
+            <span className="font-medium text-navy">{progress}% Completed</span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-surface-alt">
             <div
-              className="h-full rounded-full bg-brand transition-all"
+              className="h-full rounded-full bg-gold transition-all"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -46,7 +42,7 @@ export function RegWizardLayout({
               key={label}
               className={`-mb-px flex items-center gap-2 border-b-2 pb-3 text-sm ${
                 i === activeStep
-                  ? 'border-brand font-medium text-brand'
+                  ? 'border-gold font-medium text-navy'
                   : 'border-transparent text-muted-600'
               }`}
             >
@@ -59,7 +55,7 @@ export function RegWizardLayout({
       </main>
 
       <div className="border-t border-line py-6 text-center text-sm text-muted">
-        © 2024 Partly Asia. All rights reserved
+        © {new Date().getFullYear()} partly.asia. All rights reserved
       </div>
     </div>
   )
@@ -80,7 +76,7 @@ export function WizardButtons({
         <button
           type="button"
           onClick={onPrev}
-          className="rounded-[4px] bg-surface-alt px-6 py-3 text-base font-semibold text-ink"
+          className="rounded-md bg-surface-alt px-6 py-3 text-base font-semibold text-navy"
         >
           Previous
         </button>
@@ -88,7 +84,7 @@ export function WizardButtons({
       <button
         type="submit"
         disabled={nextDisabled}
-        className="flex items-center gap-2 rounded-[4px] bg-brand px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex items-center gap-2 rounded-md bg-navy px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-[#25365e] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {nextLabel}
         <span aria-hidden>→</span>

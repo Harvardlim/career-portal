@@ -7,7 +7,7 @@ import { useEmployer } from '@/lib/employers'
 import {
   budgetLabel,
   closePosting,
-  countryName,
+  postingCountry,
   fetchMyPostings,
   projectTypeLabel,
   type MatchingStatus,
@@ -92,7 +92,7 @@ export function MyPostingsPage() {
                       <Pill tone={st.tone}>{st.label}</Pill>
                     </div>
                     <p className="mt-1 text-sm text-muted">
-                      {row.category ?? 'Uncategorised'} · {countryName(row.country)} · {projectTypeLabel(row.project_type)} ·{' '}
+                      {row.category ?? 'Uncategorised'} · {postingCountry(row)} · {projectTypeLabel(row.project_type, row.job_type)} ·{' '}
                       {budgetLabel(row)}
                     </p>
                   </div>

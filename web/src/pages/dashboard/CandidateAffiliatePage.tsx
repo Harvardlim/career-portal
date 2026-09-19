@@ -23,7 +23,7 @@ const dateFmt = new Intl.DateTimeFormat('en-US', {
 })
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const defaultInvitation =
-  "Hi,\n\nI'd like to invite you to join Partly Asia.\n\nThanks"
+  "Hi,\n\nI'd like to invite you to join partly.asia.\n\nThanks"
 
 export function CandidateAffiliatePage() {
   const { candidate, session, loading: candidateLoading } = useCandidate()

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { EmployerDashboardLayout } from '@/components/dashboard/EmployerDashboardLayout'
+import { InviteFriendPanel } from '@/components/partly/InviteFriendPanel'
 import {
   Avatar,
   Card,
@@ -18,6 +19,7 @@ import {
   budgetLabel,
   closePosting,
   countryName,
+  postingCountry,
   fetchBusinessContacts,
   fetchMatches,
   fetchPosting,
@@ -160,7 +162,7 @@ export function PostingMatchesPage() {
             </Link>
             <h1 className="mt-1 text-xl font-semibold text-ink">{posting.title}</h1>
             <p className="mt-1 text-sm text-muted">
-              {posting.category ?? 'Uncategorised'} · {countryName(posting.country)} · {projectTypeLabel(posting.project_type)} ·{' '}
+              {posting.category ?? 'Uncategorised'} · {postingCountry(posting)} · {projectTypeLabel(posting.project_type, posting.job_type)} ·{' '}
               {budgetLabel(posting)}
             </p>
           </div>
@@ -219,6 +221,8 @@ export function PostingMatchesPage() {
             </div>
           </section>
         )}
+
+        {contacts.length > 0 && <InviteFriendPanel audience="business" />}
 
         {/* Released vs pending */}
         {released.length > 0 && (

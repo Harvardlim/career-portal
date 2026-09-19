@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
+import { InviteFriendPanel } from '@/components/partly/InviteFriendPanel'
 import { GlobeIcon, MailIcon, MapPinIcon, PhoneIcon } from '@/components/icons'
 import { Card, Countdown, EmptyState, Notice, Pill, PrimaryButton } from '@/components/partly/ui'
 import { useCandidate } from '@/lib/dashboard'
@@ -157,6 +158,8 @@ export function LeadUnlockPage() {
             )}
           </Card>
         )}
+
+        {lead.status === 'paid' && contact && <InviteFriendPanel audience="expert" />}
 
         {lead.status === 'awaiting_payment' && lead.window_open && (
           <Card className="flex flex-col gap-4">

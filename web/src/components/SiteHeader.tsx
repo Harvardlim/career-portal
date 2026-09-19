@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { BriefcaseIcon } from '@/components/icons'
+import { Logo } from '@/components/app/Logo'
 import { LanguageSwitcher } from '@/components/app/LanguageSwitcher'
 import { SiteNav } from '@/components/app/SiteNav'
 import { useT } from '@/lib/i18n'
@@ -28,10 +28,7 @@ export function SiteHeader() {
       {/* Main navigation */}
       <div className="border-b border-line bg-surface">
         <div className="mx-auto flex h-[90px] w-full max-w-[1320px] items-center justify-between gap-8 px-6 lg:px-10">
-          <NavLink to="/" className="flex shrink-0 items-center gap-2">
-            <BriefcaseIcon className="size-10 text-brand" />
-            <span className="text-2xl font-semibold text-ink">partly<span className="text-brand">.asia</span></span>
-          </NavLink>
+          <Logo className="shrink-0" />
 
           <SiteNav />
 

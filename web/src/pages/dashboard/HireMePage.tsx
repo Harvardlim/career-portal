@@ -7,6 +7,7 @@ import { Card, Notice, PrimaryButton, SecondaryButton } from '@/components/partl
 import { updateMyCandidate } from '@/lib/candidateProfile'
 import { useCandidate } from '@/lib/dashboard'
 import { SITE_URL } from '@/lib/site'
+import { supabase } from '@/lib/supabase'
 
 function slugify(s: string): string {
   return s
@@ -33,19 +34,39 @@ export function HireMePage() {
   const [slug, setSlug] = useState('')
   const [saving, setSaving] = useState(false)
   const [agreed, setAgreed] = useState(false)
+  const [views, setViews] = useState<{ total: number; badge: number; last30: number } | null>(null)
+
+  useEffect(() => {
+    if (!candidate?.public_slug) return
+    supabase
+      .from('expert_profile_views')
+      .select('source, viewed_at')
+      .eq('candidate_id', candidate.id)
+      .then(({ data }) => {
+        const rows = (data ?? []) as { source: string; viewed_at: string }[]
+        const cutoff = Date.now() - 30 * 86_400_000
+        setViews({
+          total: rows.length,
+          badge: rows.filter((r) => r.source === 'badge').length,
+          last30: rows.filter((r) => new Date(r.viewed_at).getTime() > cutoff).length,
+        })
+      })
+  }, [candidate])
 
   useEffect(() => {
     if (candidate) setSlug(candidate.public_slug ?? slugify(candidate.full_name))
   }, [candidate])
 
   const profileUrl = candidate?.public_slug ? `${SITE_URL}/expert/${candidate.public_slug}` : null
+  const badgeUrl = profileUrl ? `${profileUrl}?src=badge` : null
+  const shareUrl = profileUrl ? `${profileUrl}?src=share` : null
   const svg = candidate ? badgeSvg(candidate.full_name) : ''
   const svgData = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
-  const embed = profileUrl
-    ? `<a href="${profileUrl}" target="_blank" rel="noopener"><img src="${svgData}" alt="Hire me on partly.asia" width="240" height="56"></a>`
+  const embed = badgeUrl
+    ? `<a href="${badgeUrl}" target="_blank" rel="noopener"><img src="${svgData}" alt="Hire me on partly.asia" width="240" height="56"></a>`
     : ''
   const shareText = candidate
-    ? `I'm available for fractional and project work through partly.asia. Businesses can find and apply to work with me directly here: ${profileUrl ?? ''}`
+    ? `I'm available for fractional and project work through partly.asia. Businesses can find and apply to work with me directly here: ${shareUrl ?? ''}`
     : ''
 
   async function enable() {
@@ -73,9 +94,9 @@ export function HireMePage() {
   }
 
   function shareLinkedIn() {
-    if (!profileUrl) return
+    if (!shareUrl) return
     window.open(
-      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(profileUrl)}`,
+      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
       '_blank',
       'noopener,width=600,height=600',
     )
@@ -118,11 +139,25 @@ export function HireMePage() {
           <>
             <Card className="flex flex-col gap-4">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Badge preview</h2>
-              <a href={profileUrl} target="_blank" rel="noreferrer" className="w-fit">
+              <a href={badgeUrl ?? profileUrl} target="_blank" rel="noreferrer" className="w-fit">
                 <img src={svgData} alt="Hire me on partly.asia" width={240} height={56} />
               </a>
+              {views && (
+                <div className="grid grid-cols-3 gap-3 rounded-lg bg-surface-alt p-3 text-center">
+                  {[
+                    { label: 'Profile views', value: views.total },
+                    { label: 'From your badge', value: views.badge },
+                    { label: 'Last 30 days', value: views.last30 },
+                  ].map((v) => (
+                    <div key={v.label}>
+                      <p className="text-lg font-semibold text-ink">{v.value}</p>
+                      <p className="text-xs text-muted">{v.label}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="grid gap-3 sm:grid-cols-3">
-                <SecondaryButton onClick={() => copy(profileUrl, 'Link')}>
+                <SecondaryButton onClick={() => copy(badgeUrl ?? profileUrl, 'Link')}>
                   <LinkIcon className="size-4" /> Copy link
                 </SecondaryButton>
                 <SecondaryButton onClick={() => copy(embed, 'Embed code')}>Copy embed code</SecondaryButton>

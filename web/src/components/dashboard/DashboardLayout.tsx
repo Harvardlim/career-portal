@@ -35,8 +35,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       Icon: BellIcon,
       badge: unread > 0 ? String(unread) : undefined,
     },
+    { label: 'Expert profile', to: '/dashboard/expert-profile', Icon: UserCircleIcon },
     { label: 'Verification & badge', to: '/dashboard/verification', Icon: CircleCheckIcon },
-    { label: 'Hire-me badge', to: '/dashboard/hire-me', Icon: UserCircleIcon },
+    { label: 'Hire-me badge', to: '/dashboard/hire-me', Icon: ShareIcon },
     { label: 'Affiliate', to: '/dashboard/affiliate', Icon: ShareIcon },
     { label: 'Settings', to: '/dashboard/settings', Icon: GearIcon },
   ]

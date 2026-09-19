@@ -15,6 +15,7 @@ export function RegisteredEmailDialog({
   onClose: () => void
 }) {
   const sameRole = existingRole === targetRole
+  const label = (r: Role) => (r === 'candidate' ? 'expert' : 'business')
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">
       <div className="w-full max-w-[440px] rounded-xl bg-surface p-6 shadow-2xl">
@@ -22,15 +23,15 @@ export function RegisteredEmailDialog({
           This email is already registered
         </h2>
         <p className="mt-2 text-sm text-muted-600">
-          <b>{email}</b> is already registered as a {existingRole} account.
+          <b>{email}</b> is already registered as {label(existingRole) === 'expert' ? 'an' : 'a'} {label(existingRole)} account.
         </p>
         <p className="mt-2 text-sm text-muted-600">
           {sameRole ? (
             <>Please sign in to that account instead of registering again.</>
           ) : (
             <>
-              Sign in to your {existingRole} account first, then add your{' '}
-              {targetRole} profile from there. This keeps your login credentials
+              Sign in to your {label(existingRole)} account first, then add your{' '}
+              {label(targetRole)} profile from there. This keeps your login credentials
               the same for both.
             </>
           )}

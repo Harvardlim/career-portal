@@ -4,6 +4,7 @@
 //   * lead windows that ran out          -> 'cold' + "lead went cold" notice
 //   * badges 30/14/7/1 days from expiry  -> renewal reminder (once per mark)
 //   * badges past expiry                 -> 'expired', priority ranking removed
+//   * contacts lapsing within 24 h       -> "expires tomorrow" notice to both sides
 //
 // Protected by a shared secret rather than a user JWT, since the caller is a
 // scheduler, not a person:
@@ -33,7 +34,7 @@ Deno.serve(async (req) => {
   }
 
   const results: Record<string, number | string> = {}
-  for (const fn of ['expire_lead_windows', 'send_badge_renewal_reminders', 'expire_badges']) {
+  for (const fn of ['expire_lead_windows', 'notify_contact_expiry', 'send_badge_renewal_reminders', 'expire_badges']) {
     const { data, error } = await admin.rpc(fn)
     results[fn] = error ? `error: ${error.message}` : Number(data ?? 0)
     if (error) console.error('partly-sweep', fn, error)

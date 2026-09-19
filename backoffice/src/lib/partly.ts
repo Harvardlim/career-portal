@@ -161,7 +161,6 @@ export async function fetchPostings(): Promise<PostingRow[]> {
     .select(
       'id,title,company_name,country,category,project_type,status,matching_status,posted_at,closed_at,job_applications(count),posting_matches(count),contact_releases(status)',
     )
-    .not('main_category_id', 'is', null)
     .order('posted_at', { ascending: false })
     .limit(500)
   if (error) throw error

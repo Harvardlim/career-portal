@@ -17,7 +17,7 @@ export function ComingSoonPage() {
       <header className="mx-auto w-full max-w-[1320px] px-6 py-8 lg:px-10">
         <Link to="/" className="flex items-center gap-2">
           <BriefcaseIcon className="size-9 text-brand" />
-          <span className="text-2xl font-semibold text-ink">Partly Asia</span>
+          <span className="text-2xl font-semibold text-ink">partly.asia</span>
         </Link>
       </header>
 
@@ -69,7 +69,7 @@ export function ComingSoonPage() {
           </div>
         </div>
         <p className="text-sm text-muted">
-          © 2024 Partly Asia. All rights reserved
+          © {new Date().getFullYear()} partly.asia. All rights reserved
         </p>
       </footer>
     </div>
