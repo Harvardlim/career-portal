@@ -277,6 +277,7 @@ end;
 $$;
 
 revoke all on function public.send_badge_renewal_reminders() from public, anon, authenticated;
+grant execute on function public.send_badge_renewal_reminders() to service_role;
 
 create or replace function public.expire_badges()
 returns integer
@@ -302,3 +303,4 @@ end;
 $$;
 
 revoke all on function public.expire_badges() from public, anon, authenticated;
+grant execute on function public.expire_badges() to service_role;

@@ -412,3 +412,4 @@ end;
 $$;
 
 revoke all on function public.expire_lead_windows() from public, anon, authenticated;
+grant execute on function public.expire_lead_windows() to service_role;
