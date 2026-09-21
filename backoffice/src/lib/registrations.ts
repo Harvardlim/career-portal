@@ -26,6 +26,9 @@ export type Candidate = {
   referral_opt_in: boolean
   created_at: string
   memberships: MembershipLite[]
+  suspended: boolean
+  suspended_at: string | null
+  suspended_reason: string | null
 }
 
 /** The candidate's current paid membership, if any. */
@@ -55,6 +58,9 @@ export type Employer = {
   logo_url: string | null
   referral_opt_in: boolean
   created_at: string
+  suspended: boolean
+  suspended_at: string | null
+  suspended_reason: string | null
 }
 
 const client = () => {
@@ -63,10 +69,10 @@ const client = () => {
 }
 
 const CANDIDATE_COLS =
-  'id, user_id, full_name, email, contact_number, expertise_field, years_experience, past_experience, resume_path, avatar_path, interests, referral_opt_in, created_at, memberships ( plan, period, amount_usd, status, started_at, expires_at )'
+  'id, user_id, full_name, email, contact_number, expertise_field, years_experience, past_experience, resume_path, avatar_path, interests, referral_opt_in, created_at, suspended, suspended_at, suspended_reason, memberships ( plan, period, amount_usd, status, started_at, expires_at )'
 
 const EMPLOYER_COLS =
-  'id, user_id, company_name, reg_no, field, business_email, business_details, looking_for, logo_url, referral_opt_in, created_at'
+  'id, user_id, company_name, reg_no, field, business_email, business_details, looking_for, logo_url, referral_opt_in, created_at, suspended, suspended_at, suspended_reason'
 
 const normCandidate = (c: Candidate): Candidate => ({ ...c, memberships: c.memberships ?? [] })
 
@@ -224,4 +230,32 @@ export async function getResumeLinks(path: string): Promise<ResumeLinks> {
     download: download.data.signedUrl,
     name: path.split('/').pop() || 'resume',
   }
+}
+
+/**
+ * Freezes or reinstates a Business or Expert account: bans/unbans it at the
+ * Supabase Auth level (blocks sign-in outright) and flips the suspended flag
+ * shown throughout the backoffice and the account's own dashboard. Suspending
+ * an employer also freezes every one of their postings.
+ */
+export async function setAccountSuspended(
+  kind: 'candidate' | 'employer',
+  id: string,
+  suspended: boolean,
+  reason: string | null,
+  adminId: string,
+): Promise<void> {
+  const sb = client()
+  const { data, error } = await sb.functions.invoke('admin-suspend-account', {
+    body: { kind, id, suspended, reason, admin_id: adminId },
+  })
+  if (error) {
+    const ctx = (error as { context?: Response }).context
+    if (ctx && typeof ctx.json === 'function') {
+      const parsed = (await ctx.json().catch(() => null)) as { error?: string } | null
+      if (parsed?.error) throw new Error(parsed.error)
+    }
+    throw new Error(error.message || 'Could not update suspension')
+  }
+  if (!(data as { ok?: boolean } | null)?.ok) throw new Error('Could not update suspension')
 }

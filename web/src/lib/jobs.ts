@@ -69,6 +69,7 @@ export async function fetchJobs(): Promise<JobRow[]> {
     .from('jobs')
     .select(LIST_COLS)
     .eq('status', 'active')
+    .eq('suspended', false)
     .order('posted_at', { ascending: false })
   if (error) throw error
   return (data ?? []) as JobRow[]
@@ -84,6 +85,8 @@ export async function fetchJobBySlug(slug: string): Promise<JobRow | null> {
     .eq('slug', slug)
     .maybeSingle()
   if (error) throw error
+  // A suspended posting is treated as not found on the public site.
+  if (data && (data as { suspended?: boolean }).suspended) return null
   return (data as unknown as JobRow) ?? null
 }
 
@@ -92,6 +95,7 @@ export async function fetchNewestJob(): Promise<JobRow | null> {
     .from('jobs')
     .select(`*, ${JOB_EMPLOYER_JOIN}`)
     .eq('status', 'active')
+    .eq('suspended', false)
     .order('posted_at', { ascending: false })
     .limit(1)
     .maybeSingle()
@@ -108,6 +112,7 @@ export async function fetchRelatedJobs(
     .from('jobs')
     .select(LIST_COLS)
     .eq('status', 'active')
+    .eq('suspended', false)
     .neq('slug', excludeSlug)
     .order('posted_at', { ascending: false })
     .limit(limit)

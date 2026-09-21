@@ -182,10 +182,12 @@ export type PostingRow = {
   location: string | null
   salary_label: string | null
   tags: string[] | null
+  suspended: boolean
+  suspended_reason: string | null
 }
 
 const POSTING_COLUMNS =
-  'id,slug,title,company_name,country,project_type,project_duration,budget_min,budget_max,budget_currency,people_required,skill_requirements,category,main_category_id,status,matching_status,matches_generated_at,closed_at,posted_at,description,job_type,location,salary_label,tags'
+  'id,slug,title,company_name,country,project_type,project_duration,budget_min,budget_max,budget_currency,people_required,skill_requirements,category,main_category_id,status,matching_status,matches_generated_at,closed_at,posted_at,description,job_type,location,salary_label,tags,suspended,suspended_reason'
 
 export type MyPostingRow = PostingRow & {
   applications: number
@@ -249,6 +251,7 @@ export async function fetchOpenNeeds(filters: NeedFilters, candidateId?: string)
     .from('jobs')
     .select(`${POSTING_COLUMNS}, job_subcategories(subcategories(id,name))`)
     .eq('status', 'active')
+    .eq('suspended', false)
     .in('matching_status', ['open', 'matched'])
     .order('posted_at', { ascending: false })
     .limit(100)

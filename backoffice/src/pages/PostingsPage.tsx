@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ListCard, Pagination, PAGE_SIZES, TableSearch, lc, useTableView } from '../components/ListShell'
 import { ConfirmDialog } from '../components/ConfirmDialog'
-import { Button, Card } from '../components/ui'
+import { Button, Card, controlClass } from '../components/ui'
 import { useAdminSession } from '../lib/admin'
 import {
   adminClosePosting,
   fetchPostings,
   fetchReleases,
   partlyEnabled,
+  setJobSuspended,
   type PostingRow,
   type ReleaseRow,
 } from '../lib/partly'
@@ -47,6 +48,8 @@ export const PostingsPage = () => {
   const [loading, setLoading] = useState(partlyEnabled)
   const [error, setError] = useState<string | null>(null)
   const [closing, setClosing] = useState<PostingRow | null>(null)
+  const [suspending, setSuspending] = useState<PostingRow | null>(null)
+  const [reason, setReason] = useState('')
   const [busy, setBusy] = useState(false)
 
   async function load() {
@@ -80,6 +83,21 @@ export const PostingsPage = () => {
     try {
       await adminClosePosting(closing.id, session.id)
       setClosing(null)
+      await load()
+    } catch (e) {
+      setError(errMessage(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function confirmSuspend() {
+    if (!suspending || !session) return
+    setBusy(true)
+    try {
+      await setJobSuspended(suspending.id, !suspending.suspended, reason.trim() || null, session.id)
+      setSuspending(null)
+      setReason('')
       await load()
     } catch (e) {
       setError(errMessage(e))
@@ -140,16 +158,27 @@ export const PostingsPage = () => {
                     {r.category ?? '—'} · {r.country ?? '—'}
                     <span className="block text-[12px] text-muted">{r.project_type ?? ''}</span>
                   </td>
-                  <td className={tdCls}><Pill map={MATCHING} value={r.matching_status} /></td>
+                  <td className={tdCls}>
+                    <div className="flex flex-wrap gap-1">
+                      <Pill map={MATCHING} value={r.matching_status} />
+                      {r.suspended && <span className="inline-flex rounded-md bg-danger/12 px-2 py-1 text-[12px] font-medium text-danger">Suspended</span>}
+                    </div>
+                    {r.suspended && r.suspended_reason && <span className="mt-1 block text-[12px] text-muted">{r.suspended_reason}</span>}
+                  </td>
                   <td className={tdCls}>{r.applications}</td>
                   <td className={tdCls}>{r.matches} / 10</td>
                   <td className={tdCls}>{r.released}</td>
                   <td className={tdCls}>{r.unlocked}</td>
                   <td className={tdCls}>{fmt(r.posted_at)}</td>
                   <td className={tdCls}>
-                    {r.matching_status !== 'closed' && (
-                      <Button variant="ghost" onClick={() => setClosing(r)}>Close</Button>
-                    )}
+                    <div className="flex flex-col items-start gap-1">
+                      {r.matching_status !== 'closed' && (
+                        <Button variant="ghost" onClick={() => setClosing(r)}>Close</Button>
+                      )}
+                      <Button variant="ghost" onClick={() => setSuspending(r)}>
+                        {r.suspended ? 'Reinstate' : 'Suspend'}
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -224,6 +253,39 @@ export const PostingsPage = () => {
         busy={busy}
         onCancel={() => setClosing(null)}
         onConfirm={confirmClose}
+      />
+
+      <ConfirmDialog
+        open={!!suspending}
+        title={suspending?.suspended ? 'Reinstate posting' : 'Suspend posting'}
+        message={
+          <div className="space-y-3">
+            <p>
+              {suspending
+                ? suspending.suspended
+                  ? `Make "${suspending.title}" visible again on Open Needs and the job board.`
+                  : `Hide "${suspending.title}" from every public listing immediately. The business can still see it in their dashboard, marked suspended.`
+                : ''}
+            </p>
+            {!suspending?.suspended && (
+              <textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                rows={3}
+                placeholder="Reason shown to the business (optional)"
+                className={`${controlClass} h-auto py-2`}
+              />
+            )}
+          </div>
+        }
+        confirmLabel={suspending?.suspended ? 'Reinstate' : 'Suspend'}
+        tone={suspending?.suspended ? 'default' : 'danger'}
+        busy={busy}
+        onCancel={() => {
+          setSuspending(null)
+          setReason('')
+        }}
+        onConfirm={confirmSuspend}
       />
     </div>
   )

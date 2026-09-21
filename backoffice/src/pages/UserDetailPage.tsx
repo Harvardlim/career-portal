@@ -1,8 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Card } from '../components/ui'
+import { Card, controlClass } from '../components/ui'
 import { ConfirmDialog } from '../components/ConfirmDialog'
-import { IconChevronLeft, IconEye, IconTrash } from '../components/Icons'
+import { IconChevronLeft, IconEye, IconLock, IconTrash } from '../components/Icons'
+import { useAdminSession } from '../lib/admin'
 import {
   activeMembership,
   deleteCandidate,
@@ -14,6 +15,7 @@ import {
   getResumeLinks,
   membershipStatusLabel,
   registrationsEnabled,
+  setAccountSuspended,
   type Candidate,
   type Employer,
   type ReferredBy as ReferredByRow,
@@ -265,6 +267,7 @@ export const UserDetailPage = () => {
   const { id } = useParams<{ id: string }>()
   const { pathname } = useLocation()
   const navigate = useNavigate()
+  const session = useAdminSession()
   const kind: 'candidate' | 'employer' = pathname.includes('/employers/') ? 'employer' : 'candidate'
   const listPath = kind === 'employer' ? '/users/employers' : '/users/candidates'
 
@@ -275,6 +278,10 @@ export const UserDetailPage = () => {
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [suspendPrompt, setSuspendPrompt] = useState(false)
+  const [suspendReason, setSuspendReason] = useState('')
+  const [suspendBusy, setSuspendBusy] = useState(false)
+  const [suspendError, setSuspendError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!registrationsEnabled || !id) {
@@ -317,6 +324,26 @@ export const UserDetailPage = () => {
     }
   }
 
+  const isSuspended = kind === 'employer' ? !!employer?.suspended : !!candidate?.suspended
+
+  async function handleSuspendToggle() {
+    if (!id || !session) return
+    setSuspendBusy(true)
+    setSuspendError(null)
+    try {
+      await setAccountSuspended(kind, id, !isSuspended, suspendReason.trim() || null, session.id)
+      setSuspendPrompt(false)
+      setSuspendReason('')
+      const row = kind === 'employer' ? await fetchEmployer(id) : await fetchCandidate(id)
+      if (kind === 'employer') setEmployer(row as Employer | null)
+      else setCandidate(row as Candidate | null)
+    } catch (e) {
+      setSuspendError(errMessage(e))
+    } finally {
+      setSuspendBusy(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -346,9 +373,33 @@ export const UserDetailPage = () => {
         <Card className="p-6 text-[14px] text-danger">{error ?? 'Not found.'}</Card>
       ) : (
         <Card className="p-6">
+          {isSuspended && (
+            <div className="mb-5 rounded-lg border border-danger/40 bg-danger/10 p-4 text-[13px] text-danger">
+              <p className="font-semibold">
+                {kind === 'employer' ? 'This business' : 'This expert'} is suspended — they can&apos;t sign in
+                {kind === 'employer' ? ' and their postings are hidden.' : '.'}
+              </p>
+              {(kind === 'employer' ? employer?.suspended_reason : candidate?.suspended_reason) && (
+                <p className="mt-1">
+                  Reason: {kind === 'employer' ? employer?.suspended_reason : candidate?.suspended_reason}
+                </p>
+              )}
+            </div>
+          )}
+
           {kind === 'employer' ? <EmployerBody e={employer!} /> : <CandidateBody c={candidate!} />}
 
-          <div className="mt-6 border-t border-line pt-4">
+          <div className="mt-6 flex items-center gap-5 border-t border-line pt-4">
+            <button
+              type="button"
+              onClick={() => setSuspendPrompt(true)}
+              className={`inline-flex items-center gap-2 text-[13px] font-semibold hover:underline ${
+                isSuspended ? 'text-success' : 'text-warning'
+              }`}
+            >
+              <IconLock width={15} height={15} />
+              {isSuspended ? `Reinstate ${kind === 'employer' ? 'employer' : 'candidate'}` : `Suspend ${kind === 'employer' ? 'employer' : 'candidate'}`}
+            </button>
             <button
               type="button"
               onClick={() => setConfirming(true)}
@@ -375,6 +426,47 @@ export const UserDetailPage = () => {
         error={deleteError}
         onConfirm={handleDelete}
         onCancel={() => setConfirming(false)}
+      />
+
+      <ConfirmDialog
+        open={suspendPrompt}
+        title={isSuspended ? `Reinstate ${kind === 'employer' ? 'employer' : 'candidate'}` : `Suspend ${kind === 'employer' ? 'employer' : 'candidate'}`}
+        tone={isSuspended ? 'default' : 'danger'}
+        message={
+          <div className="space-y-3">
+            <p>
+              {isSuspended ? (
+                <>
+                  <strong className="text-ink-200">{name}</strong> will be able to sign in again.
+                  {kind === 'employer' && ' Their postings stay hidden until reinstated individually on the Postings page.'}
+                </>
+              ) : (
+                <>
+                  <strong className="text-ink-200">{name}</strong> will be signed out and blocked from signing in
+                  {kind === 'employer' && ", and every one of their postings will be hidden from public listings"}.
+                </>
+              )}
+            </p>
+            {!isSuspended && (
+              <textarea
+                value={suspendReason}
+                onChange={(e) => setSuspendReason(e.target.value)}
+                rows={3}
+                placeholder="Reason shown to the account (optional)"
+                className={`${controlClass} h-auto py-2`}
+              />
+            )}
+          </div>
+        }
+        confirmLabel={isSuspended ? 'Reinstate' : 'Suspend'}
+        busy={suspendBusy}
+        error={suspendError}
+        onConfirm={handleSuspendToggle}
+        onCancel={() => {
+          setSuspendPrompt(false)
+          setSuspendReason('')
+          setSuspendError(null)
+        }}
       />
     </div>
   )

@@ -10,6 +10,8 @@ import {
 } from '@/lib/supabase'
 import {
   clearDisplayUserCache,
+  clearSuspendedReason,
+  getSuspendedReason,
   setActiveRole,
   type Role,
 } from '@/lib/useDisplayUser'
@@ -22,6 +24,14 @@ export function SignInPage() {
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  // Shown once when this page loads because a session got signed out mid-use
+  // for being suspended (see useDisplayUser). Read once, then cleared, so a
+  // later unrelated error on this same page doesn't keep re-showing it.
+  const [suspendedNotice] = useState(() => {
+    const reason = getSuspendedReason()
+    clearSuspendedReason()
+    return reason
+  })
   const [error, setError] = useState<string | null>(null)
   // Set when the signed-in account has BOTH a candidate and an employer profile.
   const [pickRole, setPickRole] = useState(false)
@@ -48,9 +58,19 @@ export function SignInPage() {
       const userId = data.user.id
 
       const [{ data: candidateRow }, { data: employerRow }] = await Promise.all([
-        supabase.from('candidates').select('id').eq('user_id', userId).maybeSingle(),
-        supabase.from('employers').select('id').eq('user_id', userId).maybeSingle(),
+        supabase.from('candidates').select('id, suspended, suspended_reason').eq('user_id', userId).maybeSingle(),
+        supabase.from('employers').select('id, suspended, suspended_reason').eq('user_id', userId).maybeSingle(),
       ])
+
+      if (candidateRow?.suspended || employerRow?.suspended) {
+        await supabase.auth.signOut()
+        setError(
+          candidateRow?.suspended_reason ??
+            employerRow?.suspended_reason ??
+            'Your account has been suspended. Contact partly.asia support if you think this is a mistake.',
+        )
+        return
+      }
 
       if (candidateRow && employerRow) {
         setPickRole(true)
@@ -118,6 +138,11 @@ export function SignInPage() {
           </p>
         </div>
 
+        {suspendedNotice && !error && (
+          <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-600">
+            You were signed out: {suspendedNotice}
+          </p>
+        )}
         {error && (
           <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>
         )}

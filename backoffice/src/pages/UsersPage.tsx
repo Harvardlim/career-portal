@@ -273,8 +273,13 @@ export const UsersPage = () => {
                               <Avatar label={c.full_name} tint="bg-brand/70" src={c.avatar_path} />
                               <span className="flex flex-col gap-1">
                                 <span className="font-semibold text-ink">{c.full_name}</span>
-                                {activeMembership(c) || c.referral_opt_in ? (
+                                {activeMembership(c) || c.referral_opt_in || c.suspended ? (
                                   <span className="flex flex-wrap gap-1">
+                                    {c.suspended ? (
+                                      <span className="rounded bg-danger/15 px-1.5 py-0.5 text-[10px] font-medium text-danger">
+                                        Suspended
+                                      </span>
+                                    ) : null}
                                     {activeMembership(c) ? (
                                       <span className="rounded bg-success/15 px-1.5 py-0.5 text-[10px] font-medium text-success">
                                         Subscribed
@@ -350,6 +355,11 @@ export const UsersPage = () => {
                               <span className="font-semibold text-ink">
                                 {e.company_name}
                               </span>
+                              {e.suspended ? (
+                                <span className="rounded bg-danger/15 px-1.5 py-0.5 text-[10px] font-medium text-danger">
+                                  suspended
+                                </span>
+                              ) : null}
                               {e.referral_opt_in ? (
                                 <span className="rounded bg-brand/15 px-1.5 py-0.5 text-[10px] font-medium text-brand">
                                   referral

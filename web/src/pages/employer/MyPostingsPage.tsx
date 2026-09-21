@@ -107,7 +107,11 @@ export function MyPostingsPage() {
                         {row.title}
                       </Link>
                       <Pill tone={st.tone}>{st.label}</Pill>
+                      {row.suspended && <Pill tone="danger">Suspended by partly.asia staff</Pill>}
                     </div>
+                    {row.suspended && row.suspended_reason && (
+                      <p className="mt-1 text-xs text-danger">{row.suspended_reason}</p>
+                    )}
                     <p className="mt-1 text-sm text-muted">
                       {row.category ?? 'Uncategorised'} · {postingCountry(row)} · {projectTypeLabel(row.project_type, row.job_type)} ·{' '}
                       {budgetLabel(row)}

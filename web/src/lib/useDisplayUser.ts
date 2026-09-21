@@ -39,6 +39,49 @@ export function setActiveRole(role: Role | null) {
 }
 
 /**
+ * A suspended account is banned at the Supabase Auth level (see
+ * admin-suspend-account), which blocks sign-in outright -- but a session
+ * issued just before the ban can stay valid for up to an hour. This is the
+ * client-side backstop: every time the account is resolved (sign-in, page
+ * load, tab focus) a suspended row signs the session out immediately instead
+ * of letting a stale token through.
+ */
+const SUSPENDED_REASON_KEY = 'account-suspended-reason'
+
+export class SuspendedAccountError extends Error {
+  reason: string | null
+  constructor(reason: string | null) {
+    super(reason ?? 'Your account has been suspended.')
+    this.name = 'SuspendedAccountError'
+    this.reason = reason
+  }
+}
+
+export function getSuspendedReason(): string | null {
+  try {
+    return sessionStorage.getItem(SUSPENDED_REASON_KEY)
+  } catch {
+    return null
+  }
+}
+
+export function clearSuspendedReason() {
+  try {
+    sessionStorage.removeItem(SUSPENDED_REASON_KEY)
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+function setSuspendedReason(reason: string | null) {
+  try {
+    sessionStorage.setItem(SUSPENDED_REASON_KEY, reason ?? 'Your account has been suspended.')
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+/**
  * Process-wide cache of the resolved profile, keyed by auth user id. The header
  * mounts on every navigation; without this it would re-query candidates +
  * employers each time. Cleared on sign-out / user change.
@@ -52,15 +95,24 @@ async function resolveDisplayUser(
   const [{ data: candidate }, { data: employer }] = await Promise.all([
     supabase
       .from('candidates')
-      .select('id, full_name, avatar_path')
+      .select('id, full_name, avatar_path, suspended, suspended_reason')
       .eq('user_id', userId)
       .maybeSingle(),
     supabase
       .from('employers')
-      .select('id, company_name, logo_url')
+      .select('id, company_name, logo_url, suspended, suspended_reason')
       .eq('user_id', userId)
       .maybeSingle(),
   ])
+
+  // The Auth ban already blocks new sign-ins; this catches a session that was
+  // still valid at the moment the ban took effect.
+  if (candidate?.suspended || employer?.suspended) {
+    const reason = candidate?.suspended_reason ?? employer?.suspended_reason ?? null
+    setSuspendedReason(reason)
+    await supabase.auth.signOut()
+    throw new SuspendedAccountError(reason)
+  }
 
   const hasBothRoles = !!candidate && !!employer
   const preferEmployer = getActiveRole() === 'employer'
@@ -103,7 +155,8 @@ async function resolveDisplayUser(
 /**
  * The signed-in user's display name + where their dashboard lives, resolved
  * from whichever profile row (candidate or employer) is tied to the account.
- * Returns null when signed out.
+ * Returns null when signed out (including when this call just found the
+ * account suspended and signed it out itself).
  */
 export function useDisplayUser(): { user: DisplayUser | null; loading: boolean } {
   const { session, loading: sessionLoading } = useSession()
@@ -130,12 +183,19 @@ export function useDisplayUser(): { user: DisplayUser | null; loading: boolean }
 
     let alive = true
     setLoading(true)
-    resolveDisplayUser(userId, session.user.email ?? '').then((value) => {
-      cache = { userId, value }
-      if (!alive) return
-      setUser(value)
-      setLoading(false)
-    })
+    resolveDisplayUser(userId, session.user.email ?? '')
+      .then((value) => {
+        cache = { userId, value }
+        if (!alive) return
+        setUser(value)
+        setLoading(false)
+      })
+      .catch(() => {
+        cache = null
+        if (!alive) return
+        setUser(null)
+        setLoading(false)
+      })
 
     return () => {
       alive = false

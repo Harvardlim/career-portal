@@ -454,3 +454,9 @@ verify_jwt = true
 # partly.asia — emails applicants who weren't hired when a posting closes.
 [functions.notify-job-closed]
 verify_jwt = true
+
+# partly.asia — freezes/reinstates a business or expert (bans/unbans at Auth
+# level too). No Supabase session on the backoffice side; same anon-open trust
+# model as the other admin_* RPCs.
+[functions.admin-suspend-account]
+verify_jwt = false

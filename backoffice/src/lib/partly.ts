@@ -149,6 +149,8 @@ export type PostingRow = {
   matching_status: string
   posted_at: string
   closed_at: string | null
+  suspended: boolean
+  suspended_reason: string | null
   applications: number
   matches: number
   released: number
@@ -159,7 +161,7 @@ export async function fetchPostings(): Promise<PostingRow[]> {
   const { data, error } = await client()
     .from('jobs')
     .select(
-      'id,title,company_name,country,category,project_type,status,matching_status,posted_at,closed_at,job_applications(count),posting_matches(count),contact_releases(status)',
+      'id,title,company_name,country,category,project_type,status,matching_status,posted_at,closed_at,suspended,suspended_reason,job_applications(count),posting_matches(count),contact_releases(status)',
     )
     .order('posted_at', { ascending: false })
     .limit(500)
@@ -184,6 +186,17 @@ export async function adminClosePosting(jobId: string, adminId: string): Promise
   const { data, error } = await client().rpc('admin_close_posting', { p_job_id: jobId, p_admin_id: adminId })
   if (error) throw error
   return Number(data ?? 0)
+}
+
+/** Freezes/reinstates a single posting — disappears from every public listing immediately. */
+export async function setJobSuspended(jobId: string, suspended: boolean, reason: string | null, adminId: string): Promise<void> {
+  const { error } = await client().rpc('admin_set_job_suspended', {
+    p_job_id: jobId,
+    p_suspended: suspended,
+    p_reason: reason,
+    p_admin_id: adminId,
+  })
+  if (error) throw error
 }
 
 export type ReleaseRow = {
