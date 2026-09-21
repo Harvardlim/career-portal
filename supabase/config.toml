@@ -442,3 +442,15 @@ verify_jwt = true
 # partly.asia — scheduled sweep (cold leads, badge reminders/expiry); shared-secret auth.
 [functions.partly-sweep]
 verify_jwt = false
+
+# partly.asia — emails the business when an expert applies to their posting.
+[functions.notify-application]
+verify_jwt = true
+
+# partly.asia — emails experts a business just released contact to.
+[functions.notify-interest]
+verify_jwt = true
+
+# partly.asia — emails applicants who weren't hired when a posting closes.
+[functions.notify-job-closed]
+verify_jwt = true

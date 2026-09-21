@@ -1,17 +1,88 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { Field, Select, TextInput } from '@/components/dashboard/form'
-import { LinkedinIcon, TrashIcon } from '@/components/icons'
+import { FileIcon, LinkedinIcon, PlusCircleIcon, TrashIcon } from '@/components/icons'
 import { Avatar, Card, Notice, PrimaryButton, SecondaryButton, VerifiedChips } from '@/components/partly/ui'
-import { updateMyCandidate, uploadCandidateAvatar } from '@/lib/candidateProfile'
+import {
+  deleteResume,
+  fetchMyResumes,
+  formatFileSize,
+  updateMyCandidate,
+  uploadCandidateAvatar,
+  uploadResume,
+  type ResumeRow,
+} from '@/lib/candidateProfile'
 import { useCategories } from '@/lib/categories'
 import { useCandidate } from '@/lib/dashboard'
 import { experienceRanges } from '@/data/categories'
 import { supabase } from '@/lib/supabase'
 
 type Portfolio = { label: string; url: string }
+
+const educationOptions = ['Select...', 'High School', 'Diploma', 'Bachelor Degree', 'Master Degree', 'PhD']
+const nationalityOptions = ['Select...', 'Malaysia', 'Singapore', 'Indonesia', 'India', 'United States', 'United Kingdom', 'Other']
+const genderOptions = ['Select...', 'Male', 'Female', 'Other']
+const maritalOptions = ['Select...', 'Single', 'Married', 'Other']
+
+function ResumeList({ candidateId, resumes, onChange }: { candidateId: string; resumes: ResumeRow[]; onChange: () => void }) {
+  const id = useId()
+  const [busy, setBusy] = useState(false)
+
+  async function handleAdd(file: File | null) {
+    if (!file) return
+    setBusy(true)
+    try {
+      await uploadResume(candidateId, file)
+      toast.success('Resume uploaded')
+      onChange()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function handleDelete(row: ResumeRow) {
+    try {
+      await deleteResume(row)
+      toast.success('Resume removed')
+      onChange()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not remove')
+    }
+  }
+
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {resumes.map((r) => (
+        <div key={r.id} className="flex items-center justify-between gap-3 rounded-lg bg-surface-alt/60 p-4">
+          <span className="flex min-w-0 items-center gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded bg-surface text-brand">
+              <FileIcon className="size-5" />
+            </span>
+            <span className="flex min-w-0 flex-col">
+              <span className="truncate text-sm font-medium text-ink">{r.file_name}</span>
+              <span className="text-xs text-muted">{formatFileSize(r.size_bytes)}</span>
+            </span>
+          </span>
+          <button type="button" aria-label={`Remove ${r.file_name}`} onClick={() => handleDelete(r)} className="shrink-0 text-muted hover:text-danger">
+            <TrashIcon className="size-5" />
+          </button>
+        </div>
+      ))}
+      <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-line bg-surface-alt/40 p-6 text-center hover:border-brand">
+        <span className="inline-flex items-center gap-2 text-sm font-medium text-ink">
+          <PlusCircleIcon className="size-5 text-brand" />
+          {busy ? 'Uploading...' : 'Add CV / Resume'}
+        </span>
+        <span className="text-xs text-muted">Browse file or drop here. PDF or DOCX.</span>
+        <input id={id} type="file" accept=".pdf,.doc,.docx" className="sr-only" onChange={(e) => handleAdd(e.target.files?.[0] ?? null)} />
+      </label>
+    </div>
+  )
+}
 
 /**
  * The LinkedIn-style profile a business sees on the match card and the public
@@ -21,31 +92,52 @@ type Portfolio = { label: string; url: string }
 export function ExpertProfileEditPage() {
   const { candidate, session, loading, reload } = useCandidate()
   const { categories } = useCategories()
+  const [fullName, setFullName] = useState('')
   const [headline, setHeadline] = useState('')
   const [title, setTitle] = useState('')
   const [years, setYears] = useState('')
   const [bio, setBio] = useState('')
   const [linkedin, setLinkedin] = useState('')
+  const [nationality, setNationality] = useState('')
+  const [dob, setDob] = useState('')
+  const [gender, setGender] = useState('')
+  const [marital, setMarital] = useState('')
+  const [education, setEducation] = useState('')
   const [cats, setCats] = useState<string[]>([])
   const [subIds, setSubIds] = useState<string[]>([])
   const [links, setLinks] = useState<Portfolio[]>([])
+  const [resumes, setResumes] = useState<ResumeRow[]>([])
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
 
+  const loadResumes = (candidateId: string) => {
+    fetchMyResumes(candidateId)
+      .then(setResumes)
+      .catch((err) => console.error('resumes', err))
+  }
+
   useEffect(() => {
     if (!candidate) return
+    setFullName(candidate.full_name ?? '')
     setHeadline(candidate.headline ?? '')
     setTitle(candidate.title ?? '')
     setYears(candidate.years_experience ?? '')
     setBio(candidate.biography ?? '')
     setLinkedin(candidate.linkedin_url ?? '')
+    setNationality(candidate.nationality ?? '')
+    setDob(candidate.date_of_birth ?? '')
+    setGender(candidate.gender ?? '')
+    setMarital(candidate.marital_status ?? '')
+    setEducation(candidate.education ?? '')
     setCats(candidate.expertise_field ?? [])
     setLinks(Array.isArray(candidate.portfolio_links) ? candidate.portfolio_links : [])
+    loadResumes(candidate.id)
     supabase
       .from('candidate_subcategories')
       .select('subcategory_id')
       .eq('candidate_id', candidate.id)
       .then(({ data }) => setSubIds((data ?? []).map((r) => r.subcategory_id as string)))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [candidate])
 
   const toggleCat = (name: string) => {
@@ -61,11 +153,17 @@ export function ExpertProfileEditPage() {
     setSaving(true)
     try {
       await updateMyCandidate(session.user.id, {
+        full_name: fullName.trim() || candidate.full_name,
         headline: headline.trim() || null,
         title: title.trim() || null,
         years_experience: years || null,
         biography: bio.trim() || null,
         linkedin_url: linkedin.trim() || null,
+        nationality: nationality || null,
+        date_of_birth: dob || null,
+        gender: gender || null,
+        marital_status: marital || null,
+        education: education || null,
         expertise_field: cats,
         portfolio_links: links.filter((l) => l.url.trim()),
       })
@@ -126,7 +224,7 @@ export function ExpertProfileEditPage() {
         <Card className="flex items-center gap-4">
           <Avatar name={candidate.full_name} src={candidate.avatar_path} size={72} />
           <div className="flex-1">
-            <p className="font-medium text-ink">{candidate.full_name}</p>
+            <p className="font-medium text-ink">{fullName || candidate.full_name}</p>
             <p className="text-sm text-muted">{headline || 'Add a headline below'}</p>
             <div className="mt-1">
               <VerifiedChips identity={candidate.identity_verified} badge={badgeLive} />
@@ -141,6 +239,9 @@ export function ExpertProfileEditPage() {
         </Card>
 
         <Card className="flex flex-col gap-4">
+          <Field label="Full name, exactly as on your ID">
+            <TextInput value={fullName} onChange={(e) => setFullName(e.target.value)} />
+          </Field>
           <Field label="Headline">
             <TextInput value={headline} onChange={(e) => setHeadline(e.target.value)} placeholder="e.g. Fractional CFO · Series A–B fundraising · SaaS" />
           </Field>
@@ -223,6 +324,32 @@ export function ExpertProfileEditPage() {
           <SecondaryButton className="w-fit" onClick={() => setLinks((ls) => [...ls, { label: '', url: '' }])}>
             Add a link
           </SecondaryButton>
+        </Card>
+
+        <Card className="flex flex-col gap-4">
+          <p className="text-sm font-medium text-ink">Personal details</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Nationality">
+              <Select value={nationality} onChange={(e) => setNationality(e.target.value)} options={nationalityOptions} />
+            </Field>
+            <Field label="Date of birth">
+              <TextInput type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+            </Field>
+            <Field label="Gender">
+              <Select value={gender} onChange={(e) => setGender(e.target.value)} options={genderOptions} />
+            </Field>
+            <Field label="Marital status">
+              <Select value={marital} onChange={(e) => setMarital(e.target.value)} options={maritalOptions} />
+            </Field>
+            <Field label="Education">
+              <Select value={education} onChange={(e) => setEducation(e.target.value)} options={educationOptions} />
+            </Field>
+          </div>
+        </Card>
+
+        <Card className="flex flex-col gap-4">
+          <p className="text-sm font-medium text-ink">CV / Resume</p>
+          <ResumeList candidateId={candidate.id} resumes={resumes} onChange={() => loadResumes(candidate.id)} />
         </Card>
 
         {!candidate.identity_verified && (

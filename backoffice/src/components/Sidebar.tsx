@@ -102,6 +102,7 @@ export const Sidebar = () => {
         </Group>
         <Group icon={<IconUsers width={19} height={19} />} label="Users" open>
           <Leaf label="Verification queue" to="/verification" />
+          <Leaf label="User Reports" to="/reports" />
           <Leaf label="Experts" to="/users/candidates" />
           <Leaf label="Businesses" to="/users/employers" />
         </Group>

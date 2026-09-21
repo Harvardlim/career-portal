@@ -410,3 +410,60 @@ export async function markPayoutPaid(payoutId: string, reference: string, method
     .eq('status', 'earned')
   if (cErr) throw cErr
 }
+
+/* ---------- Reports ---------- */
+
+export type ReportRow = {
+  id: string
+  reporter_user_id: string | null
+  reporter_email: string | null
+  target_kind: 'job' | 'employer' | 'candidate'
+  target_id: string
+  reason: string
+  details: string | null
+  status: 'open' | 'reviewed' | 'dismissed'
+  reviewed_by: string | null
+  reviewed_at: string | null
+  created_at: string
+  target_label: string | null
+}
+
+export async function fetchReports(): Promise<ReportRow[]> {
+  const sb = client()
+  const { data, error } = await sb
+    .from('reports')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(500)
+  if (error) throw error
+  const rows = (data ?? []) as Omit<ReportRow, 'target_label'>[]
+
+  const jobIds = rows.filter((r) => r.target_kind === 'job').map((r) => r.target_id)
+  const empIds = rows.filter((r) => r.target_kind === 'employer').map((r) => r.target_id)
+  const candIds = rows.filter((r) => r.target_kind === 'candidate').map((r) => r.target_id)
+
+  const [jobs, emps, cands] = await Promise.all([
+    jobIds.length ? sb.from('jobs').select('id, title').in('id', jobIds) : Promise.resolve({ data: [] as unknown[] }),
+    empIds.length ? sb.from('employers').select('id, company_name').in('id', empIds) : Promise.resolve({ data: [] as unknown[] }),
+    candIds.length ? sb.from('candidates').select('id, full_name').in('id', candIds) : Promise.resolve({ data: [] as unknown[] }),
+  ])
+  const jobMap = new Map(((jobs.data ?? []) as { id: string; title: string }[]).map((j) => [j.id, j.title]))
+  const empMap = new Map(((emps.data ?? []) as { id: string; company_name: string }[]).map((e) => [e.id, e.company_name]))
+  const candMap = new Map(((cands.data ?? []) as { id: string; full_name: string }[]).map((c) => [c.id, c.full_name]))
+
+  return rows.map((r) => ({
+    ...r,
+    target_label:
+      r.target_kind === 'job' ? (jobMap.get(r.target_id) ?? null)
+      : r.target_kind === 'employer' ? (empMap.get(r.target_id) ?? null)
+      : (candMap.get(r.target_id) ?? null),
+  }))
+}
+
+export async function updateReportStatus(id: string, status: ReportRow['status'], adminId: string): Promise<void> {
+  const { error } = await client()
+    .from('reports')
+    .update({ status, reviewed_by: adminId, reviewed_at: new Date().toISOString() })
+    .eq('id', id)
+  if (error) throw error
+}

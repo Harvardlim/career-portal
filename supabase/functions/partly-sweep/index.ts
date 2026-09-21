@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
   }
 
   const results: Record<string, number | string> = {}
-  for (const fn of ['expire_lead_windows', 'notify_contact_expiry', 'send_badge_renewal_reminders', 'expire_badges']) {
+  for (const fn of ['expire_lead_windows', 'notify_contact_expiry', 'send_badge_renewal_reminders', 'expire_badges', 'expire_employer_badges']) {
     const { data, error } = await admin.rpc(fn)
     results[fn] = error ? `error: ${error.message}` : Number(data ?? 0)
     if (error) console.error('partly-sweep', fn, error)

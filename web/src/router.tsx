@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { SiteLayout } from './layouts/SiteLayout'
 import { HomePage } from './pages/HomePage'
 import { CreateAccountPage } from './pages/auth/CreateAccountPage'
@@ -15,10 +15,8 @@ import { EmployerDetailPage } from './pages/EmployerDetailPage'
 import { BrowseCandidatePage } from './pages/BrowseCandidatePage'
 import { SendEmailPage } from './pages/SendEmailPage'
 import { DashboardOverviewPage } from './pages/dashboard/DashboardOverviewPage'
-import { MembershipPage } from './pages/dashboard/MembershipPage'
 import { AppliedJobsPage } from './pages/dashboard/AppliedJobsPage'
 import { FavoriteJobsPage } from './pages/dashboard/FavoriteJobsPage'
-import { PriorityMatchPage } from './pages/dashboard/PriorityMatchPage'
 import { CandidateAffiliatePage } from './pages/dashboard/CandidateAffiliatePage'
 import { SettingsPage } from './pages/dashboard/SettingsPage'
 import {
@@ -63,9 +61,6 @@ import { CategoriesPage } from './pages/marketing/CategoriesPage'
 import { HowItWorksPage } from './pages/marketing/HowItWorksPage'
 import { TrustPage } from './pages/marketing/TrustPage'
 import { ExpertProfilePage } from './pages/ExpertProfilePage'
-import { NotificationsPage } from './pages/NotificationsPage'
-import { DashboardLayout } from './components/dashboard/DashboardLayout'
-import { EmployerDashboardLayout } from './components/dashboard/EmployerDashboardLayout'
 import { LeadsPage } from './pages/dashboard/LeadsPage'
 import { LeadUnlockPage } from './pages/dashboard/LeadUnlockPage'
 import { VerificationPage } from './pages/dashboard/VerificationPage'
@@ -104,8 +99,8 @@ export const router = createBrowserRouter([
   { path: '/forgot-password', element: <ForgotPasswordPage /> },
   { path: '/email-verification', element: <EmailVerificationPage /> },
   { path: '/reset-password', element: <ResetPasswordPage /> },
-  { path: '/pricing', element: <PricingPage audience="candidate" /> },
-  { path: '/pricing/candidate', element: <PricingPage audience="candidate" /> },
+  { path: '/pricing', element: <Navigate to="/how-it-works" replace /> },
+  { path: '/pricing/candidate', element: <Navigate to="/how-it-works" replace /> },
   { path: '/pricing/employer', element: <PricingPage audience="employer" /> },
   { path: '/find-job', element: <FindJobPage /> },
   { path: '/find-job-list', element: <FindJobListPage /> },
@@ -118,20 +113,17 @@ export const router = createBrowserRouter([
   { path: '/browse-candidate', element: <BrowseCandidatePage /> },
   { path: '/send-email', element: <SendEmailPage /> },
   { path: '/dashboard', element: <DashboardOverviewPage /> },
-  { path: '/dashboard/membership', element: <MembershipPage /> },
   { path: '/dashboard/leads', element: <LeadsPage /> },
   { path: '/dashboard/leads/:id', element: <LeadUnlockPage /> },
   { path: '/dashboard/verification', element: <VerificationPage /> },
   { path: '/dashboard/hire-me', element: <HireMePage /> },
   { path: '/dashboard/expert-profile', element: <ExpertProfileEditPage /> },
-  { path: '/dashboard/notifications', element: <NotificationsPage Layout={DashboardLayout} /> },
   { path: '/dashboard/applied-jobs', element: <AppliedJobsPage /> },
   { path: '/dashboard/favorite-jobs', element: <FavoriteJobsPage /> },
-  { path: '/dashboard/priority-match', element: <PriorityMatchPage /> },
   { path: '/dashboard/affiliate', element: <CandidateAffiliatePage /> },
-  { path: '/dashboard/settings', element: <SettingsPage tab="personal" /> },
-  { path: '/dashboard/settings/profile', element: <SettingsPage tab="profile" /> },
-  { path: '/dashboard/settings/account', element: <SettingsPage tab="account" /> },
+  { path: '/dashboard/settings', element: <SettingsPage /> },
+  { path: '/dashboard/settings/profile', element: <Navigate to="/dashboard/expert-profile" replace /> },
+  { path: '/dashboard/settings/account', element: <Navigate to="/dashboard/settings" replace /> },
 
   { path: '/candidate/register', element: <CandidateRegisterPage /> },
   { path: '/employer/register', element: <EmployerRegisterPage /> },
@@ -147,7 +139,6 @@ export const router = createBrowserRouter([
   { path: '/employer/postings', element: <MyPostingsPage /> },
   { path: '/employer/postings/:id/matches', element: <PostingMatchesPage /> },
   { path: '/employer/verification', element: <EmployerVerificationPage /> },
-  { path: '/employer/notifications', element: <NotificationsPage Layout={EmployerDashboardLayout} /> },
   { path: '/employer/post-job', element: <PostJobPage /> },
   { path: '/employer/post-job/success', element: <PostJobSuccessPage /> },
   { path: '/employer/my-jobs', element: <MyJobsPage /> },

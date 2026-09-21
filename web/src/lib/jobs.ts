@@ -3,6 +3,7 @@ import type { Job } from '@/data/jobs'
 
 export type JobRow = {
   id: string
+  employer_id: string | null
   slug: string
   title: string
   company_name: string

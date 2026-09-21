@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     const meta = session.metadata ?? {}
 
     // Ownership check: the session's employer/candidate must be this user's.
-    if (meta.kind === 'credits') {
+    if (meta.kind === 'credits' || meta.kind === 'employer_verified_badge') {
       const { data: emp } = await admin
         .from('employers')
         .select('id')

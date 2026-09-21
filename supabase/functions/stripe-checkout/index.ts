@@ -79,6 +79,9 @@ Deno.serve(async (req) => {
     if (body.kind === 'verified_badge') {
       return await checkoutVerifiedBadge(body, userId, email, origin)
     }
+    if (body.kind === 'employer_verified_badge') {
+      return await checkoutEmployerVerifiedBadge(body, userId, email, origin)
+    }
     return json({ error: 'Unknown checkout kind' }, 400)
   } catch (err) {
     console.error('stripe-checkout', err)
@@ -380,6 +383,24 @@ async function checkoutVerifiedBadge(
   const expert = await expertForUser(userId)
   if (!expert) return json({ error: 'No expert profile for this account' }, 400)
 
+  // The badge additionally requires an uploaded identity document (the free
+  // basic check only needs the ID digits). Payment comes first; the badge
+  // activates once an admin approves that document.
+  const { data: idDoc } = await admin
+    .from('verification_documents')
+    .select('id')
+    .eq('owner_kind', 'candidate')
+    .eq('owner_id', expert.id)
+    .eq('doc_type', 'identity')
+    .limit(1)
+    .maybeSingle()
+  if (!idDoc) {
+    return json(
+      { error: 'Upload your identity document from the Verification page before buying the Verified badge.' },
+      400,
+    )
+  }
+
   const price = await loadPricing(admin, expert.country_code)
   if (!price) {
     return json({ error: 'Set your country on your profile before buying a badge.' }, 400)
@@ -445,6 +466,102 @@ async function checkoutVerifiedBadge(
 
   await admin
     .from('verified_badges')
+    .update({ stripe_session_id: session.id })
+    .eq('id', badge.id)
+
+  return json({ url: session.url })
+}
+
+/**
+ * A business's own Verified badge -- same fixed fee as the Expert badge.
+ * Gated on the business's registration document already being approved
+ * (their identity check, equivalent to an Expert's ID document).
+ */
+async function checkoutEmployerVerifiedBadge(
+  body: Record<string, unknown>,
+  userId: string,
+  email: string | undefined,
+  origin: string,
+): Promise<Response> {
+  const pay = isPayCurrency(body.pay) ? body.pay : 'local'
+
+  const { data: employer } = await admin
+    .from('employers')
+    .select('id, country_code, registration_verified, company_name')
+    .eq('user_id', userId)
+    .maybeSingle()
+  if (!employer) return json({ error: 'No business profile for this account' }, 400)
+  if (!employer.registration_verified) {
+    return json(
+      { error: 'Your business registration document must be approved before buying the Verified badge.' },
+      400,
+    )
+  }
+
+  const price = await loadPricing(admin, employer.country_code)
+  if (!price) {
+    return json({ error: 'Set your country on your business profile before buying a badge.' }, 400)
+  }
+  const line = stripeLineAmount(price, 'badge', pay)
+
+  const { data: current } = await admin
+    .from('employer_verified_badges')
+    .select('id, expires_at')
+    .eq('employer_id', employer.id)
+    .eq('status', 'active')
+    .order('expires_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const { data: badge, error: insErr } = await admin
+    .from('employer_verified_badges')
+    .insert({
+      employer_id: employer.id,
+      user_id: userId,
+      status: 'pending',
+      country_code: price.code,
+      currency: line.currency.toUpperCase(),
+      amount_local: line.amount_local,
+      amount_usd: line.amount_usd,
+      pay_currency: pay,
+      renewed_from: current?.id ?? null,
+    })
+    .select('id')
+    .single()
+  if (insErr) throw insErr
+
+  const session = await stripe.checkout.sessions.create({
+    mode: 'payment',
+    customer_email: email,
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: line.currency,
+          unit_amount: line.unit_amount,
+          product_data: {
+            name: current ? 'Business Verified badge — annual renewal' : 'Business Verified badge — 1 year',
+            description:
+              pay === 'usd'
+                ? `partly.asia Verified business badge (USD, forex absorbed) — ${formatLocal(price, line.amount_local)} in ${price.currency}`
+                : `partly.asia Verified business badge — fixed ${price.name} price`,
+          },
+        },
+      },
+    ],
+    success_url: `${origin}/employer/verification?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/employer/verification?checkout=cancelled`,
+    metadata: {
+      kind: 'employer_verified_badge',
+      badge_id: badge.id,
+      employer_id: employer.id,
+      country_code: price.code,
+      renewal: current ? '1' : '0',
+    },
+  })
+
+  await admin
+    .from('employer_verified_badges')
     .update({ stripe_session_id: session.id })
     .eq('id', badge.id)
 

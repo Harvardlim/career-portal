@@ -3,15 +3,7 @@ import { Link } from 'react-router-dom'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { InviteFriendPanel } from '@/components/partly/InviteFriendPanel'
 import { AppliedJobRow } from '@/components/dashboard/JobRows'
-import {
-  fetchAppliedJobs,
-  fetchDashboardCounts,
-  fetchMembership,
-  membershipEndDate,
-  useCandidate,
-  type AppliedJobRecord,
-  type MembershipRecord,
-} from '@/lib/dashboard'
+import { fetchAppliedJobs, fetchDashboardCounts, useCandidate, type AppliedJobRecord } from '@/lib/dashboard'
 import { ArrowRightIcon, BookmarkIcon, BriefcaseIcon, StarIcon } from '@/components/icons'
 import { initialsFromName } from '@/lib/name'
 
@@ -25,7 +17,6 @@ export function DashboardOverviewPage() {
   const { candidate, loading: candidateLoading } = useCandidate()
   const [counts, setCounts] = useState({ applied: 0, saved: 0 })
   const [recent, setRecent] = useState<AppliedJobRecord[]>([])
-  const [membership, setMembership] = useState<MembershipRecord | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -34,16 +25,11 @@ export function DashboardOverviewPage() {
       return
     }
     let alive = true
-    Promise.all([
-      fetchDashboardCounts(candidate.id),
-      fetchAppliedJobs(candidate.id),
-      fetchMembership(candidate.id),
-    ])
-      .then(([c, applied, m]) => {
+    Promise.all([fetchDashboardCounts(candidate.id), fetchAppliedJobs(candidate.id)])
+      .then(([c, applied]) => {
         if (!alive) return
         setCounts(c)
         setRecent(applied.slice(0, 4))
-        setMembership(m)
       })
       .catch((err) => console.error('dashboard overview', err))
       .finally(() => alive && setLoading(false))
@@ -52,7 +38,7 @@ export function DashboardOverviewPage() {
     }
   }, [candidate, candidateLoading])
 
-  const endsAt = membershipEndDate(membership)
+  const badgeLive = !!candidate?.verified_badge_until && new Date(candidate.verified_badge_until) > new Date()
 
   const stats = [
     { value: counts.applied, label: 'Applied jobs', Icon: BriefcaseIcon, bg: 'bg-brand-50', fg: 'text-brand' },
@@ -89,26 +75,20 @@ export function DashboardOverviewPage() {
               <StarIcon className="size-6" />
             </span>
             <div>
-              <p className="text-xs uppercase tracking-wide text-muted-400">
-                Current plan
-              </p>
-              <p className="text-base font-medium text-ink">
-                {loading ? '—' : (membership?.plan ?? 'Free')}
-              </p>
+              <p className="text-xs uppercase tracking-wide text-muted-400">Verified badge</p>
+              <p className="text-base font-medium text-ink">{loading ? '—' : badgeLive ? 'Active' : 'Not active'}</p>
               <p className="mt-0.5 text-sm text-muted-600">
-                {membership
-                  ? endsAt
-                    ? `Valid until ${dateFmt.format(endsAt)}`
-                    : `Active since ${dateFmt.format(new Date(membership.started_at))}`
-                  : 'Applying to jobs is always free.'}
+                {badgeLive && candidate?.verified_badge_until
+                  ? `Valid until ${dateFmt.format(new Date(candidate.verified_badge_until))} — priority in match ranking.`
+                  : 'Applying to jobs is always free. Get the badge for priority in match ranking.'}
               </p>
             </div>
           </div>
           <Link
-            to="/dashboard/membership"
+            to="/dashboard/verification"
             className="flex shrink-0 items-center gap-2 rounded-[4px] bg-brand-50 px-5 py-2.5 text-sm font-semibold text-brand hover:bg-brand-100"
           >
-            {membership ? 'Manage plan' : 'Upgrade'}
+            {badgeLive ? 'Manage badge' : 'Get Verified'}
             <ArrowRightIcon className="size-4" />
           </Link>
         </div>

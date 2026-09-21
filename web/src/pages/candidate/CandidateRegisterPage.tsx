@@ -50,7 +50,7 @@ type FormState = {
   subcategoryIds: string[]
   yearsExperience: string
   pastExperience: string
-  last5: string
+  last4: string
 }
 
 const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
@@ -68,7 +68,7 @@ const initialState: FormState = {
   subcategoryIds: [],
   yearsExperience: '',
   pastExperience: '',
-  last5: '',
+  last4: '',
 }
 
 const selectCls =
@@ -153,8 +153,8 @@ export function CandidateRegisterPage() {
       return
     }
 
-    if (!/^[A-Z0-9]{5}$/.test(form.last5)) {
-      setError(`Enter exactly the last 5 characters of your ${ID_TYPE_BY_COUNTRY[form.country]}.`)
+    if (!/^[A-Z0-9]{4}$/.test(form.last4)) {
+      setError(`Enter exactly the last 4 characters of your ${ID_TYPE_BY_COUNTRY[form.country]}.`)
       return
     }
     if (!consented) {
@@ -218,7 +218,7 @@ export function CandidateRegisterPage() {
       // With email confirmation on there is none yet, so they are collected
       // again (never stored in the browser) right after the first sign-in.
       if (!needsConfirm) {
-        await saveIdentityDigits(form.country, form.last5).catch(() => setIdentityDeferred(true))
+        await saveIdentityDigits(form.country, form.last4).catch(() => setIdentityDeferred(true))
         toast.success('Expert profile created. Upload your ID document to finish verification.')
         navigate('/dashboard/verification')
       } else {
@@ -284,7 +284,7 @@ export function CandidateRegisterPage() {
               ? 'Real leads. Real businesses. You choose — and you only pay when a business shows real interest.'
               : step === 1
                 ? 'Businesses see this on your match card. Pick the categories and sub-categories you serve.'
-                : 'Every expert verifies their identity before applying to any project. Collected, never displayed.'}
+                : 'The free basic check is just these digits — you can apply right away. The paid Verified badge later adds a document review on top.'}
           </p>
         </div>
 
@@ -399,19 +399,19 @@ export function CandidateRegisterPage() {
         {step === 2 && (
           <>
             <div className="rounded-xl border border-gold/40 bg-gold-50 p-5">
-              <Field label={`Last 5 characters of your ${ID_TYPE_BY_COUNTRY[form.country]} (${countryName(form.country)})`}>
+              <Field label={`Last 4 characters of your ${ID_TYPE_BY_COUNTRY[form.country]} (${countryName(form.country)})`}>
                 <TextInput
                   required
                   placeholder="e.g. 1234A"
-                  maxLength={5}
+                  maxLength={4}
                   autoComplete="off"
-                  value={form.last5}
-                  onChange={(e) => update('last5', e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5))}
+                  value={form.last4}
+                  onChange={(e) => update('last4', e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4))}
                 />
               </Field>
               <p className="mt-2 text-xs text-ink-600">
                 Encrypted before it is stored and never displayed back — not to you, not to any business, not to any
-                third party. You&apos;ll upload a copy of the same ID from your dashboard to complete verification.
+                third party. This is the whole free check — you can apply the moment you sign in.
               </p>
             </div>
             <ConsentStep checked={consented} onChange={setConsented} referralOptIn={referralOptIn} onReferralOptInChange={setReferralOptIn} />
@@ -421,7 +421,7 @@ export function CandidateRegisterPage() {
         <WizardButtons
           onPrev={step > 0 ? () => setStep((s) => s - 1) : undefined}
           nextLabel={isLastStep ? (submitting ? 'Creating profile…' : 'Create my expert profile') : 'Save & continue'}
-          nextDisabled={submitting || (step === 0 && !isStep0Filled) || (isLastStep && (!consented || form.last5.length !== 5))}
+          nextDisabled={submitting || (step === 0 && !isStep0Filled) || (isLastStep && (!consented || form.last4.length !== 4))}
         />
       </form>
 

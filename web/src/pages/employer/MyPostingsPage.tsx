@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { EmployerDashboardLayout } from '@/components/dashboard/EmployerDashboardLayout'
 import { EmptyState, Pill, PrimaryButton, SecondaryButton } from '@/components/partly/ui'
@@ -10,6 +10,7 @@ import {
   postingCountry,
   fetchMyPostings,
   projectTypeLabel,
+  repostPosting,
   type MatchingStatus,
   type MyPostingRow,
 } from '@/lib/partly'
@@ -24,8 +25,10 @@ const STATUS: Record<MatchingStatus, { label: string; tone: 'neutral' | 'brand' 
 
 export function MyPostingsPage() {
   const { employer, loading: employerLoading } = useEmployer()
+  const navigate = useNavigate()
   const [rows, setRows] = useState<MyPostingRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [reposting, setReposting] = useState<string | null>(null)
 
   async function load() {
     if (!employer) return
@@ -56,10 +59,24 @@ export function MyPostingsPage() {
     if (!confirm(msg)) return
     try {
       const ended = await closePosting(row.id)
-      toast.success(ended > 0 ? `Posting closed. ${ended} open window${ended === 1 ? '' : 's'} ended.` : 'Posting closed.')
+      toast.success(ended > 0 ? `Posting closed. ${ended} open window${ended === 1 ? '' : 's'} ended.` : 'Posting closed. Applicants who weren’t hired have been emailed.')
       void load()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not close posting')
+    }
+  }
+
+  async function handleRepost(row: MyPostingRow) {
+    if (!employer) return
+    setReposting(row.id)
+    try {
+      const id = await repostPosting(row.id, employer.id, employer.company_name)
+      toast.success('Reposted — a fresh copy is now live.')
+      navigate(`/employer/postings/${id}/matches`)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not repost')
+    } finally {
+      setReposting(null)
     }
   }
 
@@ -116,7 +133,11 @@ export function MyPostingsPage() {
                         {row.matching_status === 'open' ? 'View applicants' : 'View matches'}
                       </SecondaryButton>
                     </Link>
-                    {!isClosed && (
+                    {isClosed || row.matching_status === 'no_further_matches' ? (
+                      <SecondaryButton className="h-9 px-3 text-xs" disabled={reposting === row.id} onClick={() => handleRepost(row)}>
+                        {reposting === row.id ? 'Reposting…' : 'Repost'}
+                      </SecondaryButton>
+                    ) : (
                       <SecondaryButton className="h-9 px-3 text-xs text-danger" onClick={() => handleClose(row)}>
                         Close
                       </SecondaryButton>

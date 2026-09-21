@@ -1,10 +1,16 @@
-// Stores an Expert's local-ID digits (last 5 of NRIC / MyKad / KTP / CCCD ...)
-// for identity verification. The digits are collected but never displayed back
-// to anyone: they are AES-GCM encrypted here with a key that lives only in the
-// function's secrets, and the database column holding the ciphertext is
-// unreadable by the client roles.
+// Stores an Expert's local-ID digits (last 4 of NRIC/FIN / MyKad / KTP /
+// Thai ID / CCCD) for the FREE basic identity check. Self-serve: this is the
+// whole check -- it sets identity_verified immediately, with no admin wait,
+// so a free account can apply to jobs right away. (The paid Verified badge is
+// a separate, stricter step: it additionally requires an uploaded ID document
+// that an admin reviews -- see verification_documents / admin_review_verification.)
 //
-//   POST { country_code: 'SG'|'MY'|'ID'|'TH'|'VN', id_type: string, last5: '12345' }
+// The digits are collected but never displayed back to anyone: they are
+// AES-GCM encrypted here with a key that lives only in the function's
+// secrets, and the database column holding the ciphertext is unreadable by
+// the client roles.
+//
+//   POST { country_code: 'SG'|'MY'|'ID'|'TH'|'VN', id_type: string, last4: '567D' }
 //
 // Required secrets:
 //   EXPERT_ID_KEY                - 32 random bytes, base64 (openssl rand -base64 32)
@@ -20,12 +26,15 @@ const admin = createClient(
 
 const KEY_VERSION = 1
 
-const ID_TYPES: Record<string, string> = {
-  SG: 'NRIC / FIN',
-  MY: 'MyKad',
-  ID: 'KTP',
-  TH: 'Thai ID',
-  VN: 'CCCD',
+// Each country's ID format is different; the "last 4" is what a bank/KYC
+// form usually asks for. Singapore's NRIC/FIN ends in a checksum LETTER, so
+// its last 4 is 3 digits + that letter -- everyone else's is purely numeric.
+const ID_FORMATS: Record<string, { label: string; pattern: RegExp; hint: string }> = {
+  SG: { label: 'NRIC / FIN', pattern: /^[0-9]{3}[A-Z]$/, hint: '3 digits + the checksum letter, e.g. 567D' },
+  MY: { label: 'MyKad', pattern: /^[0-9]{4}$/, hint: 'last 4 digits of the serial number, e.g. 1234' },
+  ID: { label: 'KTP', pattern: /^[0-9]{4}$/, hint: 'last 4 digits of your 16-digit NIK' },
+  TH: { label: 'Thai National ID', pattern: /^[0-9]{4}$/, hint: 'last 4 digits of your 13-digit ID' },
+  VN: { label: 'CCCD', pattern: /^[0-9]{4}$/, hint: 'last 4 digits of your 12-digit CCCD' },
 }
 
 async function importKey(): Promise<CryptoKey> {
@@ -65,19 +74,25 @@ Deno.serve(async (req) => {
   }
 
   const country = typeof body.country_code === 'string' ? body.country_code.toUpperCase() : ''
-  const last5 = typeof body.last5 === 'string' ? body.last5.trim().toUpperCase() : ''
-  if (!ID_TYPES[country]) return json({ error: 'Experts must be based in Singapore, Malaysia, Indonesia, Thailand or Vietnam.' }, 400)
-  if (!/^[A-Z0-9]{5}$/.test(last5)) return json({ error: 'Enter exactly the last 5 characters of your ID.' }, 400)
+  const last4 = typeof body.last4 === 'string' ? body.last4.trim().toUpperCase() : ''
+  const format = ID_FORMATS[country]
+  if (!format) return json({ error: 'Experts must be based in Singapore, Malaysia, Indonesia, Thailand or Vietnam.' }, 400)
+  if (!format.pattern.test(last4)) {
+    return json({ error: `That doesn't look like a ${format.label} — enter the ${format.hint}.` }, 400)
+  }
 
   try {
-    const cipher = await encrypt(last5)
+    const cipher = await encrypt(last4)
     const { data, error } = await admin
       .from('candidates')
       .update({
         country_code: country,
-        id_type: typeof body.id_type === 'string' && body.id_type ? body.id_type : ID_TYPES[country],
+        id_type: typeof body.id_type === 'string' && body.id_type ? body.id_type : format.label,
         id_last5_cipher: cipher,
         id_last5_key_version: KEY_VERSION,
+        // Self-serve: submitting the digits IS the free basic check.
+        identity_verified: true,
+        identity_verified_at: new Date().toISOString(),
       })
       .eq('user_id', userData.user.id)
       .select('id')

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { Avatar, Card, EmptyState, Pill, PrimaryButton, VerifiedChips } from '@/components/partly/ui'
+import { ReportButton } from '@/components/partly/ReportButton'
 import { countryName } from '@/lib/partly'
 import { supabase } from '@/lib/supabase'
 
@@ -114,6 +115,10 @@ export function ExpertProfilePage() {
           <Link to="/employer/post-need" className="mt-3 inline-block">
             <PrimaryButton>Post your project — it's free</PrimaryButton>
           </Link>
+        </div>
+
+        <div className="flex justify-end">
+          <ReportButton targetKind="candidate" targetId={profile.candidate_id} label="Report this profile" />
         </div>
       </Card>
     </div>

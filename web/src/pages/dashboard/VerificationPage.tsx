@@ -14,6 +14,7 @@ import {
   fetchMyBadges,
   formatLocal,
   formatUsd,
+  hasUploadedIdentityDoc,
   saveIdentityDigits,
   startBadgeCheckout,
   usePricing,
@@ -23,6 +24,15 @@ import {
 } from '@/lib/partly'
 import { confirmCheckout, readCheckoutParams } from '@/lib/stripe'
 
+const BADGE_STATUS_LABEL: Record<string, string> = {
+  pending: 'Checkout started',
+  awaiting_review: 'Paid — awaiting document review',
+  active: 'Active',
+  superseded: 'Superseded',
+  expired: 'Expired',
+  cancelled: 'Cancelled',
+}
+
 export function VerificationPage() {
   const { candidate, session, loading, reload } = useCandidate()
   const { pricing } = usePricing()
@@ -30,10 +40,11 @@ export function VerificationPage() {
   const navigate = useNavigate()
 
   const [country, setCountry] = useState<ExpertCountry>('SG')
-  const [last5, setLast5] = useState('')
+  const [last4, setLast4] = useState('')
   const [linkedin, setLinkedin] = useState('')
   const [savingId, setSavingId] = useState(false)
   const [badges, setBadges] = useState<BadgeRow[]>([])
+  const [hasDoc, setHasDoc] = useState(false)
   const [pay, setPay] = useState<PayCurrency>('local')
   const [buying, setBuying] = useState(false)
 
@@ -44,6 +55,7 @@ export function VerificationPage() {
     }
     setLinkedin(candidate.linkedin_url ?? '')
     fetchMyBadges(candidate.id).then(setBadges).catch((err) => console.error('badges', err))
+    hasUploadedIdentityDoc(candidate.id).then(setHasDoc).catch(() => setHasDoc(false))
   }, [candidate])
 
   useEffect(() => {
@@ -56,7 +68,7 @@ export function VerificationPage() {
     }
     if (sessionId) {
       confirmCheckout(sessionId).then((ok) => {
-        if (ok) toast.success('Your Verified badge is active.')
+        if (ok) toast.success('Payment confirmed.')
         void reload()
       })
     }
@@ -64,18 +76,19 @@ export function VerificationPage() {
 
   const price = pricing.find((p) => p.code === (candidate?.country_code ?? country))
   const badgeLive = !!candidate?.verified_badge_until && new Date(candidate.verified_badge_until) > new Date()
+  const awaitingReview = badges.some((b) => b.status === 'awaiting_review')
   const hasDigits = !!candidate?.id_type
 
   async function saveIdentity() {
     if (!session) return
     setSavingId(true)
     try {
-      if (last5.length === 5) await saveIdentityDigits(country, last5)
+      if (last4.length === 4) await saveIdentityDigits(country, last4)
       if (linkedin.trim() !== (candidate?.linkedin_url ?? '')) {
         await updateMyCandidate(session.user.id, { linkedin_url: linkedin.trim() || null })
       }
-      toast.success('Saved. Your ID digits are encrypted and never shown to anyone.')
-      setLast5('')
+      toast.success('Saved — you can apply to open needs right away.')
+      setLast4('')
       await reload()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not save')
@@ -100,27 +113,23 @@ export function VerificationPage() {
         <div>
           <h1 className="text-xl font-semibold text-ink">Verification</h1>
           <p className="mt-1 text-sm text-muted">
-            Every expert verifies their identity before applying to any project. The optional Verified badge adds a
-            credential-level check and priority in match ranking.
+            The free basic check is self-serve — just your ID digits, and you can apply right away. The paid
+            Verified badge is a stricter check: it needs your ID document too, reviewed by our team.
           </p>
         </div>
 
         {!loading && candidate && (
           <Notice tone={candidate.identity_verified ? 'success' : 'brand'}>
             <span className="flex flex-wrap items-center gap-2">
-              {candidate.identity_verified
-                ? 'Your identity is verified.'
-                : hasDigits
-                  ? 'ID details saved — upload your ID document below to complete verification.'
-                  : 'Start by adding your ID details below.'}
+              {candidate.identity_verified ? 'Basic verification complete — you can apply to any open need.' : 'Add your ID digits below to start applying.'}
               <VerifiedChips identity={candidate.identity_verified} badge={badgeLive} />
             </span>
           </Notice>
         )}
 
-        {/* 1. Identity */}
+        {/* 1. Free, self-serve */}
         <Card className="flex flex-col gap-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">1 · Identity check (free)</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">1 · Basic verification (free)</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Country">
               <select
@@ -136,12 +145,12 @@ export function VerificationPage() {
                 ))}
               </select>
             </Field>
-            <Field label={`Last 5 characters of your ${ID_TYPE_BY_COUNTRY[country]}`}>
+            <Field label={`Last 4 characters of your ${ID_TYPE_BY_COUNTRY[country]}`}>
               <TextInput
-                value={last5}
-                onChange={(e) => setLast5(e.target.value.toUpperCase().slice(0, 5))}
-                placeholder={hasDigits ? '••••• (saved)' : 'e.g. 1234A'}
-                maxLength={5}
+                value={last4}
+                onChange={(e) => setLast4(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4))}
+                placeholder={hasDigits ? '•••• (saved)' : country === 'SG' ? 'e.g. 567D' : 'e.g. 1234'}
+                maxLength={4}
                 disabled={!!candidate?.identity_verified}
                 autoComplete="off"
               />
@@ -152,49 +161,59 @@ export function VerificationPage() {
           </Field>
           <p className="text-xs text-muted">
             Collected for verification only. The digits are encrypted before they're stored and are never displayed
-            back to you, to any business, or to any third party.
+            back to you, to any business, or to any third party. This is the whole free check — no document needed.
           </p>
           {!candidate?.identity_verified && (
-            <PrimaryButton className="w-fit" onClick={saveIdentity} disabled={savingId || (last5.length !== 5 && !hasDigits)}>
-              {savingId ? 'Saving…' : hasDigits && last5.length !== 5 ? 'Save LinkedIn' : 'Save ID details'}
+            <PrimaryButton className="w-fit" onClick={saveIdentity} disabled={savingId || last4.length !== 4}>
+              {savingId ? 'Saving…' : 'Save & verify'}
             </PrimaryButton>
-          )}
-          {candidate && session && (
-            <div className="border-t border-line pt-4">
-              <VerificationDocs
-                userId={session.user.id}
-                ownerKind="candidate"
-                ownerId={candidate.id}
-                docType="identity"
-                hint="A photo or scan of the same ID. Reviewed by hand; approval usually takes a business day."
-                onChange={reload}
-              />
-            </div>
           )}
         </Card>
 
         {/* 2. Verified badge */}
         <Card className="flex flex-col gap-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">2 · Verified badge (annual, optional)</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">2 · Verified badge (annual, paid)</h2>
             {badgeLive && candidate?.verified_badge_until && (
               <Pill tone="brand">Active until {new Date(candidate.verified_badge_until).toLocaleDateString()}</Pill>
             )}
+            {awaitingReview && <Pill tone="warning">Awaiting document review</Pill>}
           </div>
           <p className="text-sm text-muted">
-            A paid credential-level verification, beyond the free identity check. Badge holders are ranked first when
-            a business's matches are drawn, and carry the Verified mark on every match card and public profile.
+            A stricter, credential-level check beyond the free basic one. Badge holders are always shown first when a
+            business's matches are drawn, and carry the Verified mark on every match card and public profile.
           </p>
+
+          <div className="border-t border-line pt-4">
+            <p className="mb-3 text-sm font-medium text-ink">Required: upload your identity document</p>
+            {candidate && session && (
+              <VerificationDocs
+                userId={session.user.id}
+                ownerKind="candidate"
+                ownerId={candidate.id}
+                docType="identity"
+                hint="A photo or scan of the ID whose digits you entered above. Reviewed by hand; the badge activates as soon as it's approved."
+                onChange={() => {
+                  void reload()
+                  if (candidate) hasUploadedIdentityDoc(candidate.id).then(setHasDoc)
+                }}
+              />
+            )}
+          </div>
+
           {badgeLive ? (
             <Notice tone="success">
               Your badge is active. We'll remind you 30, 14, 7 and 1 days before it expires; renewing extends your
               current term rather than restarting it.
             </Notice>
+          ) : awaitingReview ? (
+            <Notice tone="warning">
+              Payment received — your badge activates automatically once our team approves your identity document.
+            </Notice>
           ) : (
-            !candidate?.identity_verified && (
-              <Notice tone="warning">Complete the free identity check first — the badge builds on it.</Notice>
-            )
+            !hasDoc && <Notice tone="warning">Upload your identity document above before buying the badge.</Notice>
           )}
+
           {price ? (
             <div className="grid gap-3 sm:grid-cols-2">
               <button
@@ -225,12 +244,12 @@ export function VerificationPage() {
           )}
           <div className="flex items-center gap-3">
             {badgeLive ? (
-              <SecondaryButton onClick={buyBadge} disabled={buying || !price}>
+              <SecondaryButton onClick={buyBadge} disabled={buying || !price || !hasDoc}>
                 {buying ? 'Redirecting…' : 'Renew for another year'}
               </SecondaryButton>
             ) : (
-              <PrimaryButton onClick={buyBadge} disabled={buying || !price || !candidate?.identity_verified}>
-                {buying ? 'Redirecting…' : 'Get the Verified badge'}
+              <PrimaryButton onClick={buyBadge} disabled={buying || !price || !hasDoc || awaitingReview}>
+                {buying ? 'Redirecting…' : awaitingReview ? 'Payment received' : 'Get the Verified badge'}
               </PrimaryButton>
             )}
           </div>
@@ -244,8 +263,8 @@ export function VerificationPage() {
                       {b.renewed_from ? 'Renewal' : 'Purchase'} · {b.currency} {b.amount_local.toLocaleString()}
                       {b.purchased_at ? ` · ${new Date(b.purchased_at).toLocaleDateString()}` : ''}
                     </span>
-                    <Pill tone={b.status === 'active' ? 'success' : b.status === 'pending' ? 'warning' : 'neutral'}>
-                      {b.status}
+                    <Pill tone={b.status === 'active' ? 'success' : b.status === 'awaiting_review' ? 'warning' : 'neutral'}>
+                      {BADGE_STATUS_LABEL[b.status] ?? b.status}
                       {b.expires_at && b.status === 'active' ? ` · until ${new Date(b.expires_at).toLocaleDateString()}` : ''}
                     </Pill>
                   </li>

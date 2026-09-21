@@ -7,7 +7,9 @@ import { JobCard } from '@/components/jobs/JobCard'
 import { CompanyLogo } from '@/components/jobs/CompanyLogo'
 import { SaveJobButton } from '@/components/jobs/SaveJobButton'
 import { RichTextContent } from '@/components/editor/RichTextContent'
+import { ReportButton } from '@/components/partly/ReportButton'
 import { errMessage } from '@/lib/errors'
+import { maskCompanyName } from '@/lib/partly'
 import {
   fetchJobBySlug,
   fetchNewestJob,
@@ -22,10 +24,7 @@ import {
   CalendarIcon,
   ClockIcon,
   DollarIcon,
-  LinkIcon,
-  MailIcon,
   MapPinIcon,
-  PhoneIcon,
 } from '@/components/icons'
 
 function formatDate(value: string | null): string {
@@ -37,20 +36,18 @@ function formatDate(value: string | null): string {
   })
 }
 
-/** Company fields, preferring the live employer profile over the job snapshot. */
+/**
+ * Company fields, masked: partly.asia only ever exchanges a business's real
+ * name and contact details after a paid unlock, so this page never shows
+ * them, even though the underlying job/employer rows carry them.
+ */
 function companyInfo(job: JobRow) {
   const e = job.employer
   return {
-    name: e?.company_name || job.company_name,
+    name: maskCompanyName(e?.company_name || job.company_name),
     logoUrl: e?.logo_url || job.company_logo_url,
-    about: e?.about || job.company_about,
-    website: e?.website || job.company_website,
-    phone: e?.phone || job.company_phone,
-    email: e?.business_email || job.company_email,
     industry: e?.industry || job.company_industry,
-    size: e?.size || job.company_size,
     location: e?.location || job.location,
-    founded: e?.founded || job.company_founded,
   }
 }
 
@@ -166,22 +163,6 @@ export function JobDetailPage() {
 
   const company = companyInfo(job)
 
-  const companyRows: [string, string][] = [
-    ['Founded', company.founded || '—'],
-    ['Industry', company.industry || '—'],
-    ['Company size', company.size || '—'],
-    ['Location', company.location || '—'],
-    ['Phone', company.phone || '—'],
-    ['Email', company.email || '—'],
-    ['Website', company.website || '—'],
-  ]
-
-  const contactBits = [
-    company.website && { Icon: LinkIcon, text: company.website },
-    company.phone && { Icon: PhoneIcon, text: company.phone },
-    company.email && { Icon: MailIcon, text: company.email },
-  ].filter(Boolean) as { Icon: typeof LinkIcon; text: string }[]
-
   return (
     <AppShell>
       <Breadcrumb
@@ -217,16 +198,15 @@ export function JobDetailPage() {
                   </span>
                 )}
               </div>
-              <p className="text-base font-medium text-ink">{job.company_name}</p>
-              {contactBits.length > 0 && (
-                <div className="flex flex-wrap items-center gap-6 text-sm text-muted-600">
-                  {contactBits.map(({ Icon, text }) => (
-                    <span key={text} className="flex items-center gap-1.5">
-                      <Icon className="size-4 text-brand" />
-                      {text}
-                    </span>
-                  ))}
-                </div>
+              <p className="text-base font-medium text-ink">
+                {company.name}
+                {company.industry && <span className="ml-2 font-normal text-muted">· {company.industry}</span>}
+              </p>
+              <p className="text-xs text-muted">
+                Full business name and contact details are shared only after a paid contact unlock.
+              </p>
+              {job.employer_id && (
+                <ReportButton targetKind="employer" targetId={job.employer_id} label="Report this business" />
               )}
             </div>
           </div>
@@ -265,35 +245,9 @@ export function JobDetailPage() {
           <InfoCard title="Job Overview">
             <OverviewGrid items={overview} />
           </InfoCard>
-          <InfoCard title="Company Info">
-            <div className="mb-5 flex items-center gap-3">
-              <LogoBadge job={job} size={56} />
-              <div>
-                <p className="text-lg font-medium text-ink">{company.name}</p>
-                {company.industry && (
-                  <p className="text-sm text-muted">{company.industry}</p>
-                )}
-              </div>
-            </div>
-            {company.about && (
-              <div className="mb-5 text-sm leading-6">
-                <RichTextContent html={company.about} />
-              </div>
-            )}
-            <dl className="flex flex-col">
-              {companyRows.map(([k, v]) => (
-                <div
-                  key={k}
-                  className="flex justify-between gap-4 border-b border-line py-3 text-sm last:border-0"
-                >
-                  <dt className="text-muted-600">{k}</dt>
-                  <dd className="max-w-[55%] truncate text-right font-medium text-ink">
-                    {v}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </InfoCard>
+          <div className="flex justify-end">
+            <ReportButton targetKind="job" targetId={job.id} label="Report this posting" />
+          </div>
         </aside>
       </div>
 

@@ -102,7 +102,7 @@ export const VerificationPage = () => {
         <div>
           <h1 className="text-[22px] font-semibold text-ink">Verification queue</h1>
           <p className="text-[13px] text-muted">
-            {pendingCount} pending · approve to set the VERIFIED mark on the profile (experts also gain priority matching)
+            {pendingCount} pending · business docs approve registration; expert docs (only uploaded for the paid badge) activate it on approval
           </p>
         </div>
         <div className="flex gap-2">
@@ -152,7 +152,7 @@ export const VerificationPage = () => {
                       {r.owner_country ? ` · ${r.owner_country}` : ''}
                       {r.owner_reg_no ? ` · Reg ${r.owner_reg_no}` : ''}
                     </span>
-                    {r.owner_verified && <span className="text-[11px] text-success">Currently verified</span>}
+                    {r.owner_verified && <span className="text-[11px] text-success">{r.owner_kind === 'employer' ? 'Registration currently verified' : 'Basic check already complete (self-serve)'}</span>}
                   </td>
                   <td className={tdCls}>{DOC_LABEL[r.doc_type] ?? r.doc_type}</td>
                   <td className={tdCls}>

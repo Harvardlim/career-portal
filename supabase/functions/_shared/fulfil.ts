@@ -197,5 +197,18 @@ export async function fulfilCheckoutSession(
     return data === true ? 'granted' : 'already_done'
   }
 
+  if (meta.kind === 'employer_verified_badge') {
+    if (!meta.badge_id) throw new Error('employer_verified_badge session missing badge_id')
+    await admin
+      .from('employer_verified_badges')
+      .update({ stripe_payment_intent: paymentIntent })
+      .eq('id', meta.badge_id)
+    const { data, error } = await admin.rpc('confirm_employer_badge_purchase', {
+      p_badge_id: meta.badge_id,
+    })
+    if (error) throw error
+    return data === true ? 'granted' : 'already_done'
+  }
+
   return 'ignored'
 }

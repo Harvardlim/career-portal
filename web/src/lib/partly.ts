@@ -292,10 +292,40 @@ export async function fetchOpenNeeds(filters: NeedFilters, candidateId?: string)
 
 /** The Expert's own opt-in; there is no cold outreach from the platform. */
 export async function applyToNeed(jobId: string, candidateId: string, userId: string): Promise<void> {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('job_applications')
     .insert({ job_id: jobId, candidate_id: candidateId, user_id: userId })
-  if (error && error.code !== '23505') throw error
+    .select('id')
+    .single()
+  if (error) {
+    if (error.code === '23505') return
+    throw error
+  }
+  // Automation: emails the business a new applicant. Best-effort — a failed
+  // send never blocks the application, which is already recorded.
+  supabase.functions.invoke('notify-application', { body: { application_id: data.id } }).catch(() => {})
+}
+
+/** Duplicates a posting's details into a fresh, open one. */
+export async function repostPosting(jobId: string, employerId: string, companyName: string): Promise<string> {
+  const posting = await fetchPosting(jobId)
+  if (!posting) throw new Error('Posting not found')
+  const { data: subs } = await supabase.from('job_subcategories').select('subcategory_id').eq('job_id', jobId)
+
+  return createPosting(employerId, companyName, {
+    title: posting.title,
+    description: posting.description ?? '',
+    country: posting.country ?? 'SG',
+    project_type: posting.project_type ?? 'project',
+    project_duration: posting.project_duration,
+    budget_min: posting.budget_min,
+    budget_max: posting.budget_max,
+    budget_currency: posting.budget_currency ?? 'USD',
+    people_required: posting.people_required,
+    skill_requirements: posting.skill_requirements,
+    main_category_id: posting.main_category_id ?? '',
+    subcategory_ids: (subs ?? []).map((s) => s.subcategory_id as string),
+  })
 }
 
 /* ---------- Matches (Business side) ---------- */
@@ -344,7 +374,12 @@ export async function releaseContact(jobId: string, candidateIds: string[]): Pro
     p_candidate_ids: candidateIds,
   })
   if (error) throw error
-  return Number(data ?? 0)
+  const n = Number(data ?? 0)
+  if (n > 0) {
+    // Automation: emails every newly released expert, alongside the in-app notice.
+    supabase.functions.invoke('notify-interest', { body: { job_id: jobId, candidate_ids: candidateIds } }).catch(() => {})
+  }
+  return n
 }
 
 export async function markNoFurtherMatches(jobId: string): Promise<void> {
@@ -355,6 +390,8 @@ export async function markNoFurtherMatches(jobId: string): Promise<void> {
 export async function closePosting(jobId: string): Promise<number> {
   const { data, error } = await supabase.rpc('close_posting', { p_job_id: jobId })
   if (error) throw error
+  // Automation: emails every applicant who wasn't hired that the posting closed.
+  supabase.functions.invoke('notify-job-closed', { body: { job_id: jobId } }).catch(() => {})
   return Number(data ?? 0)
 }
 
@@ -540,10 +577,14 @@ export async function uploadVerificationDoc(args: {
   if (error) throw error
 }
 
-/** The digits are encrypted server-side and never come back down. */
-export async function saveIdentityDigits(countryCode: string, last5: string): Promise<void> {
+/**
+ * The FREE basic identity check: last 4 characters of the local ID. Self-serve
+ * — this sets identity_verified immediately, so a free account can apply
+ * right away. The digits are encrypted server-side and never come back down.
+ */
+export async function saveIdentityDigits(countryCode: string, last4: string): Promise<void> {
   const { data, error } = await supabase.functions.invoke('expert-identity', {
-    body: { country_code: countryCode, last5 },
+    body: { country_code: countryCode, last4 },
   })
   if (error) {
     const ctx = (error as { context?: Response }).context
@@ -556,9 +597,11 @@ export async function saveIdentityDigits(countryCode: string, last5: string): Pr
   if (!(data as { ok?: boolean } | null)?.ok) throw new Error('Could not save your ID details.')
 }
 
+export type BadgeStatus = 'pending' | 'awaiting_review' | 'active' | 'superseded' | 'expired' | 'cancelled'
+
 export type BadgeRow = {
   id: string
-  status: 'pending' | 'active' | 'superseded' | 'expired' | 'cancelled'
+  status: BadgeStatus
   country_code: string | null
   currency: string
   amount_local: number
@@ -577,6 +620,58 @@ export async function fetchMyBadges(candidateId: string): Promise<BadgeRow[]> {
     .order('created_at', { ascending: false })
   if (error) throw error
   return (data ?? []) as BadgeRow[]
+}
+
+/** Any identity document uploaded for this expert — the badge requires one, but not approval. */
+export async function hasUploadedIdentityDoc(candidateId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('verification_documents')
+    .select('id')
+    .eq('owner_kind', 'candidate')
+    .eq('owner_id', candidateId)
+    .eq('doc_type', 'identity')
+    .limit(1)
+  if (error) throw error
+  return (data ?? []).length > 0
+}
+
+/* ---------- Business Verified badge ---------- */
+
+export async function fetchMyEmployerBadges(employerId: string): Promise<BadgeRow[]> {
+  const { data, error } = await supabase
+    .from('employer_verified_badges')
+    .select('id,status,country_code,currency,amount_local,amount_usd,purchased_at,starts_at,expires_at,renewed_from')
+    .eq('employer_id', employerId)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as BadgeRow[]
+}
+
+export function startEmployerBadgeCheckout(pay: PayCurrency): Promise<never> {
+  return invokeCheckout({ kind: 'employer_verified_badge', pay })
+}
+
+/* ---------- Reports ---------- */
+
+export type ReportTargetKind = 'job' | 'employer' | 'candidate'
+
+export async function fileReport(args: {
+  targetKind: ReportTargetKind
+  targetId: string
+  reason: string
+  details?: string
+  reporterEmail?: string
+}): Promise<void> {
+  const { data: session } = await supabase.auth.getUser()
+  const { error } = await supabase.from('reports').insert({
+    reporter_user_id: session.user?.id ?? null,
+    reporter_email: args.reporterEmail ?? session.user?.email ?? null,
+    target_kind: args.targetKind,
+    target_id: args.targetId,
+    reason: args.reason,
+    details: args.details ?? null,
+  })
+  if (error) throw error
 }
 
 /* ---------- Notifications ---------- */
@@ -801,4 +896,17 @@ export function validateBusinessRegNo(country: string, value: string): string | 
   if (f && !f.pattern.test(v)) return `That doesn't look like a ${f.label} — ${f.hint}.`
   if (!f && v.length < 4) return 'Enter your full registration number.'
   return null
+}
+
+/**
+ * Masks a business name for the public job detail page: contact only ever
+ * exchanges after a paid unlock, so the real name and every contact method
+ * stay hidden until then. "Acme Consulting Pte Ltd" -> "A••• C•••••••• P•• L••".
+ */
+export function maskCompanyName(name: string | null | undefined): string {
+  if (!name) return 'Verified Business'
+  return name
+    .split(' ')
+    .map((word) => (word.length <= 1 ? word : word[0] + '•'.repeat(Math.min(word.length - 1, 8))))
+    .join(' ')
 }
