@@ -117,7 +117,7 @@ export const en = {
   'faq.a2': 'Yes — you’ll always be told upfront if you’re one of several being considered.',
   'faq.q3': 'Is my ID information secure?',
   'faq.a3':
-    'We collect only the last 5 characters of your ID, encrypt them before storing, and never display them to anyone — not to you, not to businesses, not to third parties.',
+    'We collect only the last 4 characters of your ID, encrypt them before storing, and never display them to anyone — not to you, not to businesses, not to third parties.',
   'faq.q4': 'How long do I have to unlock a released contact?',
   'faq.a4': '2 days from the moment the business releases contact. After that the lead simply goes cold — no charge.',
   'faq.q5': 'What happens if the business closes the job?',
@@ -167,6 +167,7 @@ export const en = {
   'footer.pricing': 'How Payment Works',
   'footer.contact': 'Contact',
   'footer.terms': 'Terms',
+  'footer.privacy': 'Privacy Policy',
   'footer.rights': '© {year} partly.asia. All rights reserved.',
 
   // Language switcher

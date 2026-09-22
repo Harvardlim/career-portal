@@ -51,6 +51,7 @@ import { AffiliatePage } from './pages/AffiliatePage'
 import { ContactPage } from './pages/ContactPage'
 import { FaqPage } from './pages/FaqPage'
 import { TermsPage } from './pages/TermsPage'
+import { PrivacyPage } from './pages/PrivacyPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { ComingSoonPage } from './pages/ComingSoonPage'
 import { PricingPage } from './pages/pricing/PricingPage'
@@ -83,6 +84,7 @@ export const router = createBrowserRouter([
       { path: '/contact', element: <ContactPage /> },
       { path: '/faq', element: <FaqPage /> },
       { path: '/terms', element: <TermsPage /> },
+      { path: '/privacy', element: <PrivacyPage /> },
       { path: '/needs', element: <BrowseNeedsPage /> },
       { path: '/for-businesses', element: <ForBusinessesPage /> },
       { path: '/for-experts', element: <ForExpertsPage /> },

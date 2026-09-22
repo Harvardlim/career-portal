@@ -32,6 +32,7 @@ export function SiteFooter() {
         { label: t('footer.affiliate'), to: '/affiliate' },
         { label: t('footer.contact'), to: '/contact' },
         { label: t('footer.terms'), to: '/terms' },
+        { label: t('footer.privacy'), to: '/privacy' },
       ],
     },
   ]
