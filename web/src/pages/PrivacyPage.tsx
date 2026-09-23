@@ -93,7 +93,8 @@ const sections: Section[] = [
     title: 'Data Retention',
     body: [
       'We keep your account and profile information for as long as your account is active, and for a reasonable period afterward to comply with legal, accounting, or dispute-resolution obligations.',
-      'Encrypted identity digits and verification documents are retained only as long as needed for the verification purpose they were collected for, or as required by law, and are deleted on request once no longer needed for an open verification, dispute, or legal obligation.',
+      'Uploaded identity documents and business registration documents are automatically deleted 90 days after our team reaches a decision (approved or rejected) — we keep only the decision record (approved/rejected, reviewer, and date), never the file itself, beyond that point. This is a deliberate choice: it limits how much sensitive document data we hold at any given time.',
+      'Encrypted identity digits (the last 4 characters of your local ID) are retained for as long as your account is active, since they are how your free basic verification is recorded; they are never displayed to anyone and are deleted when your account is closed.',
       'If you close your account, we delete or anonymise personal data that is no longer needed, other than records we are required to keep (for example, payment records for tax purposes).',
     ],
   },
@@ -134,7 +135,7 @@ const sections: Section[] = [
     num: '10.',
     title: 'International Data Transfers',
     body: [
-      'partly.asia serves Businesses globally and Experts based in Singapore, Malaysia, Indonesia, Thailand, and Vietnam. Your data may be processed on servers located outside your own country, including by service providers described in Section 4. Where required, we take steps intended to ensure such transfers are subject to appropriate safeguards.',
+      'partly.asia serves Businesses globally and Experts based in Singapore, Malaysia, Indonesia, Thailand, Vietnam, and the Philippines. Your data may be processed on servers located outside your own country, including by service providers described in Section 4. Where required, we take steps intended to ensure such transfers are subject to appropriate safeguards.',
     ],
   },
   {

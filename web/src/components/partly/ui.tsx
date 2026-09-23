@@ -1,6 +1,41 @@
 import type { ReactNode } from 'react'
-import { CheckIcon, CircleCheckIcon, ClockIcon } from '@/components/icons'
+import { CheckIcon, CircleCheckIcon, ClockIcon, StarIcon } from '@/components/icons'
 import { useCountdown } from '@/lib/partly'
+
+/** Read-only star display — avg out of 5, with an optional review count. */
+export function StarRating({
+  value,
+  count,
+  size = 16,
+  showEmpty = true,
+}: {
+  value: number | null | undefined
+  count?: number
+  size?: number
+  showEmpty?: boolean
+}) {
+  if (!value && (!count || count === 0)) {
+    return showEmpty ? <span className="text-xs text-muted">No ratings yet</span> : null
+  }
+  const rounded = Math.round((value ?? 0) * 2) / 2
+  return (
+    <span className="inline-flex items-center gap-1">
+      <span className="flex items-center" aria-hidden>
+        {[1, 2, 3, 4, 5].map((i) => (
+          <StarIcon
+            key={i}
+            style={{ width: size, height: size }}
+            className={i <= rounded ? 'text-amber-400' : 'text-line'}
+          />
+        ))}
+      </span>
+      <span className="text-xs font-medium text-ink-600">
+        {(value ?? 0).toFixed(1)}
+        {typeof count === 'number' && <span className="text-muted"> ({count})</span>}
+      </span>
+    </span>
+  )
+}
 
 export function Pill({
   tone = 'neutral',

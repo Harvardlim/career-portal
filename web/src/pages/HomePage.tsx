@@ -11,19 +11,18 @@ import {
 } from '@/components/marketing/blocks'
 import { CategoryTiles } from '@/components/marketing/CategoryTiles'
 import {
-  BriefcaseIcon,
   ChartBarIcon,
   CodeIcon,
   DollarIcon,
   FileIcon,
   GearIcon,
   MegaphoneIcon,
-  PenNibIcon,
   SearchPlusIcon,
   UsersIcon,
 } from '@/components/icons'
 import { useT } from '@/lib/i18n'
 
+// Mirrors the 8 live DB categories — Training rolled into HR, Design rolled into Marketing.
 const VERTICALS = [
   { Icon: UsersIcon, label: 'HR' },
   { Icon: CodeIcon, label: 'IT' },
@@ -33,8 +32,6 @@ const VERTICALS = [
   { Icon: ChartBarIcon, label: 'Sales' },
   { Icon: SearchPlusIcon, label: 'Strategy' },
   { Icon: GearIcon, label: 'Operations' },
-  { Icon: BriefcaseIcon, label: 'Training' },
-  { Icon: PenNibIcon, label: 'Design' },
 ]
 
 export function HomePage() {

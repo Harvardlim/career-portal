@@ -51,7 +51,7 @@ const sections: Section[] = [
     title: 'Eligibility & Accounts',
     body: [
       'You must be at least 18 years old and capable of forming a binding contract to use the Platform.',
-      'Experts must be based in Singapore, Malaysia, Indonesia, Thailand, or Vietnam, and must provide accurate identity information as part of registration (see Section 6). Businesses may be based anywhere in the world.',
+      'Experts must be based in Singapore, Malaysia, Indonesia, Thailand, Vietnam, or the Philippines, and must provide accurate identity information as part of registration (see Section 6). Businesses may be based anywhere in the world.',
       'You agree to provide accurate, current, and complete information when registering and to keep it up to date. You are responsible for all activity under your account and for keeping your login credentials confidential. Notify us immediately if you suspect unauthorised use of your account.',
       'One account per individual or company. Creating duplicate accounts to evade a suspension, re-apply after removal, or manipulate matching is a violation of these Terms.',
     ],
@@ -63,6 +63,7 @@ const sections: Section[] = [
     body: [
       'partly.asia is a technology platform that helps Businesses and Experts find each other. We are not an employer, staffing agency, or recruiter, and we are not a party to any engagement, contract, or agreement a Business and an Expert enter into. Any work arrangement — scope, deliverables, rate, payment terms, and legal relationship (including whether it is an independent contractor or any other arrangement) — is agreed directly between the Business and the Expert, off-platform, and is solely their responsibility.',
       'We do not guarantee that a Posting will receive applicants, that a Business will release contact to any Expert, that a released Expert will unlock the contact, or that any engagement will result from a Match. Matching is based on the information both sides provide us and is not a verification of skill, character, or fit for a specific role.',
+      'partly.asia is a matching service only. We do not sell, ship, handle, warehouse, or take title to any physical goods, and we are not a party to the sale, delivery, or exchange of any physical product. If a Posting or engagement happens to involve physical goods (for example, materials an Expert needs to complete a project), that exchange is arranged and fulfilled entirely between the Business and the Expert, off-platform, and partly.asia has no responsibility for it.',
     ],
   },
   {
@@ -72,7 +73,7 @@ const sections: Section[] = [
     body: [
       'Posting a project and browsing open needs is free for Businesses. Applying to a Posting is free for Experts and is always the Expert’s own opt-in — we do not perform cold outreach to Experts on a Business’s behalf.',
       'For each Posting, our matching algorithm shortlists a maximum of 10 Experts. This is a hard cap: if a Business does not release contact to any of its 10 Matches, no further Matches are ever surfaced for that Posting. This scarcity rule is intentional and cannot be reset by contacting support.',
-      'A Business may release contact to one or more of its 10 Matches at the same time. Every Expert who is released contact is told, honestly, whether the Business released contact to other Experts for the same Posting.',
+      'A Business may release contact to one or more of its 10 Matches at the same time. Every Expert who is released contact is told, transparently, whether the Business released contact to other Experts for the same Posting.',
       'A Business may close a Posting at any time. Closing a Posting immediately ends every outstanding payment window for that Posting (see Section 7) and notifies affected Experts that the lead has gone cold, with no charge to them.',
     ],
   },

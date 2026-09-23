@@ -52,10 +52,12 @@ export type VerificationItem = {
   owner_kind: 'candidate' | 'employer'
   owner_id: string
   doc_type: string
-  doc_path: string
+  /** Null once auto-purged 90 days after review (see partly-sweep) — the decision below still stands. */
+  doc_path: string | null
   status: 'pending' | 'approved' | 'rejected'
   notes: string | null
   reviewed_at: string | null
+  purged_at: string | null
   created_at: string
   owner_name: string | null
   owner_email: string | null
@@ -478,5 +480,60 @@ export async function updateReportStatus(id: string, status: ReportRow['status']
     .from('reports')
     .update({ status, reviewed_by: adminId, reviewed_at: new Date().toISOString() })
     .eq('id', id)
+  if (error) throw error
+}
+
+/* ---------- Ratings ---------- */
+
+export type RatingRow = {
+  id: string
+  release_id: string
+  rater_kind: 'candidate' | 'employer'
+  rater_user_id: string
+  ratee_kind: 'candidate' | 'employer'
+  ratee_id: string
+  stars: number
+  comment: string | null
+  created_at: string
+  rater_label: string | null
+  ratee_label: string | null
+}
+
+export async function fetchRatings(): Promise<RatingRow[]> {
+  const sb = client()
+  const { data, error } = await sb
+    .from('ratings')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(500)
+  if (error) throw error
+  const rows = (data ?? []) as Omit<RatingRow, 'rater_label' | 'ratee_label'>[]
+  if (rows.length === 0) return []
+
+  const candIds = [...new Set(rows.filter((r) => r.rater_kind === 'candidate' || r.ratee_kind === 'candidate').map((r) => (r.rater_kind === 'candidate' ? r.rater_user_id : r.ratee_id)))]
+  const empIds = [...new Set(rows.filter((r) => r.ratee_kind === 'employer').map((r) => r.ratee_id))]
+  const empUserIds = [...new Set(rows.filter((r) => r.rater_kind === 'employer').map((r) => r.rater_user_id))]
+
+  const [candByUser, candById, empById, empByUser] = await Promise.all([
+    sb.from('candidates').select('user_id, full_name').in('user_id', candIds.length ? candIds : ['00000000-0000-0000-0000-000000000000']),
+    sb.from('candidates').select('id, full_name').in('id', rows.filter((r) => r.ratee_kind === 'candidate').map((r) => r.ratee_id)),
+    sb.from('employers').select('id, company_name').in('id', empIds.length ? empIds : ['00000000-0000-0000-0000-000000000000']),
+    sb.from('employers').select('user_id, company_name').in('user_id', empUserIds.length ? empUserIds : ['00000000-0000-0000-0000-000000000000']),
+  ])
+
+  const candNameByUser = new Map(((candByUser.data ?? []) as { user_id: string; full_name: string }[]).map((c) => [c.user_id, c.full_name]))
+  const candNameById = new Map(((candById.data ?? []) as { id: string; full_name: string }[]).map((c) => [c.id, c.full_name]))
+  const empNameById = new Map(((empById.data ?? []) as { id: string; company_name: string }[]).map((e) => [e.id, e.company_name]))
+  const empNameByUser = new Map(((empByUser.data ?? []) as { user_id: string; company_name: string }[]).map((e) => [e.user_id, e.company_name]))
+
+  return rows.map((r) => ({
+    ...r,
+    rater_label: r.rater_kind === 'candidate' ? (candNameByUser.get(r.rater_user_id) ?? null) : (empNameByUser.get(r.rater_user_id) ?? null),
+    ratee_label: r.ratee_kind === 'candidate' ? (candNameById.get(r.ratee_id) ?? null) : (empNameById.get(r.ratee_id) ?? null),
+  }))
+}
+
+export async function deleteRating(id: string): Promise<void> {
+  const { error } = await client().from('ratings').delete().eq('id', id)
   if (error) throw error
 }

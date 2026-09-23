@@ -22,7 +22,7 @@ export const en = {
   'hero.toggle.expert': 'I’m an Expert',
   'trust.verified': 'Verified Businesses & Experts',
   'trust.matched': 'Matched, Not Searched',
-  'trust.pay': 'Pay Only on Real Interest',
+  'trust.pay': 'Pay Only on Real Interested Leads',
   'how.title': 'How it works',
   'how.step1': 'Post your need',
   'how.step2': 'Get matched',
@@ -33,13 +33,13 @@ export const en = {
   // For Businesses
   'biz.headline': 'Post your project. Meet your expert. Solve your problems.',
   'biz.sub':
-    'From HR to IT, Finance to Strategy — describe what you need, and we’ll match you with pre-verified experts ready to help. Posting is completely free.',
+    'From HR to IT, Finance to Strategy — describe what you need, and we’ll match you with pre-verified experts ready to help, according to your project and budget. Posting is completely free.',
   'biz.step1.title': 'Post your need',
-  'biz.step1.body': 'Brief, budget, timeline, project type — it takes a few minutes.',
+  'biz.step1.body': 'Project brief, budget, timeline, project type — it takes a few minutes.',
   'biz.step2.title': 'Review your matches',
   'biz.step2.body': 'Up to 10 qualified experts, drawn once for your posting.',
   'biz.step3.title': 'Choose who to contact',
-  'biz.step3.body': 'Release contact — no cost, no obligation.',
+  'biz.step3.body': 'Release contact — no cost, no obligation. Only matched qualified experts.',
   'biz.step4.title': 'Connect directly',
   'biz.step4.body': 'Get their full contact details once they accept.',
   'biz.trust':
@@ -50,7 +50,7 @@ export const en = {
   // For Experts
   'exp.headline': 'Real leads. Real businesses. You choose.',
   'exp.sub':
-    'Whether you’re a consultant, trainer, HR specialist, or fractional executive — apply to projects that fit your expertise, and only pay when a business is genuinely interested in you.',
+    'Whether you’re a consultant, trainer, HR specialist, or fractional executive — apply to projects that fit your expertise, and only pay for a warm lead when a business is genuinely interested in you.',
   'exp.step1.title': 'Create your profile',
   'exp.step1.body': 'LinkedIn-style — showcase your experience.',
   'exp.step2.title': 'Apply to projects',
@@ -117,7 +117,7 @@ export const en = {
   'faq.a2': 'Yes — you’ll always be told upfront if you’re one of several being considered.',
   'faq.q3': 'Is my ID information secure?',
   'faq.a3':
-    'We collect only the last 4 characters of your ID, encrypt them before storing, and never display them to anyone — not to you, not to businesses, not to third parties.',
+    'For data security reasons, we collect only the last 4 characters of your ID, encrypt them before storing, and never display them to anyone — not to you, not to businesses, not to third parties.',
   'faq.q4': 'How long do I have to unlock a released contact?',
   'faq.a4': '2 days from the moment the business releases contact. After that the lead simply goes cold — no charge.',
   'faq.q5': 'What happens if the business closes the job?',

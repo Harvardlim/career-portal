@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { EmployerDashboardLayout } from '@/components/dashboard/EmployerDashboardLayout'
 import { InviteFriendPanel } from '@/components/partly/InviteFriendPanel'
+import { RatingWidget } from '@/components/partly/RatingWidget'
 import {
   Avatar,
   Card,
@@ -12,6 +13,7 @@ import {
   Pill,
   PrimaryButton,
   SecondaryButton,
+  StarRating,
   VerifiedChips,
 } from '@/components/partly/ui'
 import { LinkedinIcon, MailIcon, PhoneIcon } from '@/components/icons'
@@ -196,7 +198,10 @@ export function PostingMatchesPage() {
                   <div className="flex items-start gap-3">
                     <Avatar name={c.full_name} size={44} />
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-ink">{c.full_name}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-medium text-ink">{c.full_name}</p>
+                        <StarRating value={c.candidate_avg_stars} count={c.candidate_rating_count} size={13} showEmpty={false} />
+                      </div>
                       {c.headline && <p className="text-sm text-muted">{c.headline}</p>}
                       <div className="mt-2 flex flex-col gap-1 text-sm">
                         <a href={`mailto:${c.email}`} className="flex items-center gap-2 text-ink hover:text-brand">
@@ -214,6 +219,9 @@ export function PostingMatchesPage() {
                       <p className="mt-2 text-xs text-muted">
                         Visible until {new Date(c.contact_expires_at).toLocaleDateString()} — keep this conversation on partly.asia.
                       </p>
+                      <div className="mt-3">
+                        <RatingWidget releaseId={c.release_id} raterKind="employer" raterLabel="this expert" />
+                      </div>
                     </div>
                   </div>
                 </Card>
@@ -324,6 +332,7 @@ export function PostingMatchesPage() {
                           {m.years_experience && m.country_code ? ' · ' : ''}
                           {countryName(m.country_code)}
                         </p>
+                        <StarRating value={m.avg_stars} count={m.rating_count} size={13} showEmpty={false} />
                       </div>
                       <span className="rounded bg-surface-alt px-1.5 py-0.5 text-xs text-muted">#{m.rank}</span>
                     </div>

@@ -140,9 +140,15 @@ export function ExpertProfileEditPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [candidate])
 
+  const MAX_CATEGORIES = 2
+
   const toggleCat = (name: string) => {
     const cat = categories.find((c) => c.name === name)
     const ids = new Set(cat?.subcategories.map((s) => s.id) ?? [])
+    if (!cats.includes(name) && cats.length >= MAX_CATEGORIES) {
+      toast.error(`Pick up to ${MAX_CATEGORIES} main categories.`)
+      return
+    }
     setCats((c) => (c.includes(name) ? c.filter((x) => x !== name) : [...c, name]))
     if (cats.includes(name)) setSubIds((s) => s.filter((id) => !ids.has(id)))
   }
@@ -348,7 +354,10 @@ export function ExpertProfileEditPage() {
         </Card>
 
         <Card className="flex flex-col gap-4">
-          <p className="text-sm font-medium text-ink">CV / Resume</p>
+          <div>
+            <p className="text-sm font-medium text-ink">CV / Resume</p>
+            <p className="mt-0.5 text-xs text-muted">Shared with a business only after they release contact — helps them see your fit for the match.</p>
+          </div>
           <ResumeList candidateId={candidate.id} resumes={resumes} onChange={() => loadResumes(candidate.id)} />
         </Card>
 

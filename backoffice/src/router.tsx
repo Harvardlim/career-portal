@@ -17,6 +17,7 @@ import { PostingsPage } from './pages/PostingsPage'
 import { RevenuePage } from './pages/RevenuePage'
 import { CommissionsPage } from './pages/CommissionsPage'
 import { ReportsPage } from './pages/ReportsPage'
+import { RatingsPage } from './pages/RatingsPage'
 
 export const router = createBrowserRouter([
   {
@@ -40,6 +41,7 @@ export const router = createBrowserRouter([
       { path: 'revenue', element: <RevenuePage /> },
       { path: 'commissions', element: <CommissionsPage /> },
       { path: 'reports', element: <ReportsPage /> },
+      { path: 'ratings', element: <RatingsPage /> },
       { path: 'admins', element: <AdminListPage /> },
       { path: 'account', element: <AccountSettingsPage /> },
     ],

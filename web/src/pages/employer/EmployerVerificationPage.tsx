@@ -13,6 +13,7 @@ import {
   formatUsd,
   startEmployerBadgeCheckout,
   usePricing,
+  validateBusinessRegNo,
   type BadgeRow,
   type PayCurrency,
 } from '@/lib/partly'
@@ -56,6 +57,8 @@ export function EmployerVerificationPage() {
 
   async function save() {
     if (!employer || !regNo.trim()) return
+    const regError = validateBusinessRegNo(country, regNo)
+    if (regError) return toast.error(regError)
     setSaving(true)
     try {
       await updateMyEmployer(employer.id, { reg_no: regNo.trim(), country_code: country })

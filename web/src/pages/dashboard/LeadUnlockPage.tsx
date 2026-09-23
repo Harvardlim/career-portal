@@ -3,8 +3,9 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { InviteFriendPanel } from '@/components/partly/InviteFriendPanel'
+import { RatingWidget } from '@/components/partly/RatingWidget'
 import { GlobeIcon, MailIcon, MapPinIcon, PhoneIcon } from '@/components/icons'
-import { Card, Countdown, EmptyState, Notice, Pill, PrimaryButton } from '@/components/partly/ui'
+import { Card, Countdown, EmptyState, Notice, Pill, PrimaryButton, StarRating } from '@/components/partly/ui'
 import { useCandidate } from '@/lib/dashboard'
 import {
   countryName,
@@ -123,7 +124,10 @@ export function LeadUnlockPage() {
             <h2 className="font-semibold text-ink">Business contact</h2>
             {contact ? (
               <>
-                <p className="mt-1 text-lg font-medium text-ink">{contact.company_name}</p>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <p className="text-lg font-medium text-ink">{contact.company_name}</p>
+                  <StarRating value={contact.employer_avg_stars} count={contact.employer_rating_count} />
+                </div>
                 <div className="mt-3 flex flex-col gap-2 text-sm">
                   <a href={`mailto:${contact.business_email}`} className="flex items-center gap-2 text-ink hover:text-brand">
                     <MailIcon className="size-4 text-muted" /> {contact.business_email}
@@ -149,6 +153,9 @@ export function LeadUnlockPage() {
                   (5 calendar days). For security and privacy, refer to this lead only through partly.asia — we never
                   email contact details out.
                 </Notice>
+                <div className="mt-4">
+                  <RatingWidget releaseId={id} raterKind="candidate" raterLabel="this business" />
+                </div>
               </>
             ) : (
               <p className="mt-2 text-sm text-muted">

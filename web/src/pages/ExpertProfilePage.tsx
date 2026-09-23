@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { Avatar, Card, EmptyState, Pill, PrimaryButton, VerifiedChips } from '@/components/partly/ui'
+import { Avatar, Card, EmptyState, Pill, PrimaryButton, StarRating, VerifiedChips } from '@/components/partly/ui'
 import { ReportButton } from '@/components/partly/ReportButton'
-import { countryName } from '@/lib/partly'
+import { countryName, fetchRatingsFor, type RatingWithAuthor } from '@/lib/partly'
 import { supabase } from '@/lib/supabase'
 
 type PublicProfile = {
@@ -19,6 +19,8 @@ type PublicProfile = {
   portfolio_links: { label: string; url: string }[]
   identity_verified: boolean
   badge_verified: boolean
+  rating_count: number
+  avg_stars: number | null
 }
 
 /** The page a "Hire me on partly.asia" badge links to. Contact-free by design. */
@@ -26,6 +28,7 @@ export function ExpertProfilePage() {
   const { slug = '' } = useParams()
   const [params] = useSearchParams()
   const [profile, setProfile] = useState<PublicProfile | null>(null)
+  const [reviews, setReviews] = useState<RatingWithAuthor[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -46,6 +49,9 @@ export function ExpertProfilePage() {
             source: params.get('src') === 'badge' ? 'badge' : params.get('src') === 'share' ? 'share' : 'direct',
             referrer: document.referrer ? document.referrer.slice(0, 500) : null,
           })
+          fetchRatingsFor('candidate', p.candidate_id)
+            .then((r) => alive && setReviews(r))
+            .catch((err) => console.error('ratings', err))
         }
       })
       .then(() => alive && setLoading(false))
@@ -78,8 +84,9 @@ export function ExpertProfilePage() {
               {countryName(profile.country_code)}
               {profile.years_experience ? ` · ${profile.years_experience} experience` : ''}
             </p>
-            <div className="mt-2">
+            <div className="mt-2 flex flex-wrap items-center gap-3">
               <VerifiedChips identity={profile.identity_verified} badge={profile.badge_verified} />
+              <StarRating value={profile.avg_stars} count={profile.rating_count} />
             </div>
           </div>
         </div>
@@ -116,6 +123,25 @@ export function ExpertProfilePage() {
             <PrimaryButton>Post your project — it's free</PrimaryButton>
           </Link>
         </div>
+
+        {reviews.length > 0 && (
+          <div className="flex flex-col gap-3 border-t border-line pt-5">
+            <p className="text-sm font-semibold text-ink">Reviews from businesses</p>
+            {reviews.map((r) => (
+              <div key={r.id} className="flex flex-col gap-1 rounded-md bg-surface-alt/60 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium text-ink">{r.rater_name ?? 'A business'}</span>
+                  <StarRating value={r.stars} showEmpty={false} />
+                </div>
+                {r.comment && <p className="text-sm text-ink-600">{r.comment}</p>}
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs text-muted">{new Date(r.created_at).toLocaleDateString()}</p>
+                  <ReportButton targetKind="rating" targetId={r.id} label="Report" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="flex justify-end">
           <ReportButton targetKind="candidate" targetId={profile.candidate_id} label="Report this profile" />

@@ -10,7 +10,7 @@ type Feature = {
 const features: Feature[] = [
   { value: 'Verified', label: 'Businesses & experts, both sides', Icon: CircleCheckIcon },
   { value: 'Max 10', label: 'Matched experts per posting', Icon: BuildingIcon },
-  { value: 'Pay on interest', label: 'Fixed fee, only after release', Icon: BriefcaseIcon },
+  { value: 'Pay on actual interest', label: 'Fixed fee, only after release', Icon: BriefcaseIcon },
 ]
 
 /**

@@ -7,6 +7,7 @@ const REASONS: Record<ReportTargetKind, string[]> = {
   job: ['Misleading or fake posting', 'Suspected scam', 'Inappropriate content', 'Other'],
   employer: ['Suspected scam or fraud', 'Never responds after payment', 'Impersonating a real company', 'Other'],
   candidate: ['Fake or misleading profile', 'Inappropriate content', 'Suspected scam', 'Other'],
+  rating: ['Fake or unfair review', 'Not related to an actual engagement', 'Inappropriate content', 'Other'],
 }
 
 /** Small "Report" link + modal, usable on any job, business or expert page. */
@@ -54,7 +55,7 @@ export function ReportButton({
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">
           <div className="w-full max-w-[420px] rounded-xl bg-surface p-6 shadow-2xl">
-            <h2 className="text-lg font-medium text-ink">Report this {targetKind === 'employer' ? 'business' : targetKind === 'candidate' ? 'expert' : 'posting'}</h2>
+            <h2 className="text-lg font-medium text-ink">Report this {targetKind === 'employer' ? 'business' : targetKind === 'candidate' ? 'expert' : targetKind === 'rating' ? 'review' : 'posting'}</h2>
             <p className="mt-1 text-sm text-muted-600">Our team reviews every report. This doesn't notify the other party.</p>
             <div className="mt-4 flex flex-col gap-2">
               {REASONS[targetKind].map((r) => (

@@ -78,7 +78,7 @@ export function formatUsd(amount: number): string {
 
 /* ---------- Postings (a Business's need) ---------- */
 
-export type ProjectType = 'hourly' | 'project' | 'time_based' | 'fractional' | 'ongoing'
+export type ProjectType = 'hourly' | 'project' | 'time_based' | 'fractional' | 'ongoing' | 'full_time'
 
 export const PROJECT_TYPES: { value: ProjectType; label: string; hint: string }[] = [
   { value: 'hourly', label: 'Hourly', hint: 'Pay by the hour, as needed' },
@@ -86,6 +86,7 @@ export const PROJECT_TYPES: { value: ProjectType; label: string; hint: string }[
   { value: 'time_based', label: 'Time-based', hint: 'e.g. 1 month, 3 months' },
   { value: 'fractional', label: 'Fractional', hint: 'A few days a week, ongoing' },
   { value: 'ongoing', label: 'Ongoing', hint: 'Open-ended engagement' },
+  { value: 'full_time', label: 'Full-time', hint: 'A dedicated, full-time hire' },
 ]
 
 export type MatchingStatus =
@@ -353,6 +354,8 @@ export type MatchCard = {
   release_status: 'awaiting_payment' | 'paid' | 'cold' | 'job_closed' | null
   window_expires_at: string | null
   paid_at: string | null
+  rating_count: number
+  avg_stars: number | null
 }
 
 export async function generateMatches(jobId: string): Promise<number> {
@@ -411,6 +414,8 @@ export type BusinessContact = {
   badge_verified: boolean
   paid_at: string
   contact_expires_at: string
+  candidate_rating_count: number
+  candidate_avg_stars: number | null
 }
 
 export async function fetchBusinessContacts(jobId?: string): Promise<BusinessContact[]> {
@@ -486,6 +491,8 @@ export type ExpertContact = {
   location: string | null
   paid_at: string
   contact_expires_at: string
+  employer_rating_count: number
+  employer_avg_stars: number | null
 }
 
 export async function fetchLeadContact(releaseId: string): Promise<ExpertContact | null> {
@@ -540,10 +547,12 @@ export type VerificationDoc = {
   owner_kind: 'candidate' | 'employer'
   owner_id: string
   doc_type: 'identity' | 'business_registration' | 'credential'
-  doc_path: string
+  /** Null once the file has been auto-purged (see partly-sweep); the decision below still stands. */
+  doc_path: string | null
   status: 'pending' | 'approved' | 'rejected'
   notes: string | null
   reviewed_at: string | null
+  purged_at: string | null
   created_at: string
 }
 
@@ -656,7 +665,7 @@ export function startEmployerBadgeCheckout(pay: PayCurrency): Promise<never> {
 
 /* ---------- Reports ---------- */
 
-export type ReportTargetKind = 'job' | 'employer' | 'candidate'
+export type ReportTargetKind = 'job' | 'employer' | 'candidate' | 'rating'
 
 export async function fileReport(args: {
   targetKind: ReportTargetKind
@@ -675,6 +684,76 @@ export async function fileReport(args: {
     details: args.details ?? null,
   })
   if (error) throw error
+}
+
+/* ---------- Ratings ---------- */
+
+export type RatingKind = 'candidate' | 'employer'
+
+export type Rating = {
+  id: string
+  release_id: string
+  rater_kind: RatingKind
+  rater_user_id: string
+  ratee_kind: RatingKind
+  ratee_id: string
+  stars: number
+  comment: string | null
+  created_at: string
+  updated_at: string
+}
+
+/** Submits or updates the caller's own rating for a release they were part of (must be 'paid'). */
+export async function submitRating(releaseId: string, stars: number, comment: string): Promise<void> {
+  const { error } = await supabase.rpc('submit_rating', {
+    p_release_id: releaseId,
+    p_stars: stars,
+    p_comment: comment.trim() || null,
+  })
+  if (error) throw error
+}
+
+/** The caller's own rating for a release, if they've already rated it (so the widget can prefill/edit). */
+export async function fetchMyRating(releaseId: string, raterKind: RatingKind): Promise<Rating | null> {
+  const { data, error } = await supabase
+    .from('ratings')
+    .select('*')
+    .eq('release_id', releaseId)
+    .eq('rater_kind', raterKind)
+    .maybeSingle()
+  if (error) throw error
+  return (data as Rating | null) ?? null
+}
+
+export type RatingWithAuthor = Rating & { rater_name: string | null }
+
+/** Public ratings for a candidate or employer, newest first, with the rater's display name. */
+export async function fetchRatingsFor(ratee: RatingKind, rateeId: string): Promise<RatingWithAuthor[]> {
+  const { data, error } = await supabase
+    .from('ratings')
+    .select('*')
+    .eq('ratee_kind', ratee)
+    .eq('ratee_id', rateeId)
+    .order('created_at', { ascending: false })
+    .limit(50)
+  if (error) throw error
+  const rows = (data ?? []) as Rating[]
+  if (rows.length === 0) return []
+
+  const raterKind = ratee === 'candidate' ? 'employer' : 'candidate'
+  const userIds = [...new Set(rows.map((r) => r.rater_user_id))]
+  const { data: names } = await supabase
+    .from(raterKind === 'employer' ? 'employers' : 'candidates')
+    .select(raterKind === 'employer' ? 'user_id, company_name' : 'user_id, full_name')
+    .in('user_id', userIds)
+  const nameByUser = new Map(
+    ((names ?? []) as Record<string, string>[]).map((n) => [
+      n.user_id,
+      (raterKind === 'employer' ? n.company_name : n.full_name) ?? null,
+    ]),
+  )
+
+  return rows.map((r) => ({ ...r, rater_name: nameByUser.get(r.rater_user_id) ?? null }))
 }
 
 /* ---------- Notifications ---------- */

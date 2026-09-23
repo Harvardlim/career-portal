@@ -72,6 +72,7 @@ export const VerificationPage = () => {
   )
 
   async function openDoc(item: VerificationItem) {
+    if (!item.doc_path) return
     try {
       window.open(await verificationDocUrl(item.doc_path), '_blank', 'noopener')
     } catch (e) {
@@ -156,9 +157,15 @@ export const VerificationPage = () => {
                   </td>
                   <td className={tdCls}>{DOC_LABEL[r.doc_type] ?? r.doc_type}</td>
                   <td className={tdCls}>
-                    <button type="button" onClick={() => openDoc(r)} className="text-brand-2 hover:underline">
-                      Open document
-                    </button>
+                    {r.doc_path ? (
+                      <button type="button" onClick={() => openDoc(r)} className="text-brand-2 hover:underline">
+                        Open document
+                      </button>
+                    ) : (
+                      <span className="text-muted">
+                        Purged{r.purged_at ? ` ${fmtDate(r.purged_at)}` : ''}
+                      </span>
+                    )}
                   </td>
                   <td className={tdCls}>{fmtDate(r.created_at)}</td>
                   <td className={tdCls}>

@@ -85,6 +85,12 @@ export function VerificationDocs({
       {latest?.status === 'rejected' && latest.notes && (
         <p className="rounded-md bg-danger-50 px-3 py-2 text-xs text-danger">{latest.notes}</p>
       )}
+      {latest?.purged_at && (
+        <p className="text-xs text-muted">
+          The file itself was securely deleted {new Date(latest.purged_at).toLocaleDateString()}, 90 days after
+          review — we keep only the decision, not the document.
+        </p>
+      )}
       {latest?.status !== 'approved' && (
         <>
           <input

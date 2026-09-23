@@ -120,9 +120,15 @@ export function CandidateRegisterPage() {
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm((f) => ({ ...f, [key]: value }))
 
+  const MAX_CATEGORIES = 2
+
   const toggleCategory = (name: string) =>
     setForm((f) => {
       const on = f.categories.includes(name)
+      if (!on && f.categories.length >= MAX_CATEGORIES) {
+        toast.error(`Pick up to ${MAX_CATEGORIES} main categories.`)
+        return f
+      }
       const cat = allCategories.find((c) => c.name === name)
       const subIds = new Set(cat?.subcategories.map((s) => s.id) ?? [])
       return {
