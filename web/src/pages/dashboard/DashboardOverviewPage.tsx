@@ -115,7 +115,7 @@ export function DashboardOverviewPage() {
               </div>
             </div>
             <Link
-              to="/dashboard/settings"
+              to="/dashboard/expert-profile"
               className="flex shrink-0 items-center gap-2 rounded-[4px] bg-surface px-6 py-3 text-sm font-semibold text-brand"
             >
               Edit Profile

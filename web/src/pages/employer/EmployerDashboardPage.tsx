@@ -15,6 +15,7 @@ import {
   type EmployerJobRow,
 } from '@/lib/employers'
 import { EmployerJobRow as JobRowUI } from '@/components/dashboard/EmployerJobRow'
+import { initialsFromName } from '@/lib/name'
 
 export function EmployerDashboardPage() {
   const { employer, loading: employerLoading } = useEmployer()
@@ -72,6 +73,37 @@ export function EmployerDashboardPage() {
             </div>
           ))}
         </div>
+
+        {!employer?.about && (
+          <div className="flex flex-col gap-4 rounded-lg bg-danger p-6 text-white sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              {employer?.logo_url ? (
+                <img
+                  src={employer.logo_url}
+                  alt={employer.company_name ?? 'Company logo'}
+                  className="size-14 shrink-0 rounded-full object-cover ring-2 ring-white/40"
+                />
+              ) : (
+                <span className="grid size-14 shrink-0 place-items-center rounded-full bg-white/20 text-lg font-semibold text-white">
+                  {initialsFromName(employer?.company_name) || 'C'}
+                </span>
+              )}
+              <div>
+                <p className="text-lg font-medium">Your profile editing is not completed.</p>
+                <p className="text-sm text-white/80">
+                  Complete your business profile so experts see who they&apos;re working with
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/company/register"
+              className="flex shrink-0 items-center gap-2 rounded-[4px] bg-surface px-6 py-3 text-sm font-semibold text-brand"
+            >
+              Edit Profile
+              <ArrowRightIcon className="size-4" />
+            </Link>
+          </div>
+        )}
 
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
