@@ -3,7 +3,7 @@
     {
       "name": "Default",
       "files": [
-        "supabase/functions/_shared/catalog.ts"
+        "web/src/locales/en.ts"
       ]
     }
   ],
