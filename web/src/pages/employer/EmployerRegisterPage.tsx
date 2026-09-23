@@ -5,6 +5,7 @@ import { RegWizardLayout, WizardButtons, type WizardStep } from '@/components/wi
 import { ConsentStep } from '@/components/wizard/ConsentStep'
 import { CheckboxGroup } from '@/components/wizard/CheckboxGroup'
 import { Field, TextInput } from '@/components/dashboard/form'
+import { SelectMenu } from '@/components/app/SelectMenu'
 import { GoldCircle } from '@/components/marketing/blocks'
 import { supabase } from '@/lib/supabase'
 import { useCategoryNames } from '@/lib/categories'
@@ -47,9 +48,6 @@ const initialState: FormState = {
   businessDetails: '',
   lookingFor: [],
 }
-
-const selectCls =
-  'h-12 w-full rounded-md border border-line bg-surface px-4 text-base text-ink outline-none focus:border-brand'
 
 /** Business sign-up: registration number (validated per country) + what they need. */
 export function EmployerRegisterPage() {
@@ -200,13 +198,11 @@ export function EmployerRegisterPage() {
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Country of registration">
-                <select value={form.country} onChange={(e) => update('country', e.target.value)} className={selectCls}>
-                  {Object.entries(COUNTRY_NAMES).map(([code, name]) => (
-                    <option key={code} value={code}>
-                      {name}
-                    </option>
-                  ))}
-                </select>
+                <SelectMenu
+                  value={form.country}
+                  onChange={(v) => update('country', v)}
+                  options={Object.entries(COUNTRY_NAMES).map(([code, name]) => ({ value: code, label: name }))}
+                />
               </Field>
               <Field label={regFormat ? `${regFormat.label}` : 'Business registration number'}>
                 <TextInput

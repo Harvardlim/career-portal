@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { Field, TextInput } from '@/components/dashboard/form'
+import { SelectMenu } from '@/components/app/SelectMenu'
 import { VerificationDocs } from '@/components/partly/VerificationDocs'
 import { Card, Notice, Pill, PrimaryButton, SecondaryButton, VerifiedChips } from '@/components/partly/ui'
 import { updateMyCandidate } from '@/lib/candidateProfile'
@@ -132,18 +133,12 @@ export function VerificationPage() {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">1 · Basic verification (free)</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Country">
-              <select
+              <SelectMenu
                 value={country}
-                onChange={(e) => setCountry(e.target.value as ExpertCountry)}
+                onChange={(v) => setCountry(v as ExpertCountry)}
                 disabled={!!candidate?.identity_verified}
-                className="h-12 w-full rounded-md border border-line bg-surface px-4 text-base text-ink outline-none focus:border-brand disabled:opacity-60"
-              >
-                {EXPERT_COUNTRIES.map((c) => (
-                  <option key={c} value={c}>
-                    {countryName(c)}
-                  </option>
-                ))}
-              </select>
+                options={EXPERT_COUNTRIES.map((c) => ({ value: c, label: countryName(c) }))}
+              />
             </Field>
             <Field label={`Last 4 characters of your ${ID_TYPE_BY_COUNTRY[country]}`}>
               <TextInput

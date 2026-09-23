@@ -33,7 +33,7 @@ export const en = {
   // For Businesses
   'biz.headline': 'Post your project. Meet your expert. Solve your problems.',
   'biz.sub':
-    'From HR to IT, Finance to Strategy — describe what you need, and we’ll match you with pre-verified experts ready to help, according to your project and budget. Posting is completely free.',
+    'From HR to IT, Finance to Strategy — describe what you need, and we’ll match you with pre-verified experts ready to help - according to your project and budget. Posting is completely free.',
   'biz.step1.title': 'Post your need',
   'biz.step1.body': 'Project brief, budget, timeline, project type — it takes a few minutes.',
   'biz.step2.title': 'Review your matches',

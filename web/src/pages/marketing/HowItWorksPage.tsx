@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { CtaButton, Eyebrow, FeeTable, Headline, Section, Steps } from '@/components/marketing/blocks'
+import { SelectMenu } from '@/components/app/SelectMenu'
 import { useT } from '@/lib/i18n'
 import { COUNTRY_NAMES, EXPERT_COUNTRIES, formatLocal, formatUsd, usePricing } from '@/lib/partly'
 
@@ -71,18 +72,13 @@ export function HowItWorksPage() {
             {current && (
               <div className="rounded-xl border border-gold/40 bg-surface p-5">
                 <p className="text-sm text-muted">
-                  {t('pay.detect', { country: COUNTRY_NAMES[current.code] ?? current.name })}{' '}
-                  <select
+                  {t('pay.detect', { country: COUNTRY_NAMES[current.code] ?? current.name })}
+                  <SelectMenu
                     value={country}
-                    onChange={(e) => setCountry(e.target.value)}
-                    className="ml-1 rounded border border-line bg-surface px-2 py-1 text-sm text-ink"
-                  >
-                    {pricing.map((p) => (
-                      <option key={p.code} value={p.code}>
-                        {COUNTRY_NAMES[p.code] ?? p.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setCountry}
+                    options={pricing.map((p) => ({ value: p.code, label: COUNTRY_NAMES[p.code] ?? p.name }))}
+                    className="ml-1 mt-2 inline-flex w-56 align-middle"
+                  />
                 </p>
                 <div className="mt-4 grid grid-cols-2 gap-4">
                   <div>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { Field, TextInput } from '@/components/dashboard/form'
-import { LinkIcon, LinkedinIcon } from '@/components/icons'
+import { LinkIcon } from '@/components/icons'
 import { Card, Notice, PrimaryButton, SecondaryButton } from '@/components/partly/ui'
 import { updateMyCandidate } from '@/lib/candidateProfile'
 import { useCandidate } from '@/lib/dashboard'
@@ -33,7 +33,6 @@ export function HireMePage() {
   const { candidate, session, loading, reload } = useCandidate()
   const [slug, setSlug] = useState('')
   const [saving, setSaving] = useState(false)
-  const [agreed, setAgreed] = useState(false)
   const [views, setViews] = useState<{ total: number; badge: number; last30: number } | null>(null)
 
   useEffect(() => {
@@ -93,15 +92,6 @@ export function HireMePage() {
     }
   }
 
-  function shareLinkedIn() {
-    if (!shareUrl) return
-    window.open(
-      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
-      '_blank',
-      'noopener,width=600,height=600',
-    )
-  }
-
   return (
     <DashboardLayout>
       <div className="flex max-w-3xl flex-col gap-6">
@@ -156,20 +146,12 @@ export function HireMePage() {
                   ))}
                 </div>
               )}
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <SecondaryButton onClick={() => copy(badgeUrl ?? profileUrl, 'Link')}>
                   <LinkIcon className="size-4" /> Copy link
                 </SecondaryButton>
                 <SecondaryButton onClick={() => copy(embed, 'Embed code')}>Copy embed code</SecondaryButton>
-                <SecondaryButton onClick={shareLinkedIn} disabled={!agreed}>
-                  <LinkedinIcon className="size-4" /> Add to LinkedIn
-                </SecondaryButton>
               </div>
-              <label className="flex items-start gap-2 text-xs text-muted">
-                <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5" />
-                I understand partly.asia never posts on my behalf — sharing opens LinkedIn in a new window where I
-                post it myself. Only my public profile link is shared.
-              </label>
             </Card>
 
             <Card className="flex flex-col gap-3">

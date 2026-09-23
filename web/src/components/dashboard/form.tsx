@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react'
+import type { InputHTMLAttributes, ReactNode } from 'react'
 import {
-  ChevronDownIcon,
+  CalendarIcon,
   EyeIcon,
   EyeOffIcon,
   UploadIcon,
 } from '@/components/icons'
+import { SelectMenu } from '@/components/app/SelectMenu'
 
 export function Field({
   label,
@@ -67,25 +68,56 @@ export function TextInput({
   )
 }
 
+/**
+ * The dashboard form's dropdown — a thin adapter over the app-wide SelectMenu
+ * so every select in the product shares one look and one keyboard behaviour.
+ * `options[0]` is the "unselected" label (kept as a clearable list item, same
+ * as the old native-select convention this replaced).
+ */
 export function Select({
+  value,
+  onChange,
   options = ['Select...'],
-  ...rest
-}: Omit<SelectHTMLAttributes<HTMLSelectElement>, 'className'> & {
+  disabled,
+  className,
+}: {
+  value: string
+  onChange: (value: string) => void
   options?: string[]
+  disabled?: boolean
+  className?: string
+}) {
+  const [empty, ...rest] = options
+  return (
+    <SelectMenu
+      value={value}
+      onChange={onChange}
+      options={[{ value: '', label: empty }, ...rest.map((o) => ({ value: o, label: o }))]}
+      disabled={disabled}
+      className={className}
+    />
+  )
+}
+
+/**
+ * Universal date input: keeps the browser's native date picker (calendar
+ * popup, keyboard entry, a11y) but restyles the chrome to match TextInput
+ * and SelectMenu so it reads as the same design system.
+ */
+export function DateInput({
+  className,
+  ...rest
+}: Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'type'> & {
+  className?: string
 }) {
   return (
     <div className="relative">
-      <select
-        className="h-12 w-full appearance-none rounded-md border border-line bg-surface px-4 pr-10 text-base text-muted-600 outline-none focus:border-brand"
+      <input
+        type="date"
+        className={`h-11 w-full rounded-md border border-line bg-surface px-4 pr-10 text-sm text-ink outline-none focus:border-brand ${className ?? ''}`}
         {...rest}
-      >
-        {options.map((o, i) => (
-          <option key={o} value={i === 0 ? '' : o}>
-            {o}
-          </option>
-        ))}
-      </select>
-      <ChevronDownIcon className="pointer-events-none absolute right-3 top-1/2 size-5 -translate-y-1/2 text-muted" />
+      />
+      <CalendarIcon className="pointer-events-none absolute right-3 top-1/2 size-5 -translate-y-1/2 text-muted" />
     </div>
   )
 }

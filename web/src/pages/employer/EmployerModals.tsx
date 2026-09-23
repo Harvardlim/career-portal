@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { PostJobPage } from '@/pages/employer/PostJobPage'
 import { MyJobsPage } from '@/pages/employer/MyJobsPage'
 import { Dialog } from '@/components/app/Dialog'
+import { SelectMenu } from '@/components/app/SelectMenu'
 import { ArrowRightIcon, CheckIcon } from '@/components/icons'
 
 /** Custom kanban columns were dropped in favour of the four fixed statuses. */
@@ -46,7 +48,14 @@ export function PostJobSuccessPage() {
   )
 }
 
+const DURATION_OPTIONS = [
+  { value: '7', label: '7 days' },
+  { value: '14', label: '14 days' },
+  { value: '30', label: '30 days' },
+]
+
 export function PromoteJobPage() {
+  const [duration, setDuration] = useState('7')
   return (
     <>
       <MyJobsPage />
@@ -89,14 +98,10 @@ export function PromoteJobPage() {
             ))}
           </fieldset>
 
-          <label className="flex flex-col gap-2 text-sm text-ink">
+          <div className="flex flex-col gap-2 text-sm text-ink">
             Duration
-            <select className="h-12 rounded-md border border-line px-4 text-base text-ink outline-none focus:border-brand">
-              <option>7 days</option>
-              <option>14 days</option>
-              <option>30 days</option>
-            </select>
-          </label>
+            <SelectMenu value={duration} onChange={setDuration} options={DURATION_OPTIONS} />
+          </div>
 
           <div className="flex items-center justify-between border-t border-line pt-4 text-sm font-medium text-ink">
             <span>Total</span>

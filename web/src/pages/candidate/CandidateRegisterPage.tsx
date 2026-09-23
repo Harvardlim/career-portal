@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { RegWizardLayout, WizardButtons, type WizardStep } from '@/components/wizard/RegWizardLayout'
 import { ConsentStep } from '@/components/wizard/ConsentStep'
 import { Field, Select, TextInput } from '@/components/dashboard/form'
+import { SelectMenu } from '@/components/app/SelectMenu'
 import { GoldCircle } from '@/components/marketing/blocks'
 import { experienceRanges } from '@/data/categories'
 import { supabase } from '@/lib/supabase'
@@ -70,9 +71,6 @@ const initialState: FormState = {
   pastExperience: '',
   last4: '',
 }
-
-const selectCls =
-  'h-12 w-full rounded-md border border-line bg-surface px-4 text-base text-ink outline-none focus:border-brand'
 
 function CvUpload({ file, onChange }: { file: File | null; onChange: (file: File | null) => void }) {
   const id = useId()
@@ -308,13 +306,11 @@ export function CandidateRegisterPage() {
                 <TextInput required placeholder="Full name" value={form.fullName} onChange={(e) => update('fullName', e.target.value)} />
               </Field>
               <Field label="Country you’re based in">
-                <select value={form.country} onChange={(e) => update('country', e.target.value as ExpertCountry)} className={selectCls}>
-                  {EXPERT_COUNTRIES.map((c) => (
-                    <option key={c} value={c}>
-                      {countryName(c)}
-                    </option>
-                  ))}
-                </select>
+                <SelectMenu
+                  value={form.country}
+                  onChange={(v) => update('country', v as ExpertCountry)}
+                  options={EXPERT_COUNTRIES.map((c) => ({ value: c, label: countryName(c) }))}
+                />
               </Field>
             </div>
             <Field label="Contact number">
@@ -381,7 +377,7 @@ export function CandidateRegisterPage() {
             ))}
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Years of experience">
-                <Select value={form.yearsExperience} onChange={(e) => update('yearsExperience', e.target.value)} options={['Select...', ...experienceRanges]} />
+                <Select value={form.yearsExperience} onChange={(v) => update('yearsExperience', v)} options={['Select...', ...experienceRanges]} />
               </Field>
               <Field label="LinkedIn profile (optional)">
                 <TextInput placeholder="https://www.linkedin.com/in/…" icon={<LinkedinIcon className="size-5" />} value={form.linkedin} onChange={(e) => update('linkedin', e.target.value)} />

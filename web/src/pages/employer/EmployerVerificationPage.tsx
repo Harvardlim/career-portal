@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { EmployerDashboardLayout } from '@/components/dashboard/EmployerDashboardLayout'
 import { Field, TextInput } from '@/components/dashboard/form'
+import { SelectMenu } from '@/components/app/SelectMenu'
 import { VerificationDocs } from '@/components/partly/VerificationDocs'
 import { Card, Notice, Pill, PrimaryButton, SecondaryButton, VerifiedChips } from '@/components/partly/ui'
 import { updateMyEmployer, useEmployer } from '@/lib/employers'
@@ -108,17 +109,11 @@ export function EmployerVerificationPage() {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Registration details</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Country of registration">
-              <select
+              <SelectMenu
                 value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                className="h-12 w-full rounded-md border border-line bg-surface px-4 text-base text-ink outline-none focus:border-brand"
-              >
-                {Object.entries(COUNTRY_NAMES).map(([code, name]) => (
-                  <option key={code} value={code}>
-                    {name}
-                  </option>
-                ))}
-              </select>
+                onChange={setCountry}
+                options={Object.entries(COUNTRY_NAMES).map(([code, name]) => ({ value: code, label: name }))}
+              />
             </Field>
             <Field label="Business registration number">
               <TextInput value={regNo} onChange={(e) => setRegNo(e.target.value)} placeholder="e.g. 202412345K (UEN), 1234567-X (SSM)…" />

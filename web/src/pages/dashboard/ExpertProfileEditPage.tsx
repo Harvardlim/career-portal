@@ -2,7 +2,7 @@ import { useEffect, useId, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
-import { Field, Select, TextInput } from '@/components/dashboard/form'
+import { DateInput, Field, Select, TextInput } from '@/components/dashboard/form'
 import { FileIcon, LinkedinIcon, PlusCircleIcon, TrashIcon } from '@/components/icons'
 import { Avatar, Card, Notice, PrimaryButton, SecondaryButton, VerifiedChips } from '@/components/partly/ui'
 import {
@@ -256,7 +256,7 @@ export function ExpertProfileEditPage() {
               <TextInput value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Independent HR consultant" />
             </Field>
             <Field label="Years of experience">
-              <Select value={years} onChange={(e) => setYears(e.target.value)} options={['Select...', ...experienceRanges]} />
+              <Select value={years} onChange={setYears} options={['Select...', ...experienceRanges]} />
             </Field>
           </div>
           <Field label="About you">
@@ -336,19 +336,19 @@ export function ExpertProfileEditPage() {
           <p className="text-sm font-medium text-ink">Personal details</p>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Nationality">
-              <Select value={nationality} onChange={(e) => setNationality(e.target.value)} options={nationalityOptions} />
+              <Select value={nationality} onChange={setNationality} options={nationalityOptions} />
             </Field>
             <Field label="Date of birth">
-              <TextInput type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+              <DateInput value={dob} onChange={(e) => setDob(e.target.value)} />
             </Field>
             <Field label="Gender">
-              <Select value={gender} onChange={(e) => setGender(e.target.value)} options={genderOptions} />
+              <Select value={gender} onChange={setGender} options={genderOptions} />
             </Field>
             <Field label="Marital status">
-              <Select value={marital} onChange={(e) => setMarital(e.target.value)} options={maritalOptions} />
+              <Select value={marital} onChange={setMarital} options={maritalOptions} />
             </Field>
             <Field label="Education">
-              <Select value={education} onChange={(e) => setEducation(e.target.value)} options={educationOptions} />
+              <Select value={education} onChange={setEducation} options={educationOptions} />
             </Field>
           </div>
         </Card>

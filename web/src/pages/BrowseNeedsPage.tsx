@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Card, EmptyState, Notice, Pill, PrimaryButton, SecondaryButton } from '@/components/partly/ui'
+import { SelectMenu } from '@/components/app/SelectMenu'
 import { useCategories } from '@/lib/categories'
 import { useCandidate } from '@/lib/dashboard'
 import {
@@ -99,38 +100,33 @@ export function BrowseNeedsPage() {
           placeholder="Search titles…"
           className={selectCls}
         />
-        <select value={categoryId} onChange={(e) => setParam('category', e.target.value)} className={selectCls}>
-          <option value="">All categories</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        <select value={country} onChange={(e) => setParam('country', e.target.value)} className={selectCls}>
-          <option value="">Any country</option>
-          {Object.entries(COUNTRY_NAMES).map(([code, name]) => (
-            <option key={code} value={code}>
-              {name}
-            </option>
-          ))}
-        </select>
-        <select value={projectType} onChange={(e) => setParam('type', e.target.value)} className={selectCls}>
-          <option value="">Any project type</option>
-          {PROJECT_TYPES.map((p) => (
-            <option key={p.value} value={p.value}>
-              {p.label}
-            </option>
-          ))}
-        </select>
-        <select value={minBudget ? String(minBudget) : ''} onChange={(e) => setParam('budget', e.target.value)} className={selectCls}>
-          <option value="">Any budget</option>
-          {[1000, 3000, 5000, 10000, 25000].map((n) => (
-            <option key={n} value={n}>
-              Budget from {n.toLocaleString()}
-            </option>
-          ))}
-        </select>
+        <SelectMenu
+          value={categoryId}
+          onChange={(v) => setParam('category', v)}
+          placeholder="All categories"
+          options={categories.map((c) => ({ value: c.id, label: c.name }))}
+        />
+        <SelectMenu
+          value={country}
+          onChange={(v) => setParam('country', v)}
+          placeholder="Any country"
+          options={Object.entries(COUNTRY_NAMES).map(([code, name]) => ({ value: code, label: name }))}
+        />
+        <SelectMenu
+          value={projectType}
+          onChange={(v) => setParam('type', v)}
+          placeholder="Any project type"
+          options={PROJECT_TYPES.map((p) => ({ value: p.value, label: p.label }))}
+        />
+        <SelectMenu
+          value={minBudget ? String(minBudget) : ''}
+          onChange={(v) => setParam('budget', v)}
+          placeholder="Any budget"
+          options={[1000, 3000, 5000, 10000, 25000].map((n) => ({
+            value: String(n),
+            label: `Budget from ${n.toLocaleString()}`,
+          }))}
+        />
       </div>
 
       {!session && (

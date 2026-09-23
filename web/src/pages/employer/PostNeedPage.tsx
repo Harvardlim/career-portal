@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { EmployerDashboardLayout } from '@/components/dashboard/EmployerDashboardLayout'
 import { Field, TextInput } from '@/components/dashboard/form'
+import { SelectMenu } from '@/components/app/SelectMenu'
 import { Card, Notice, PrimaryButton } from '@/components/partly/ui'
 import { useCategories } from '@/lib/categories'
 import { useEmployer } from '@/lib/employers'
@@ -169,17 +170,11 @@ export function PostNeedPage() {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">3 · Scope</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Country where the work sits">
-              <select
+              <SelectMenu
                 value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                className="h-12 w-full rounded-md border border-line bg-surface px-4 text-base text-ink outline-none focus:border-brand"
-              >
-                {Object.entries(COUNTRY_NAMES).map(([code, name]) => (
-                  <option key={code} value={code}>
-                    {name}
-                  </option>
-                ))}
-              </select>
+                onChange={setCountry}
+                options={Object.entries(COUNTRY_NAMES).map(([code, name]) => ({ value: code, label: name }))}
+              />
             </Field>
             <Field label="People required">
               <TextInput type="number" min={1} value={people} onChange={(e) => setPeople(e.target.value)} />
@@ -225,15 +220,11 @@ export function PostNeedPage() {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">4 · Budget</h2>
           <div className="grid gap-4 sm:grid-cols-3">
             <Field label="Currency">
-              <select
+              <SelectMenu
                 value={budgetCurrency}
-                onChange={(e) => setBudgetCurrency(e.target.value)}
-                className="h-12 w-full rounded-md border border-line bg-surface px-4 text-base text-ink outline-none focus:border-brand"
-              >
-                {BUDGET_CURRENCIES.map((c) => (
-                  <option key={c}>{c}</option>
-                ))}
-              </select>
+                onChange={setBudgetCurrency}
+                options={BUDGET_CURRENCIES.map((c) => ({ value: c, label: c }))}
+              />
             </Field>
             <Field label="From">
               <TextInput type="number" min={0} value={budgetMin} onChange={(e) => setBudgetMin(e.target.value)} />
