@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { confirmCheckout, readCheckoutParams } from '@/lib/stripe'
 import { EmployerDashboardLayout } from '@/components/dashboard/EmployerDashboardLayout'
 import { InfoCard } from '@/components/app/InfoCard'
+import { PaymentConfirmingOverlay } from '@/components/app/PaymentConfirmingOverlay'
 import { ArrowRightIcon, DownloadIcon } from '@/components/icons'
 import { downloadInvoice } from '@/lib/invoice'
 import {
@@ -27,6 +28,7 @@ export function PlansBillingPage() {
   const [usage, setUsage] = useState<UsageRow[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [confirming, setConfirming] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -36,7 +38,9 @@ export function PlansBillingPage() {
     let alive = true
     ;(async () => {
       if (outcome === 'success') {
+        setConfirming(true)
         const active = sessionId ? await confirmCheckout(sessionId) : false
+        setConfirming(false)
         if (!alive) return
         toast.success(
           active
@@ -79,6 +83,7 @@ export function PlansBillingPage() {
 
   return (
     <EmployerDashboardLayout>
+      {confirming && <PaymentConfirmingOverlay />}
       <div className="flex flex-col gap-6">
         <div className="grid gap-6 lg:grid-cols-2">
           <InfoCard title="Credit Balance">

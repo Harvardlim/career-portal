@@ -117,6 +117,16 @@ export async function fetchVerificationQueue(): Promise<VerificationItem[]> {
   })
 }
 
+/** Count only, for the sidebar badge — avoids pulling the full queue + owner joins. */
+export async function fetchPendingVerificationCount(): Promise<number> {
+  const { count, error } = await client()
+    .from('verification_documents')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'pending')
+  if (error) throw error
+  return count ?? 0
+}
+
 export async function verificationDocUrl(path: string): Promise<string> {
   const { data, error } = await client().storage.from('verification-docs').createSignedUrl(path, 600)
   if (error) throw error

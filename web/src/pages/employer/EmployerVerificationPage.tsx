@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { EmployerDashboardLayout } from '@/components/dashboard/EmployerDashboardLayout'
 import { Field, TextInput } from '@/components/dashboard/form'
 import { SelectMenu } from '@/components/app/SelectMenu'
+import { PaymentConfirmingOverlay } from '@/components/app/PaymentConfirmingOverlay'
 import { VerificationDocs } from '@/components/partly/VerificationDocs'
 import { Card, Notice, Pill, PrimaryButton, SecondaryButton, VerifiedChips } from '@/components/partly/ui'
 import { updateMyEmployer, useEmployer } from '@/lib/employers'
@@ -31,6 +32,7 @@ export function EmployerVerificationPage() {
   const [badges, setBadges] = useState<BadgeRow[]>([])
   const [pay, setPay] = useState<PayCurrency>('local')
   const [buying, setBuying] = useState(false)
+  const [confirming, setConfirming] = useState(false)
 
   useEffect(() => {
     if (employer) {
@@ -49,12 +51,16 @@ export function EmployerVerificationPage() {
       return
     }
     if (sessionId) {
-      confirmCheckout(sessionId).then((ok) => {
-        if (ok) toast.success('Your business Verified badge is active.')
-        void reload()
-      })
+      setConfirming(true)
+      confirmCheckout(sessionId)
+        .then(async (ok) => {
+          if (ok) toast.success('Your business Verified badge is active.')
+          await reload()
+          if (employer) await fetchMyEmployerBadges(employer.id).then(setBadges).catch(() => {})
+        })
+        .finally(() => setConfirming(false))
     }
-  }, [location.search, location.pathname, navigate, reload])
+  }, [location.search, location.pathname, navigate, reload, employer])
 
   async function save() {
     if (!employer || !regNo.trim()) return
@@ -87,6 +93,7 @@ export function EmployerVerificationPage() {
 
   return (
     <EmployerDashboardLayout>
+      {confirming && <PaymentConfirmingOverlay />}
       <div className="flex max-w-3xl flex-col gap-6">
         <div>
           <h1 className="text-xl font-semibold text-ink">Business verification</h1>

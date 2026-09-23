@@ -61,9 +61,6 @@ export function HireMePage() {
   const shareUrl = profileUrl ? `${profileUrl}?src=share` : null
   const svg = candidate ? badgeSvg(candidate.full_name) : ''
   const svgData = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
-  const embed = badgeUrl
-    ? `<a href="${badgeUrl}" target="_blank" rel="noopener"><img src="${svgData}" alt="Hire me on partly.asia" width="240" height="56"></a>`
-    : ''
   const shareText = candidate
     ? `I'm available for fractional and project work through partly.asia. Businesses can find and apply to work with me directly here: ${shareUrl ?? ''}`
     : ''
@@ -146,12 +143,9 @@ export function HireMePage() {
                   ))}
                 </div>
               )}
-              <div className="grid gap-3 sm:grid-cols-2">
-                <SecondaryButton onClick={() => copy(badgeUrl ?? profileUrl, 'Link')}>
-                  <LinkIcon className="size-4" /> Copy link
-                </SecondaryButton>
-                <SecondaryButton onClick={() => copy(embed, 'Embed code')}>Copy embed code</SecondaryButton>
-              </div>
+              <SecondaryButton className="w-fit" onClick={() => copy(profileUrl, 'Link')}>
+                <LinkIcon className="size-4" /> Copy link
+              </SecondaryButton>
             </Card>
 
             <Card className="flex flex-col gap-3">

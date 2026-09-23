@@ -87,6 +87,8 @@ function setSuspendedReason(reason: string | null) {
  * employers each time. Cleared on sign-out / user change.
  */
 let cache: { userId: string; value: DisplayUser } | null = null
+/** Mounted `useDisplayUser()` instances (e.g. the header) to notify when the cache is invalidated mid-session. */
+const listeners = new Set<() => void>()
 
 async function resolveDisplayUser(
   userId: string,
@@ -164,6 +166,15 @@ export function useDisplayUser(): { user: DisplayUser | null; loading: boolean }
     session && cache?.userId === session.user.id ? cache.value : null
   const [user, setUser] = useState<DisplayUser | null>(cachedForSession)
   const [loading, setLoading] = useState(!cachedForSession)
+  const [refreshTick, setRefreshTick] = useState(0)
+
+  useEffect(() => {
+    const onInvalidate = () => setRefreshTick((t) => t + 1)
+    listeners.add(onInvalidate)
+    return () => {
+      listeners.delete(onInvalidate)
+    }
+  }, [])
 
   useEffect(() => {
     if (sessionLoading) return
@@ -200,12 +211,18 @@ export function useDisplayUser(): { user: DisplayUser | null; loading: boolean }
     return () => {
       alive = false
     }
-  }, [session, sessionLoading])
+  }, [session, sessionLoading, refreshTick])
 
   return { user, loading }
 }
 
-/** Call after a change that affects the header (e.g. the user edits their name). */
+/**
+ * Call after a change that affects the header (e.g. the user edits their name,
+ * avatar, or company logo) — drops the cached row and nudges every mounted
+ * `useDisplayUser()` instance (the header included) to refetch right away,
+ * not just on the next navigation.
+ */
 export function clearDisplayUserCache() {
   cache = null
+  listeners.forEach((notify) => notify())
 }

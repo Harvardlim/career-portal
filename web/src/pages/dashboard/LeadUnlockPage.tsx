@@ -6,6 +6,7 @@ import { InviteFriendPanel } from '@/components/partly/InviteFriendPanel'
 import { RatingWidget } from '@/components/partly/RatingWidget'
 import { GlobeIcon, MailIcon, MapPinIcon, PhoneIcon } from '@/components/icons'
 import { Card, Countdown, EmptyState, Notice, Pill, PrimaryButton, StarRating } from '@/components/partly/ui'
+import { PaymentConfirmingOverlay } from '@/components/app/PaymentConfirmingOverlay'
 import { useCandidate } from '@/lib/dashboard'
 import {
   countryName,
@@ -33,6 +34,7 @@ export function LeadUnlockPage() {
   const [pay, setPay] = useState<PayCurrency>('local')
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const [confirming, setConfirming] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -60,10 +62,13 @@ export function LeadUnlockPage() {
       return
     }
     if (sessionId) {
-      confirmCheckout(sessionId).then((ok) => {
-        if (ok) toast.success('Contact unlocked.')
-        void load()
-      })
+      setConfirming(true)
+      confirmCheckout(sessionId)
+        .then(async (ok) => {
+          if (ok) toast.success('Contact unlocked.')
+          await load()
+        })
+        .finally(() => setConfirming(false))
     }
   }, [location.search, location.pathname, navigate, load])
 
@@ -98,6 +103,7 @@ export function LeadUnlockPage() {
 
   return (
     <DashboardLayout>
+      {confirming && <PaymentConfirmingOverlay />}
       <div className="flex max-w-2xl flex-col gap-5">
         <Link to="/dashboard/leads" className="text-xs text-muted hover:text-brand">
           ← Warm leads

@@ -16,6 +16,7 @@ import {
 } from '@/lib/candidateProfile'
 import { useCategories } from '@/lib/categories'
 import { useCandidate } from '@/lib/dashboard'
+import { clearDisplayUserCache } from '@/lib/useDisplayUser'
 import { experienceRanges } from '@/data/categories'
 import { supabase } from '@/lib/supabase'
 
@@ -181,6 +182,7 @@ export function ExpertProfileEditPage() {
         if (error) throw error
       }
       toast.success('Profile saved.')
+      clearDisplayUserCache()
       await reload()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not save')
@@ -195,6 +197,7 @@ export function ExpertProfileEditPage() {
     try {
       const url = await uploadCandidateAvatar(session.user.id, file)
       await updateMyCandidate(session.user.id, { avatar_path: url })
+      clearDisplayUserCache()
       await reload()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Upload failed')

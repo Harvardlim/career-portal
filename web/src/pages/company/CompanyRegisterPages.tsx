@@ -8,6 +8,7 @@ import { RichTextEditor } from '@/components/editor/RichTextEditor'
 import { LinkIcon, MailIcon, PhoneIcon } from '@/components/icons'
 import { errMessage } from '@/lib/errors'
 import { useCategoryNames } from '@/lib/categories'
+import { clearDisplayUserCache } from '@/lib/useDisplayUser'
 import {
   updateMyEmployer,
   uploadEmployerLogo,
@@ -144,6 +145,7 @@ export function EmployerProfilePage() {
         about: form.about || null,
       })
       toast.success('Company profile saved')
+      clearDisplayUserCache()
       await reload()
     } catch (err) {
       toast.error(errMessage(err))

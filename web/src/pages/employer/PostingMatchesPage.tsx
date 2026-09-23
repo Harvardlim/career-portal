@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { EmployerDashboardLayout } from '@/components/dashboard/EmployerDashboardLayout'
 import { InviteFriendPanel } from '@/components/partly/InviteFriendPanel'
+import { ConfirmDialog } from '@/components/app/ConfirmDialog'
 import { RatingWidget } from '@/components/partly/RatingWidget'
 import {
   Avatar,
@@ -42,6 +43,13 @@ export function PostingMatchesPage() {
   const [selected, setSelected] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const [confirmState, setConfirmState] = useState<{
+    title: string
+    message: string
+    confirmLabel: string
+    tone: 'danger' | 'default'
+    run: () => Promise<void>
+  } | null>(null)
 
   const load = useCallback(async () => {
     try {
@@ -78,62 +86,66 @@ export function PostingMatchesPage() {
     setSelected((s) => (s.includes(cid) ? s.filter((x) => x !== cid) : [...s, cid]))
   }
 
-  async function handleRelease(ids: string[]) {
+  function handleRelease(ids: string[]) {
     if (ids.length === 0) return
     const others = released.length + ids.length - 1
-    const msg =
-      ids.length === 1
-        ? `Release your contact to this expert? They'll have 2 days to unlock it${others > 0 ? ` and will be told ${others} other expert${others === 1 ? ' was' : 's were'} also released` : ''}.`
-        : `Release your contact to ${ids.length} experts at once? Each will have 2 days to unlock it and will be told they are one of several being considered.`
-    if (!confirm(msg)) return
-    setBusy(true)
-    try {
-      const n = await releaseContact(id, ids)
-      toast.success(n === 1 ? 'Contact released.' : `Contact released to ${n} experts.`)
-      setSelected([])
-      await load()
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not release contact')
-    } finally {
-      setBusy(false)
-    }
+    setConfirmState({
+      title: ids.length === 1 ? 'Release your contact to this expert?' : `Release your contact to ${ids.length} experts at once?`,
+      message:
+        ids.length === 1
+          ? `They'll have 2 days to unlock it${others > 0 ? ` and will be told ${others} other expert${others === 1 ? ' was' : 's were'} also released` : ''}.`
+          : 'Each will have 2 days to unlock it and will be told they are one of several being considered.',
+      confirmLabel: 'Release',
+      tone: 'default',
+      run: async () => {
+        const n = await releaseContact(id, ids)
+        toast.success(n === 1 ? 'Contact released.' : `Contact released to ${n} experts.`)
+        setSelected([])
+        await load()
+      },
+    })
   }
 
-  async function handlePassOnAll() {
-    if (
-      !confirm(
-        'Pass on all 10 matches? These are the only matches for this posting — no further candidates will be surfaced and the posting will be marked as having no further matches.',
-      )
-    )
-      return
-    setBusy(true)
-    try {
-      await markNoFurtherMatches(id)
-      toast('Posting marked: no further matches.')
-      await load()
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not update posting')
-    } finally {
-      setBusy(false)
-    }
+  function handlePassOnAll() {
+    setConfirmState({
+      title: 'Pass on all 10 matches?',
+      message:
+        'These are the only matches for this posting — no further candidates will be surfaced and the posting will be marked as having no further matches.',
+      confirmLabel: 'Pass on all',
+      tone: 'danger',
+      run: async () => {
+        await markNoFurtherMatches(id)
+        toast('Posting marked: no further matches.')
+        await load()
+      },
+    })
   }
 
-  async function handleClose() {
-    if (
-      !confirm(
+  function handleClose() {
+    setConfirmState({
+      title: 'Close this posting?',
+      message:
         pending.length > 0
-          ? `Close this posting? ${pending.length} expert${pending.length === 1 ? '' : 's'} still have an open payment window — closing ends all of them immediately and nobody is charged.`
-          : 'Close this posting?',
-      )
-    )
-      return
+          ? `${pending.length} expert${pending.length === 1 ? '' : 's'} still have an open payment window — closing ends all of them immediately and nobody is charged.`
+          : 'This stops any further matches from being surfaced.',
+      confirmLabel: 'Close posting',
+      tone: 'danger',
+      run: async () => {
+        await closePosting(id)
+        toast.success('Posting closed.')
+        await load()
+      },
+    })
+  }
+
+  async function runConfirmed() {
+    if (!confirmState) return
     setBusy(true)
     try {
-      await closePosting(id)
-      toast.success('Posting closed.')
-      await load()
+      await confirmState.run()
+      setConfirmState(null)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not close posting')
+      toast.error(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
       setBusy(false)
     }
@@ -370,6 +382,17 @@ export function PostingMatchesPage() {
           )}
         </section>
       </div>
+
+      <ConfirmDialog
+        open={!!confirmState}
+        title={confirmState?.title ?? ''}
+        message={confirmState?.message ?? ''}
+        tone={confirmState?.tone}
+        confirmLabel={confirmState?.confirmLabel}
+        busy={busy}
+        onConfirm={runConfirmed}
+        onCancel={() => setConfirmState(null)}
+      />
     </EmployerDashboardLayout>
   )
 }

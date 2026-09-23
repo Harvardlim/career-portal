@@ -13,6 +13,7 @@ import {
   fetchEmployer,
   fetchReferredBy,
   getResumeLinks,
+  hasActiveBadge,
   membershipStatusLabel,
   registrationsEnabled,
   setAccountSuspended,
@@ -222,6 +223,18 @@ const CandidateBody = ({ c }: { c: Candidate }) => {
           <ReferredBy userId={c.user_id} email={c.email} />
         </DField>
         <DField label="Submitted">{fmtDate(c.created_at)}</DField>
+        <DField label="Identity verified">
+          <YesNo value={c.identity_verified} />
+        </DField>
+        <DField label="Verified">
+          {hasActiveBadge(c) ? (
+            <span className="text-success">Active until {fmtDate(c.verified_badge_until)}</span>
+          ) : c.verified_badge_until ? (
+            <span className="text-muted">Expired {fmtDate(c.verified_badge_until)}</span>
+          ) : (
+            <span className="text-muted">Not purchased</span>
+          )}
+        </DField>
         {m ? (
           <>
             <DField label="Membership">

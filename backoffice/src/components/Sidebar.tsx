@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   IconChevronDown,
@@ -9,6 +9,9 @@ import {
   IconUsers,
 } from './Icons'
 import { signOut, useAdminSession } from '../lib/admin'
+import { fetchPendingVerificationCount, partlyEnabled } from '../lib/partly'
+
+const PENDING_POLL_MS = 60_000
 
 const Logo = () => (
   <div className="flex items-center gap-2.5">
@@ -31,12 +34,12 @@ const Logo = () => (
   </div>
 )
 
-type LeafProps = { label: string; to: string }
+type LeafProps = { label: string; to: string; badge?: number }
 
-const Leaf = ({ label, to }: LeafProps) => {
+const Leaf = ({ label, to, badge }: LeafProps) => {
   const cls = ({ isActive }: { isActive: boolean }) =>
     [
-      'relative block rounded-md py-2 pl-3 pr-2 text-[14px] transition-colors',
+      'relative flex items-center justify-between gap-2 rounded-md py-2 pl-3 pr-2 text-[14px] transition-colors',
       isActive
         ? 'bg-white/[0.04] font-medium text-ink before:absolute before:-left-3 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-full before:bg-brand'
         : 'text-muted hover:text-ink-200',
@@ -44,6 +47,11 @@ const Leaf = ({ label, to }: LeafProps) => {
   return (
     <NavLink to={to} end className={cls}>
       {label}
+      {!!badge && (
+        <span className="grid min-w-[18px] place-items-center rounded-full bg-danger px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
+          {badge > 99 ? '99+' : badge}
+        </span>
+      )}
     </NavLink>
   )
 }
@@ -83,6 +91,19 @@ const Group = ({ icon, label, open = false, children }: GroupProps) => {
 export const Sidebar = () => {
   const session = useAdminSession()
   const navigate = useNavigate()
+  const [pendingVerifications, setPendingVerifications] = useState(0)
+
+  useEffect(() => {
+    if (!partlyEnabled) return
+    let alive = true
+    const poll = () => fetchPendingVerificationCount().then((n) => alive && setPendingVerifications(n)).catch(() => {})
+    poll()
+    const id = setInterval(poll, PENDING_POLL_MS)
+    return () => {
+      alive = false
+      clearInterval(id)
+    }
+  }, [])
 
   const handleSignOut = () => {
     signOut()
@@ -97,11 +118,11 @@ export const Sidebar = () => {
         <Group icon={<IconGrid width={19} height={19} />} label="Dashboard" open>
           <Leaf label="Reports" to="/" />
           <Leaf label="Postings & leads" to="/postings" />
-          <Leaf label="Jobs (legacy)" to="/jobs" />
+          <Leaf label="Jobs" to="/jobs" />
           <Leaf label="Categories" to="/categories" />
         </Group>
         <Group icon={<IconUsers width={19} height={19} />} label="Users" open>
-          <Leaf label="Verification queue" to="/verification" />
+          <Leaf label="Verification queue" to="/verification" badge={pendingVerifications} />
           <Leaf label="User Reports" to="/reports" />
           <Leaf label="Ratings" to="/ratings" />
           <Leaf label="Experts" to="/users/candidates" />
@@ -111,8 +132,6 @@ export const Sidebar = () => {
           <Leaf label="Lead & badge revenue" to="/revenue" />
           <Leaf label="Pricing by country" to="/pricing" />
           <Leaf label="Affiliate commissions" to="/commissions" />
-          <Leaf label="Legacy purchases" to="/finance" />
-          <Leaf label="Legacy affiliate payouts" to="/affiliates" />
         </Group>
         <Group icon={<IconLock width={19} height={19} />} label="Admins" open>
           <Leaf label="Admin list" to="/admins" />

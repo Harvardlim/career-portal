@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { Field, TextInput } from '@/components/dashboard/form'
 import { SelectMenu } from '@/components/app/SelectMenu'
+import { PaymentConfirmingOverlay } from '@/components/app/PaymentConfirmingOverlay'
 import { VerificationDocs } from '@/components/partly/VerificationDocs'
 import { Card, Notice, Pill, PrimaryButton, SecondaryButton, VerifiedChips } from '@/components/partly/ui'
 import { updateMyCandidate } from '@/lib/candidateProfile'
@@ -48,6 +49,7 @@ export function VerificationPage() {
   const [hasDoc, setHasDoc] = useState(false)
   const [pay, setPay] = useState<PayCurrency>('local')
   const [buying, setBuying] = useState(false)
+  const [confirming, setConfirming] = useState(false)
 
   useEffect(() => {
     if (!candidate) return
@@ -68,12 +70,16 @@ export function VerificationPage() {
       return
     }
     if (sessionId) {
-      confirmCheckout(sessionId).then((ok) => {
-        if (ok) toast.success('Payment confirmed.')
-        void reload()
-      })
+      setConfirming(true)
+      confirmCheckout(sessionId)
+        .then(async (ok) => {
+          if (ok) toast.success('Payment confirmed.')
+          await reload()
+          if (candidate) await fetchMyBadges(candidate.id).then(setBadges).catch(() => {})
+        })
+        .finally(() => setConfirming(false))
     }
-  }, [location.search, location.pathname, navigate, reload])
+  }, [location.search, location.pathname, navigate, reload, candidate])
 
   const price = pricing.find((p) => p.code === (candidate?.country_code ?? country))
   const badgeLive = !!candidate?.verified_badge_until && new Date(candidate.verified_badge_until) > new Date()
@@ -110,6 +116,7 @@ export function VerificationPage() {
 
   return (
     <DashboardLayout>
+      {confirming && <PaymentConfirmingOverlay />}
       <div className="flex max-w-3xl flex-col gap-6">
         <div>
           <h1 className="text-xl font-semibold text-ink">Verification</h1>
@@ -144,7 +151,7 @@ export function VerificationPage() {
               <TextInput
                 value={last4}
                 onChange={(e) => setLast4(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4))}
-                placeholder={hasDigits ? '•••• (saved)' : country === 'SG' ? 'e.g. 567D' : 'e.g. 1234'}
+                placeholder={hasDigits ? '••••' : country === 'SG' ? 'e.g. 567D' : 'e.g. 1234'}
                 maxLength={4}
                 disabled={!!candidate?.identity_verified}
                 autoComplete="off"

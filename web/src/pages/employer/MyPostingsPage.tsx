@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { EmployerDashboardLayout } from '@/components/dashboard/EmployerDashboardLayout'
 import { EmptyState, Pill, PrimaryButton, SecondaryButton } from '@/components/partly/ui'
+import { ConfirmDialog } from '@/components/app/ConfirmDialog'
 import { useEmployer } from '@/lib/employers'
 import {
   budgetLabel,
@@ -29,6 +30,8 @@ export function MyPostingsPage() {
   const [rows, setRows] = useState<MyPostingRow[]>([])
   const [loading, setLoading] = useState(true)
   const [reposting, setReposting] = useState<string | null>(null)
+  const [closing, setClosing] = useState<MyPostingRow | null>(null)
+  const [closeBusy, setCloseBusy] = useState(false)
 
   async function load() {
     if (!employer) return
@@ -50,19 +53,18 @@ export function MyPostingsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [employer, employerLoading])
 
-  async function handleClose(row: MyPostingRow) {
-    const pending = row.released - row.unlocked
-    const msg =
-      pending > 0
-        ? `Close "${row.title}"? ${pending} released expert${pending === 1 ? '' : 's'} still have an open payment window — closing ends all of them now and they will not be charged.`
-        : `Close "${row.title}"? Experts will no longer be able to apply.`
-    if (!confirm(msg)) return
+  async function confirmClose() {
+    if (!closing) return
+    setCloseBusy(true)
     try {
-      const ended = await closePosting(row.id)
+      const ended = await closePosting(closing.id)
       toast.success(ended > 0 ? `Posting closed. ${ended} open window${ended === 1 ? '' : 's'} ended.` : 'Posting closed. Applicants who weren’t hired have been emailed.')
+      setClosing(null)
       void load()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not close posting')
+    } finally {
+      setCloseBusy(false)
     }
   }
 
@@ -142,7 +144,7 @@ export function MyPostingsPage() {
                         {reposting === row.id ? 'Reposting…' : 'Repost'}
                       </SecondaryButton>
                     ) : (
-                      <SecondaryButton className="h-9 px-3 text-xs text-danger" onClick={() => handleClose(row)}>
+                      <SecondaryButton className="h-9 px-3 text-xs text-danger" onClick={() => setClosing(row)}>
                         Close
                       </SecondaryButton>
                     )}
@@ -153,6 +155,21 @@ export function MyPostingsPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!closing}
+        title={closing ? `Close "${closing.title}"?` : ''}
+        message={
+          closing && closing.released - closing.unlocked > 0
+            ? `${closing.released - closing.unlocked} released expert${closing.released - closing.unlocked === 1 ? '' : 's'} still have an open payment window — closing ends all of them now and they will not be charged.`
+            : 'Experts will no longer be able to apply.'
+        }
+        confirmLabel="Close posting"
+        tone="danger"
+        busy={closeBusy}
+        onConfirm={confirmClose}
+        onCancel={() => setClosing(null)}
+      />
     </EmployerDashboardLayout>
   )
 }

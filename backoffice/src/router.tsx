@@ -6,8 +6,6 @@ import { UserDetailPage } from './pages/UserDetailPage'
 import { JobListPage } from './pages/JobListPage'
 import { JobEditPage } from './pages/JobEditPage'
 import { CategoriesPage } from './pages/CategoriesPage'
-import { FinancePage } from './pages/FinancePage'
-import { AffiliatePage } from './pages/AffiliatePage'
 import { AdminListPage } from './pages/AdminListPage'
 import { AccountSettingsPage } from './pages/AccountSettingsPage'
 import { LoginPage } from './pages/LoginPage'
@@ -33,8 +31,6 @@ export const router = createBrowserRouter([
       { path: 'jobs/edit/:jobId', element: <JobEditPage /> },
       { path: 'jobs/edit/:jobId/:jobSlug', element: <JobEditPage /> },
       { path: 'categories', element: <CategoriesPage /> },
-      { path: 'finance', element: <FinancePage /> },
-      { path: 'affiliates', element: <AffiliatePage /> },
       { path: 'verification', element: <VerificationPage /> },
       { path: 'pricing', element: <PricingPage /> },
       { path: 'postings', element: <PostingsPage /> },

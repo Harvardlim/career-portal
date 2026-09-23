@@ -29,6 +29,13 @@ export type Candidate = {
   suspended: boolean
   suspended_at: string | null
   suspended_reason: string | null
+  identity_verified: boolean
+  verified_badge_until: string | null
+}
+
+/** True while the paid annual Verified badge term hasn't expired yet. */
+export function hasActiveBadge(c: Candidate): boolean {
+  return !!c.verified_badge_until && new Date(c.verified_badge_until) > new Date()
 }
 
 /** The candidate's current paid membership, if any. */
@@ -69,7 +76,7 @@ const client = () => {
 }
 
 const CANDIDATE_COLS =
-  'id, user_id, full_name, email, contact_number, expertise_field, years_experience, past_experience, resume_path, avatar_path, interests, referral_opt_in, created_at, suspended, suspended_at, suspended_reason, memberships ( plan, period, amount_usd, status, started_at, expires_at )'
+  'id, user_id, full_name, email, contact_number, expertise_field, years_experience, past_experience, resume_path, avatar_path, interests, referral_opt_in, created_at, suspended, suspended_at, suspended_reason, identity_verified, verified_badge_until, memberships ( plan, period, amount_usd, status, started_at, expires_at )'
 
 const EMPLOYER_COLS =
   'id, user_id, company_name, reg_no, field, business_email, business_details, looking_for, logo_url, referral_opt_in, created_at, suspended, suspended_at, suspended_reason'
