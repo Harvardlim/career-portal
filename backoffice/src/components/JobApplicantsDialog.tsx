@@ -7,7 +7,7 @@ const fmtDate = (iso: string) =>
   new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 
 const tone = (status: string): 'in' | 'out' =>
-  status === 'shortlisted' || status === 'hired' ? 'in' : 'out'
+  status === 'shortlisted' || status === 'interested' ? 'in' : 'out'
 
 type Props = {
   job: JobRow | null

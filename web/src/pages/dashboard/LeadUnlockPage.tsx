@@ -12,6 +12,7 @@ import {
   countryName,
   fetchLead,
   fetchLeadContact,
+  formatBoth,
   formatLocal,
   formatUsd,
   projectTypeLabel,
@@ -184,6 +185,11 @@ export function LeadUnlockPage() {
               A fixed fee unlocks the business's full contact details, and sends yours to them at the same time.
               After that, everything happens directly between you.
             </p>
+            {price && (
+              <p className="text-sm font-medium text-ink">
+                Unlock fee: {formatBoth(price, price.lead_fee_local, price.lead_fee_usd)}
+              </p>
+            )}
 
             {!price ? (
               <Notice tone="warning">

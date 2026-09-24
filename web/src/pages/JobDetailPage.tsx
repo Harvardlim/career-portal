@@ -10,6 +10,7 @@ import { RichTextContent } from '@/components/editor/RichTextContent'
 import { ReportButton } from '@/components/partly/ReportButton'
 import { errMessage } from '@/lib/errors'
 import { maskCompanyName } from '@/lib/partly'
+import { VerifiedChips } from '@/components/partly/ui'
 import {
   fetchJobBySlug,
   fetchNewestJob,
@@ -202,6 +203,12 @@ export function JobDetailPage() {
                 {company.name}
                 {company.industry && <span className="ml-2 font-normal text-muted">· {company.industry}</span>}
               </p>
+              {job.employer && (
+                <VerifiedChips
+                  identity={job.employer.basic_verified}
+                  badge={!!job.employer.verified_badge_until && new Date(job.employer.verified_badge_until) > new Date()}
+                />
+              )}
               <p className="text-xs text-muted">
                 Full business name and contact details are shared only after a paid contact unlock.
               </p>

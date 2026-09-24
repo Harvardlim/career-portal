@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { Card, Countdown, EmptyState, Notice, Pill, PrimaryButton } from '@/components/partly/ui'
 import { useCandidate } from '@/lib/dashboard'
-import { countryName, fetchMyLeads, projectTypeLabel, type LeadRow } from '@/lib/partly'
+import { countryName, fetchMyLeads, formatBoth, projectTypeLabel, usePricing, type LeadRow } from '@/lib/partly'
 
 function statusPill(l: LeadRow) {
   if (l.status === 'paid')
@@ -16,6 +16,8 @@ function statusPill(l: LeadRow) {
 
 export function LeadsPage() {
   const { candidate, loading: candidateLoading } = useCandidate()
+  const { pricing } = usePricing()
+  const price = pricing.find((p) => p.code === candidate?.country_code)
   const [rows, setRows] = useState<LeadRow[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -67,6 +69,11 @@ export function LeadsPage() {
                 <p className="mt-1 text-sm text-muted">
                   {l.job?.category ?? '—'} · {countryName(l.job?.country)} · {projectTypeLabel(l.job?.project_type)}
                 </p>
+                {price && (
+                  <p className="mt-1 text-sm font-medium text-ink">
+                    Unlock fee: {formatBoth(price, price.lead_fee_local, price.lead_fee_usd)}
+                  </p>
+                )}
                 {l.others_released > 0 && (
                   <p className="mt-2 text-xs text-amber-800">
                     Disclosure: this business also released contact to {l.others_released} other expert

@@ -58,6 +58,8 @@ export type JobRow = {
     logo_url: string | null
     founded: string | null
     reg_no: string | null
+    basic_verified: boolean
+    verified_badge_until: string | null
   } | null
 }
 
@@ -76,7 +78,7 @@ export async function fetchJobs(): Promise<JobRow[]> {
 }
 
 const JOB_EMPLOYER_JOIN =
-  'employer:employers(company_name, about, website, phone, business_email, industry, size, location, logo_url, founded, reg_no)'
+  'employer:employers(company_name, about, website, phone, business_email, industry, size, location, logo_url, founded, reg_no, basic_verified, verified_badge_until)'
 
 export async function fetchJobBySlug(slug: string): Promise<JobRow | null> {
   const { data, error } = await supabase

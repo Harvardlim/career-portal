@@ -58,33 +58,58 @@ export function Pill({
   )
 }
 
-export function VerifiedChips({
-  identity,
-  badge,
-  registration,
-}: {
-  identity?: boolean
-  badge?: boolean
-  registration?: boolean
-}) {
+/**
+ * The two verification tiers, for Experts and Businesses alike:
+ *   Basic verified  -- free (an Expert's ID digits / a Business's registration number)
+ *   Fully verified  -- the paid annual badge, backed by a reviewed document
+ * The higher tier replaces the lower one rather than stacking beside it.
+ */
+export function VerifiedChips({ identity, badge }: { identity?: boolean; badge?: boolean }) {
   return (
     <span className="inline-flex flex-wrap gap-1.5">
-      {badge && (
+      {badge ? (
         <Pill tone="brand">
-          <CircleCheckIcon className="size-3.5" /> Verified badge
+          <CircleCheckIcon className="size-3.5" /> Fully verified
         </Pill>
-      )}
-      {identity && !badge && (
+      ) : identity ? (
         <Pill tone="success">
-          <CheckIcon className="size-3.5" /> ID verified
+          <CheckIcon className="size-3.5" /> Basic verified
         </Pill>
-      )}
-      {registration && (
-        <Pill tone="success">
-          <CheckIcon className="size-3.5" /> Registration verified
-        </Pill>
-      )}
+      ) : null}
     </span>
+  )
+}
+
+/**
+ * The speech-bubble nudge toward the paid tier. `audience` says who is being
+ * nudged: businesses hear about better experts, experts about more interested leads.
+ */
+export function FullyVerifiedBubble({
+  audience,
+  action,
+}: {
+  audience: 'business' | 'expert'
+  action?: ReactNode
+}) {
+  return (
+    <div className="relative w-fit max-w-xl">
+      <div className="flex items-start gap-3 rounded-2xl border border-gold/50 bg-gold-50 px-4 py-3 text-sm text-navy">
+        <CircleCheckIcon className="mt-0.5 size-5 shrink-0 text-gold" />
+        <p>
+          <strong>
+            {audience === 'business'
+              ? 'A Fully verified mark attracts better experts.'
+              : 'A Fully verified mark attracts more interested leads.'}
+          </strong>{' '}
+          {audience === 'business'
+            ? 'Experts apply first to businesses they can trust.'
+            : 'Businesses release contact to verified experts first.'}
+          {action && <span className="ml-1">{action}</span>}
+        </p>
+      </div>
+      {/* the bubble's tail */}
+      <span className="absolute -bottom-1.5 left-8 size-3 rotate-45 border-b border-r border-gold/50 bg-gold-50" aria-hidden />
+    </div>
   )
 }
 

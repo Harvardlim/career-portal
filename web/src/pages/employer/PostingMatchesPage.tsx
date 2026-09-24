@@ -90,16 +90,16 @@ export function PostingMatchesPage() {
     if (ids.length === 0) return
     const others = released.length + ids.length - 1
     setConfirmState({
-      title: ids.length === 1 ? 'Release your contact to this expert?' : `Release your contact to ${ids.length} experts at once?`,
+      title: ids.length === 1 ? 'Tell this expert you\u2019re interested?' : `Tell ${ids.length} experts you\u2019re interested?`,
       message:
         ids.length === 1
-          ? `They'll have 2 days to unlock it${others > 0 ? ` and will be told ${others} other expert${others === 1 ? ' was' : 's were'} also released` : ''}.`
-          : 'Each will have 2 days to unlock it and will be told they are one of several being considered.',
-      confirmLabel: 'Release',
+          ? `Your contact is released to them. They'll have 2 days to pay to unlock it${others > 0 ? ` and will be told ${others} other expert${others === 1 ? ' was' : 's were'} also considered` : ''}.`
+          : 'Your contact is released to each. Each will have 2 days to pay to unlock it and will be told they are one of several being considered.',
+      confirmLabel: "I'm interested",
       tone: 'default',
       run: async () => {
         const n = await releaseContact(id, ids)
-        toast.success(n === 1 ? 'Contact released.' : `Contact released to ${n} experts.`)
+        toast.success(n === 1 ? 'Expert told you\u2019re interested.' : `${n} experts told you\u2019re interested.`)
         setSelected([])
         await load()
       },
@@ -302,7 +302,7 @@ export function PostingMatchesPage() {
               <div className="flex items-center gap-2">
                 {selected.length > 0 && (
                   <PrimaryButton className="h-9 px-4 text-xs" disabled={busy} onClick={() => handleRelease(selected)}>
-                    Release contact to {selected.length} selected
+                    I&apos;m interested in {selected.length} selected
                   </PrimaryButton>
                 )}
                 {released.length === 0 && matches.length > 0 && (
@@ -358,15 +358,15 @@ export function PostingMatchesPage() {
                           {m.release_status === 'paid'
                             ? 'Unlocked'
                             : m.release_status === 'awaiting_payment'
-                              ? 'Released · awaiting unlock'
-                              : 'Released · went cold'}
+                              ? 'Interested · awaiting unlock'
+                              : 'Interested · went cold'}
                         </Pill>
                       ) : isClosed ? (
                         <Pill tone="neutral">Not released</Pill>
                       ) : (
                         <>
                           <PrimaryButton className="h-9 flex-1 text-xs" disabled={busy} onClick={() => handleRelease([m.candidate_id])}>
-                            Release contact
+                            I&apos;m interested
                           </PrimaryButton>
                           <label className="flex cursor-pointer items-center gap-1 text-xs text-muted">
                             <input type="checkbox" checked={checked} onChange={() => toggle(m.candidate_id)} />

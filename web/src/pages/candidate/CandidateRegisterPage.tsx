@@ -11,8 +11,10 @@ import { supabase } from '@/lib/supabase'
 import { errMessage } from '@/lib/errors'
 import { recordReferralAtSignup } from '@/lib/affiliate'
 import { lookupEmail, resolveAccountForRegister } from '@/lib/registerAccount'
-import { RegisteredEmailDialog } from '@/components/auth/RegisteredEmailDialog'
+import { AlreadySignedInNotice, RegisteredEmailDialog } from '@/components/auth/RegisteredEmailDialog'
+import { FullyVerifiedBubble } from '@/components/partly/ui'
 import { useSession } from '@/lib/useSession'
+import { clearDisplayUserCache, useDisplayUser } from '@/lib/useDisplayUser'
 import { useCategories } from '@/lib/categories'
 import {
   EXPERT_COUNTRIES,
@@ -100,6 +102,7 @@ export function CandidateRegisterPage() {
   const { categories: allCategories } = useCategories()
   const navigate = useNavigate()
   const { session } = useSession()
+  const { user: existingUser } = useDisplayUser()
   const [step, setStep] = useState(0)
   const [form, setForm] = useState<FormState>(initialState)
   const [resumeFile, setResumeFile] = useState<File | null>(null)
@@ -150,6 +153,7 @@ export function CandidateRegisterPage() {
       if (!session && form.password !== form.confirmPassword) return toast.error('Passwords do not match.')
     }
     if (step === 1 && form.categories.length === 0) return toast.error('Pick at least one area of expertise.')
+    if (step === 1 && !form.yearsExperience) return toast.error('Select your years of experience — you can\u2019t apply without it.')
 
     if (step < steps.length - 1) {
       setStep((s) => s + 1)
@@ -170,7 +174,7 @@ export function CandidateRegisterPage() {
     setError(null)
     try {
       const check = await lookupEmail(form.email)
-      if (check.role && !check.signedInSameUser) {
+      if (check.role) {
         setDupRole(check.role)
         setSubmitting(false)
         return
@@ -179,7 +183,7 @@ export function CandidateRegisterPage() {
       const { userId, needsConfirm } = await resolveAccountForRegister(form.email, form.password)
 
       const { data: existing } = await supabase.from('candidates').select('id').eq('user_id', userId).maybeSingle()
-      if (existing) throw new Error('This account already has an expert profile — just sign in.')
+      if (existing) throw new Error('This email already has an expert account — just sign in.')
 
       let resumePath: string | null = null
       if (resumeFile) {
@@ -223,8 +227,9 @@ export function CandidateRegisterPage() {
       // again (never stored in the browser) right after the first sign-in.
       if (!needsConfirm) {
         await saveIdentityDigits(form.country, form.last4).catch(() => setIdentityDeferred(true))
-        toast.success('Expert profile created. Upload your ID document to finish verification.')
-        navigate('/dashboard/verification')
+        clearDisplayUserCache()
+        toast.success('Expert profile created — you\u2019re Basic verified. Get Fully verified to attract more interested leads.')
+        navigate('/dashboard')
       } else {
         setIdentityDeferred(true)
         setDone('confirm')
@@ -242,6 +247,19 @@ export function CandidateRegisterPage() {
     }
   }
 
+  if (!done && !submitting && existingUser?.role) {
+    return (
+      <RegWizardLayout steps={steps} activeStep={0} progress={0}>
+        <AlreadySignedInNotice
+          email={existingUser.email}
+          role={existingUser.role === 'employer' ? 'employer' : 'candidate'}
+          dashboardPath={existingUser.dashboardPath}
+          onSignOut={() => void supabase.auth.signOut()}
+        />
+      </RegWizardLayout>
+    )
+  }
+
   if (done) {
     return (
       <RegWizardLayout steps={steps} activeStep={steps.length - 1} progress={100}>
@@ -254,8 +272,8 @@ export function CandidateRegisterPage() {
           </h1>
           <p className="max-w-md text-muted-600">Thanks, {form.fullName.split(' ')[0] || 'there'}.</p>
           <p className="max-w-md text-sm text-muted">
-            We&apos;ve sent a confirmation link to <b>{form.email}</b>. Click it, sign in, and finish the 30-second
-            identity check {identityDeferred ? '(your ID digits are asked for again then — we never keep them in the browser)' : ''}{' '}
+            We&apos;ve sent a confirmation link to <b>{form.email}</b>. Click it and you&apos;ll land on the sign-in
+            page — sign in and finish the 30-second identity check {identityDeferred ? '(your ID digits are asked for again then — we never keep them in the browser)' : ''}{' '}
             so you can start applying.
           </p>
           <Link to="/sign-in" className="rounded-md bg-navy px-6 py-3 text-base font-semibold text-white">
@@ -288,7 +306,7 @@ export function CandidateRegisterPage() {
               ? 'Real leads. Real businesses. You choose — and you only pay when a business shows real interest.'
               : step === 1
                 ? 'Businesses see this on your match card. Pick the categories and sub-categories you serve.'
-                : 'The free basic check is just these digits — you can apply right away. The paid Verified badge later adds a document review on top.'}
+                : 'The free Basic verified check is just these digits — you can apply right away. The paid Fully verified badge later adds a document review on top.'}
           </p>
         </div>
 
@@ -298,7 +316,7 @@ export function CandidateRegisterPage() {
           <>
             {session && (
               <p className="rounded-md bg-brand-50 px-4 py-3 text-sm text-brand">
-                You&apos;re signed in as <b>{signedInEmail}</b>. This adds an expert profile to your existing account.
+                You&apos;re signed in as <b>{signedInEmail}</b>. This finishes setting up your expert account.
               </p>
             )}
             <div className="grid gap-4 sm:grid-cols-2">
@@ -329,7 +347,7 @@ export function CandidateRegisterPage() {
                 </Field>
               </div>
             )}
-            <p className="text-xs text-muted">Experts on partly.asia are based in Singapore, Malaysia, Indonesia, Thailand or Vietnam. Businesses can be anywhere.</p>
+            <p className="text-xs text-muted">Experts on partly.asia are based in Singapore, Malaysia, Indonesia, Thailand, Vietnam or the Philippines. Businesses can be anywhere.</p>
           </>
         )}
 
@@ -339,7 +357,7 @@ export function CandidateRegisterPage() {
               <TextInput placeholder="e.g. Fractional CFO · Series A–B fundraising · SaaS" value={form.headline} onChange={(e) => update('headline', e.target.value)} />
             </Field>
             <div>
-              <p className="mb-2 text-sm text-ink">Areas of expertise</p>
+              <p className="mb-2 text-sm text-ink">Areas of expertise (required to apply)</p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {allCategories.map((c) => (
                   <button
@@ -376,7 +394,7 @@ export function CandidateRegisterPage() {
               </div>
             ))}
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Years of experience">
+              <Field label="Years of experience (required to apply)">
                 <Select value={form.yearsExperience} onChange={(v) => update('yearsExperience', v)} options={['Select...', ...experienceRanges]} />
               </Field>
               <Field label="LinkedIn profile (optional)">
@@ -413,8 +431,11 @@ export function CandidateRegisterPage() {
               </Field>
               <p className="mt-2 text-xs text-ink-600">
                 Encrypted before it is stored and never displayed back — not to you, not to any business, not to any
-                third party. This is the whole free check — you can apply the moment you sign in.
+                third party. This makes you <b>Basic verified</b> — you can apply the moment you sign in.
               </p>
+              <div className="mt-4">
+                <FullyVerifiedBubble audience="expert" />
+              </div>
             </div>
             <ConsentStep checked={consented} onChange={setConsented} referralOptIn={referralOptIn} onReferralOptInChange={setReferralOptIn} />
           </>

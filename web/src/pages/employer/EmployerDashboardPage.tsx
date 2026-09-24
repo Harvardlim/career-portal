@@ -2,33 +2,40 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { EmployerDashboardLayout } from '@/components/dashboard/EmployerDashboardLayout'
 import { InviteFriendPanel } from '@/components/partly/InviteFriendPanel'
+import { VerificationStatusCard } from '@/components/partly/VerificationStatusCard'
+import { Pill, VerifiedChips } from '@/components/partly/ui'
 import {
   ArrowRightIcon,
   BriefcaseIcon,
   UsersIcon,
   UserCircleIcon,
 } from '@/components/icons'
-import {
-  fetchEmployerJobs,
-  fetchEmployerStats,
-  useEmployer,
-  type EmployerJobRow,
-} from '@/lib/employers'
-import { EmployerJobRow as JobRowUI } from '@/components/dashboard/EmployerJobRow'
+import { fetchEmployerStats, useEmployer } from '@/lib/employers'
+import { fetchMyEmployerBadges, fetchMyPostings, type MatchingStatus, type MyPostingRow } from '@/lib/partly'
 import { initialsFromName } from '@/lib/name'
+
+const STATUS: Record<MatchingStatus, { label: string; tone: 'neutral' | 'brand' | 'success' | 'warning' }> = {
+  open: { label: 'Taking applications', tone: 'brand' },
+  matched: { label: 'Matches ready', tone: 'success' },
+  released: { label: 'Interested · contact released', tone: 'success' },
+  no_further_matches: { label: 'No further matches', tone: 'warning' },
+  closed: { label: 'Closed', tone: 'neutral' },
+}
 
 export function EmployerDashboardPage() {
   const { employer, loading: employerLoading } = useEmployer()
   const [stats, setStats] = useState({ openJobs: 0, applications: 0, savedCandidates: 0 })
-  const [jobs, setJobs] = useState<EmployerJobRow[]>([])
+  const [postings, setPostings] = useState<MyPostingRow[]>([])
+  const [awaitingReview, setAwaitingReview] = useState(false)
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(() => {
     if (!employer) return
-    Promise.all([fetchEmployerStats(employer.id), fetchEmployerJobs(employer.id)])
-      .then(([s, j]) => {
+    Promise.all([fetchEmployerStats(employer.id), fetchMyPostings(employer.id), fetchMyEmployerBadges(employer.id)])
+      .then(([s, p, badges]) => {
         setStats(s)
-        setJobs(j)
+        setPostings(p)
+        setAwaitingReview(badges.some((b) => b.status === 'awaiting_review'))
       })
       .catch((err) => console.error('employer dashboard', err))
       .finally(() => setLoading(false))
@@ -43,17 +50,19 @@ export function EmployerDashboardPage() {
   }, [employer, employerLoading, load])
 
   const cards = [
-    { value: stats.openJobs, label: 'Open Jobs', Icon: BriefcaseIcon, bg: 'bg-brand-50', fg: 'text-brand' },
-    { value: stats.applications, label: 'Applications', Icon: UsersIcon, bg: 'bg-[#e7f6ec]', fg: 'text-[#0ba02c]' },
-    { value: stats.savedCandidates, label: 'Saved Candidates', Icon: UserCircleIcon, bg: 'bg-[#fff6e6]', fg: 'text-[#ffaa00]' },
+    { value: stats.openJobs, label: 'Open needs', Icon: BriefcaseIcon, bg: 'bg-brand-50', fg: 'text-brand' },
+    { value: stats.applications, label: 'Applicants', Icon: UsersIcon, bg: 'bg-[#e7f6ec]', fg: 'text-[#0ba02c]' },
+    { value: stats.savedCandidates, label: 'Saved experts', Icon: UserCircleIcon, bg: 'bg-[#fff6e6]', fg: 'text-[#ffaa00]' },
   ]
+  const badgeLive = !!employer?.verified_badge_until && new Date(employer.verified_badge_until) > new Date()
 
   return (
     <EmployerDashboardLayout>
       <div className="flex flex-col gap-8">
         <div>
-          <h1 className="text-2xl font-medium text-ink">
+          <h1 className="flex flex-wrap items-center gap-3 text-2xl font-medium text-ink">
             Hello, {employer?.company_name ?? 'there'}
+            <VerifiedChips identity={employer?.basic_verified} badge={badgeLive} />
           </h1>
           <p className="mt-1 text-muted">
             Here is your daily activities and applications
@@ -73,6 +82,15 @@ export function EmployerDashboardPage() {
             </div>
           ))}
         </div>
+
+        <VerificationStatusCard
+          audience="business"
+          loading={loading}
+          basic={!!employer?.basic_verified}
+          badgeUntil={employer?.verified_badge_until ?? null}
+          awaitingReview={awaitingReview}
+          manageTo="/employer/verification"
+        />
 
         {!employer?.about && (
           <div className="flex flex-col gap-4 rounded-lg bg-danger p-6 text-white sm:flex-row sm:items-center sm:justify-between">
@@ -107,40 +125,42 @@ export function EmployerDashboardPage() {
 
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium text-ink">Recently Posted Jobs</h2>
+            <h2 className="text-lg font-medium text-ink">Recent postings</h2>
             <Link
-              to="/employer/my-jobs"
+              to="/employer/postings"
               className="flex items-center gap-1.5 text-sm text-muted-600"
             >
               View all
               <ArrowRightIcon className="size-4" />
             </Link>
           </div>
-          {jobs.length > 0 ? (
-            <>
-              <div className="hidden grid-cols-[1fr_130px_170px_auto] gap-6 rounded-lg bg-surface-alt px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-600 sm:grid">
-                <span>Jobs</span>
-                <span>Status</span>
-                <span>Applications</span>
-                <span>Actions</span>
-              </div>
-              <div className="flex flex-col divide-y divide-line">
-                {jobs.slice(0, 5).map((job) => (
-                  <JobRowUI
-                    key={job.id}
-                    job={job}
-                    employerId={employer!.id}
-                    onChanged={load}
-                  />
-                ))}
-              </div>
-            </>
+          {postings.length > 0 ? (
+            <div className="flex flex-col divide-y divide-line rounded-lg border border-line">
+              {postings.slice(0, 5).map((p) => {
+                const st = STATUS[p.matching_status] ?? STATUS.open
+                return (
+                  <Link
+                    key={p.id}
+                    to={`/employer/postings/${p.id}/matches`}
+                    className="flex flex-col gap-2 p-4 transition-colors hover:bg-surface-alt sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="font-medium text-ink">{p.title}</span>
+                      <Pill tone={st.tone}>{st.label}</Pill>
+                    </span>
+                    <span className="text-sm text-muted">
+                      {p.applications} applied · {p.released} interested · {p.unlocked} unlocked
+                    </span>
+                  </Link>
+                )
+              })}
+            </div>
           ) : (
             <p className="rounded-lg bg-surface-alt px-4 py-10 text-center text-sm text-muted">
-              {loading ? 'Loading…' : 'No jobs posted yet.'}{' '}
+              {loading ? 'Loading…' : 'No postings yet.'}{' '}
               {!loading && (
-                <Link to="/employer/post-job" className="font-medium text-brand">
-                  Post a job
+                <Link to="/employer/post-need" className="font-medium text-brand">
+                  Post your first need — it&apos;s free
                 </Link>
               )}
             </p>

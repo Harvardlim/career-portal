@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import {
   AudienceToggle,
   CtaButton,
@@ -21,6 +21,7 @@ import {
   UsersIcon,
 } from '@/components/icons'
 import { useT } from '@/lib/i18n'
+import { useDisplayUser } from '@/lib/useDisplayUser'
 
 // Mirrors the 8 live DB categories — Training rolled into HR, Design rolled into Marketing.
 const VERTICALS = [
@@ -36,7 +37,12 @@ const VERTICALS = [
 
 export function HomePage() {
   const t = useT()
+  const { user, loading } = useDisplayUser()
   const [audience, setAudience] = useState<'business' | 'expert'>('business')
+
+  // Signed in: home is the dashboard, not the marketing page.
+  if (user) return <Navigate to={user.dashboardPath} replace />
+  if (loading) return null
 
   return (
     <>

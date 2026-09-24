@@ -9,36 +9,32 @@ export type ResolvedAccount = {
 }
 
 export type EmailLookup = {
-  /** Existing profile role for this email, if any. */
+  /** Existing profile role for this email, if any. One email is one account, so any hit blocks registration. */
   role: 'candidate' | 'employer' | null
-  /** The current session already belongs to this same email. */
-  signedInSameUser: boolean
 }
 
-/** Check whether an email is already registered (and as which role), and
- *  whether the person is already signed in with that same email. */
+/** Check whether an email already belongs to an account (and as which role). */
 export async function lookupEmail(email: string): Promise<EmailLookup> {
   const e = email.trim()
-  const [sessionRes, candRes, empRes] = await Promise.all([
-    supabase.auth.getSession(),
-    supabase.from('candidates').select('id').ilike('email', e).maybeSingle(),
-    supabase.from('employers').select('id').ilike('business_email', e).maybeSingle(),
+  const [candRes, empRes] = await Promise.all([
+    supabase.from('candidates').select('id').ilike('email', e).limit(1),
+    supabase.from('employers').select('id').ilike('business_email', e).limit(1),
   ])
-  const sessionEmail = sessionRes.data.session?.user.email?.toLowerCase()
   return {
-    role: candRes.data ? 'candidate' : empRes.data ? 'employer' : null,
-    signedInSameUser: !!sessionEmail && sessionEmail === e.toLowerCase(),
+    role: (candRes.data ?? []).length > 0 ? 'candidate' : (empRes.data ?? []).length > 0 ? 'employer' : null,
   }
 }
 
 /**
  * Work out which auth user a new candidate/employer profile should attach to.
+ * One email is one account: callers check lookupEmail() first, and the database
+ * refuses a second profile for the same auth user regardless.
  *
- * - Already signed in as this same email → use that account (no new password).
+ * - Already signed in as this same email (and no profile yet) → use that account.
  * - New email → sign up. With email confirmation on there's no session yet.
- * - Email already registered + the same password → sign in, so a second profile
- *   can be added to the SAME auth user.
- * - Email already registered + a different password → throws.
+ * - Email already has a login but no profile (an earlier sign-up that never
+ *   finished) + the same password → sign in and finish it.
+ * - Anything else → throws.
  */
 export async function resolveAccountForRegister(
   email: string,
@@ -56,7 +52,7 @@ export async function resolveAccountForRegister(
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { emailRedirectTo: `${SITE_URL}/?confirmed=1` },
+    options: { emailRedirectTo: `${SITE_URL}/sign-in?confirmed=1` },
   })
 
   if (error) {
@@ -68,12 +64,12 @@ export async function resolveAccountForRegister(
     return { userId: data.user.id, needsConfirm: !data.session }
   }
 
-  // Email already has an account — sign in to attach the new profile to it.
+  // The login exists but has no profile yet — sign in to finish the registration.
   const { data: signIn, error: signInError } =
     await supabase.auth.signInWithPassword({ email, password })
   if (signInError || !signIn.user) {
     throw new Error(
-      'This email is already registered. Sign in to that account first, then add this profile.',
+      'This email is already registered. Sign in instead — one email can only hold one account.',
     )
   }
   return { userId: signIn.user.id, needsConfirm: false }

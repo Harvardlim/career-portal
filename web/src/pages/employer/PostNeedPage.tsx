@@ -4,17 +4,20 @@ import { toast } from 'sonner'
 import { EmployerDashboardLayout } from '@/components/dashboard/EmployerDashboardLayout'
 import { Field, TextInput } from '@/components/dashboard/form'
 import { SelectMenu } from '@/components/app/SelectMenu'
-import { Card, Notice, PrimaryButton } from '@/components/partly/ui'
+import { Link } from 'react-router-dom'
+import { Card, FullyVerifiedBubble, Notice, PrimaryButton } from '@/components/partly/ui'
 import { useCategories } from '@/lib/categories'
 import { useEmployer } from '@/lib/employers'
 import {
   COUNTRY_NAMES,
   PROJECT_TYPES,
   createPosting,
+  validatePostingInput,
+  type PostingInput,
   type ProjectType,
 } from '@/lib/partly'
 
-const BUDGET_CURRENCIES = ['USD', 'SGD', 'MYR', 'IDR', 'THB', 'VND']
+const BUDGET_CURRENCIES = ['USD', 'SGD', 'MYR', 'IDR', 'THB', 'VND', 'PHP']
 
 export function PostNeedPage() {
   const navigate = useNavigate()
@@ -44,33 +47,41 @@ export function PostNeedPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!employer) return
-    if (!employer.registration_verified) {
-      toast.error('Your business registration must be verified before you can post.')
+    if (!employer.basic_verified) {
+      toast.error('Add your business registration number before you can post.')
       return
     }
-    if (!title.trim() || !description.trim() || !categoryId) {
-      toast.error('Add a title, a brief and a main category.')
+
+    // Every detail is required: experts apply on what they read here, so a
+    // half-empty brief wastes everyone's matches.
+    const input: PostingInput = {
+      title: title.trim(),
+      description: description.trim(),
+      country,
+      project_type: projectType,
+      project_duration: duration.trim() || null,
+      budget_min: budgetMin ? Number(budgetMin) : null,
+      budget_max: budgetMax ? Number(budgetMax) : null,
+      budget_currency: budgetCurrency,
+      people_required: Number(people),
+      skill_requirements: skills
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+      main_category_id: categoryId,
+      subcategory_ids: subIds,
+    }
+    const problem = validatePostingInput(input, {
+      requireSubcategory: (category?.subcategories.length ?? 0) > 0,
+    })
+    if (problem) {
+      toast.error(problem)
       return
     }
+
     setSubmitting(true)
     try {
-      const id = await createPosting(employer.id, employer.company_name, {
-        title: title.trim(),
-        description: description.trim(),
-        country,
-        project_type: projectType,
-        project_duration: duration.trim() || null,
-        budget_min: budgetMin ? Number(budgetMin) : null,
-        budget_max: budgetMax ? Number(budgetMax) : null,
-        budget_currency: budgetCurrency,
-        people_required: Math.max(1, Number(people) || 1),
-        skill_requirements: skills
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean),
-        main_category_id: categoryId,
-        subcategory_ids: subIds,
-      })
+      const id = await createPosting(employer.id, employer.company_name, input)
       toast.success('Your need is live. Experts can now apply.')
       navigate(`/employer/postings/${id}/matches`)
     } catch (err) {
@@ -79,6 +90,8 @@ export function PostNeedPage() {
       setSubmitting(false)
     }
   }
+
+  const badgeLive = !!employer?.verified_badge_until && new Date(employer.verified_badge_until) > new Date()
 
   return (
     <EmployerDashboardLayout>
@@ -91,18 +104,28 @@ export function PostNeedPage() {
           </p>
         </div>
 
-        {!loading && employer && !employer.registration_verified && (
-          <Notice tone="warning" title="Business registration not verified yet">
-            Every business is registration-verified before a project can be posted.{' '}
-            <a href="/employer/verification" className="font-medium underline">
-              Upload your registration document
-            </a>{' '}
-            to get verified.
+        {!loading && employer && !employer.basic_verified && (
+          <Notice tone="warning" title="Add your registration number">
+            A business registration number is what makes you Basic verified — and lets you post.{' '}
+            <Link to="/employer/verification" className="font-medium underline">
+              Add it now
+            </Link>
+            .
           </Notice>
+        )}
+        {!loading && employer && !badgeLive && (
+          <FullyVerifiedBubble
+            audience="business"
+            action={
+              <Link to="/employer/verification" className="font-semibold underline">
+                Get Fully verified
+              </Link>
+            }
+          />
         )}
 
         <Card className="flex flex-col gap-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">1 · The brief</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">1 · The brief (all fields required)</h2>
           <Field label="What do you need? (title)">
             <TextInput
               value={title}
@@ -125,7 +148,7 @@ export function PostNeedPage() {
 
         <Card className="flex flex-col gap-5">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">2 · Category</h2>
-          <p className="text-sm text-muted">One main category; add as many sub-categories as apply.</p>
+          <p className="text-sm text-muted">One main category and at least one sub-category.</p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {categories.map((c) => (
               <button
@@ -177,7 +200,7 @@ export function PostNeedPage() {
               />
             </Field>
             <Field label="People required">
-              <TextInput type="number" min={1} value={people} onChange={(e) => setPeople(e.target.value)} />
+              <TextInput required type="number" min={1} value={people} onChange={(e) => setPeople(e.target.value)} />
             </Field>
           </div>
           <div>
@@ -202,6 +225,7 @@ export function PostNeedPage() {
           </div>
           <Field label="Duration / timeline">
             <TextInput
+              required
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
               placeholder="e.g. 3 months, 2 days a week from October"
@@ -209,6 +233,7 @@ export function PostNeedPage() {
           </Field>
           <Field label="Skills / requirements (comma separated)">
             <TextInput
+              required
               value={skills}
               onChange={(e) => setSkills(e.target.value)}
               placeholder="e.g. Finance, FP&A, Investor relations"
@@ -227,10 +252,10 @@ export function PostNeedPage() {
               />
             </Field>
             <Field label="From">
-              <TextInput type="number" min={0} value={budgetMin} onChange={(e) => setBudgetMin(e.target.value)} />
+              <TextInput required type="number" min={1} value={budgetMin} onChange={(e) => setBudgetMin(e.target.value)} />
             </Field>
             <Field label="To">
-              <TextInput type="number" min={0} value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} />
+              <TextInput required type="number" min={1} value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} />
             </Field>
           </div>
         </Card>

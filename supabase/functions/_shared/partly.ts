@@ -64,3 +64,8 @@ export function formatLocal(price: PricingCountry, amount: number): string {
     : amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   return `${price.currency_symbol}${n}`
 }
+
+/** "S$199 · USD 145" -- every payment is described in both currencies. */
+export function bothCurrencies(price: PricingCountry, amountLocal: number, amountUsd: number): string {
+  return `${formatLocal(price, amountLocal)} · USD ${amountUsd.toLocaleString('en-US')}`
+}

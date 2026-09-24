@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Card, EmptyState, Notice, Pill, PrimaryButton, SecondaryButton } from '@/components/partly/ui'
+import { Card, EmptyState, Notice, Pill, PrimaryButton, SecondaryButton, VerifiedChips } from '@/components/partly/ui'
 import { SelectMenu } from '@/components/app/SelectMenu'
 import { useCategories } from '@/lib/categories'
 import { useCandidate } from '@/lib/dashboard'
@@ -11,6 +11,7 @@ import {
   applyToNeed,
   budgetLabel,
   fetchOpenNeeds,
+  missingApplyProfile,
   postingCountry,
   projectTypeLabel,
   type OpenNeedRow,
@@ -37,6 +38,7 @@ export function BrowseNeedsPage() {
   const minBudget = Number(params.get('budget') ?? '') || 0
   const q = params.get('q') ?? ''
   const categoryName = categories.find((c) => c.id === categoryId)?.name
+  const missingProfile = candidate ? missingApplyProfile(candidate) : []
 
   function setParam(key: string, value: string) {
     const next = new URLSearchParams(params)
@@ -64,6 +66,12 @@ export function BrowseNeedsPage() {
     }
     if (user?.role === 'employer' || !candidate) {
       toast.error('Create an expert profile to apply to open needs.')
+      return
+    }
+    const missing = missingApplyProfile(candidate)
+    if (missing.length > 0) {
+      toast.error(`Complete your profile before applying: add your ${missing.join(' and ')}.`)
+      navigate('/dashboard/expert-profile')
       return
     }
     if (!candidate.identity_verified) {
@@ -138,6 +146,15 @@ export function BrowseNeedsPage() {
         </Notice>
       )}
 
+      {session && candidate && missingProfile.length > 0 && (
+        <Notice tone="warning" title="Complete your profile to apply">
+          You can&apos;t apply until you&apos;ve added your {missingProfile.join(' and ')}.{' '}
+          <Link to="/dashboard/expert-profile" className="font-medium underline">
+            Finish your profile
+          </Link>
+        </Notice>
+      )}
+
       <div className="mt-6 flex flex-col gap-4">
         {loading ? (
           <EmptyState>Loading…</EmptyState>
@@ -153,6 +170,7 @@ export function BrowseNeedsPage() {
                       {row.title}
                     </Link>
                   </h2>
+                  <VerifiedChips identity={row.business_basic_verified} badge={row.business_badge_verified} />
                   {row.matching_status === 'matched' && <Pill tone="warning">Shortlist drawn</Pill>}
                 </div>
                 <p className="mt-1 text-sm text-muted">
@@ -179,7 +197,11 @@ export function BrowseNeedsPage() {
                 {row.applied ? (
                   <SecondaryButton disabled>Applied</SecondaryButton>
                 ) : (
-                  <PrimaryButton onClick={() => handleApply(row)} disabled={applying === row.id}>
+                  <PrimaryButton
+                    onClick={() => handleApply(row)}
+                    disabled={applying === row.id || (!!candidate && missingProfile.length > 0)}
+                    title={missingProfile.length > 0 ? `Add your ${missingProfile.join(' and ')} first` : undefined}
+                  >
                     {applying === row.id ? 'Applying…' : 'Apply'}
                   </PrimaryButton>
                 )}

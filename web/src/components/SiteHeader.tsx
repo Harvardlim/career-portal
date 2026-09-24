@@ -1,5 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { Logo } from '@/components/app/Logo'
+import { NotificationBell } from '@/components/app/NotificationBell'
+import { useSession } from '@/lib/useSession'
 import { LanguageSwitcher } from '@/components/app/LanguageSwitcher'
 import { SiteNav } from '@/components/app/SiteNav'
 import { useT } from '@/lib/i18n'
@@ -8,6 +10,7 @@ import { useDisplayUser } from '@/lib/useDisplayUser'
 
 export function SiteHeader() {
   const { user } = useDisplayUser()
+  const { session } = useSession()
   const t = useT()
 
   return (
@@ -50,6 +53,7 @@ export function SiteHeader() {
                     {t('exp.browse')}
                   </NavLink>
                 )}
+                {session && <NotificationBell userId={session.user.id} />}
                 <NavLink
                   to={user.dashboardPath}
                   className="flex items-center gap-2"

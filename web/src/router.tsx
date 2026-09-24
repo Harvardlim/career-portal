@@ -29,8 +29,6 @@ import {
 import { CandidateRegisterPage } from './pages/candidate/CandidateRegisterPage'
 import { EmployerRegisterPage } from './pages/employer/EmployerRegisterPage'
 import { EmployerDashboardPage } from './pages/employer/EmployerDashboardPage'
-import { PostJobPage } from './pages/employer/PostJobPage'
-import { MyJobsPage } from './pages/employer/MyJobsPage'
 import { PostJobPricingPage } from './pages/employer/PostJobPricingPage'
 import { CheckoutPage } from './pages/employer/CheckoutPage'
 import { JobApplicationsPage } from './pages/employer/JobApplicationsPage'
@@ -39,11 +37,7 @@ import { SavedCandidatesPage } from './pages/employer/SavedCandidatesPage'
 import { PlansBillingPage } from './pages/employer/PlansBillingPage'
 import { EmployerAffiliatePage } from './pages/employer/EmployerAffiliatePage'
 import { EmployerSettingsPage } from './pages/employer/EmployerSettingsPage'
-import {
-  AddColumnPage,
-  PostJobSuccessPage,
-  PromoteJobPage,
-} from './pages/employer/EmployerModals'
+import { AddColumnPage } from './pages/employer/EmployerModals'
 import { BlogPage } from './pages/BlogPage'
 import { SingleBlogPage } from './pages/SingleBlogPage'
 import { AboutPage } from './pages/AboutPage'
@@ -141,10 +135,10 @@ export const router = createBrowserRouter([
   { path: '/employer/postings', element: <MyPostingsPage /> },
   { path: '/employer/postings/:id/matches', element: <PostingMatchesPage /> },
   { path: '/employer/verification', element: <EmployerVerificationPage /> },
-  { path: '/employer/post-job', element: <PostJobPage /> },
-  { path: '/employer/post-job/success', element: <PostJobSuccessPage /> },
-  { path: '/employer/my-jobs', element: <MyJobsPage /> },
-  { path: '/employer/my-jobs/promote', element: <PromoteJobPage /> },
+  { path: '/employer/post-job', element: <Navigate to="/employer/post-need" replace /> },
+  { path: '/employer/post-job/success', element: <Navigate to="/employer/postings" replace /> },
+  { path: '/employer/my-jobs', element: <Navigate to="/employer/postings" replace /> },
+  { path: '/employer/my-jobs/promote', element: <Navigate to="/employer/postings" replace /> },
   { path: '/employer/pricing', element: <PostJobPricingPage /> },
   { path: '/employer/checkout', element: <CheckoutPage /> },
   { path: '/employer/applications', element: <JobApplicationsPage /> },

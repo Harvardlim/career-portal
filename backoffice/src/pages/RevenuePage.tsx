@@ -2,13 +2,22 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { ListCard, Pagination, PAGE_SIZES, TableSearch, lc, useTableView } from '../components/ListShell'
 import { IconDollar, IconStar, IconTrend } from '../components/Icons'
 import { Card } from '../components/ui'
-import { fetchBadges, fetchLeadPayments, partlyEnabled, type BadgeRow, type LeadPaymentRow } from '../lib/partly'
+import { fetchBadges, fetchLeadPayments, fetchPricing, partlyEnabled, type BadgeRow, type LeadPaymentRow, type PricingRow } from '../lib/partly'
 
 const thCls = 'px-3 py-3 font-medium first:pl-6 last:pr-6'
 const tdCls = 'px-3 py-4 align-top first:pl-6 last:pr-6'
 const fmt = (iso: string | null) =>
   iso ? new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—'
 const usd = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0)
+/** Every payment is shown in both currencies: what was charged, plus the other side's figure. */
+const bothLine = (
+  pricing: PricingRow[],
+  r: { country_code: string | null; currency: string; amount_local: number; amount_usd: number; pay_currency?: string },
+) => {
+  const p = pricing.find((x) => x.code === r.country_code)
+  const local = `${p?.currency_symbol ?? ''}${Number(r.amount_local).toLocaleString()}${p ? '' : ` ${r.currency}`}`
+  return `${local} · ${usd(r.amount_usd)}`
+}
 const errMessage = (e: unknown) => (e instanceof Error ? e.message : 'Something went wrong')
 
 const Pill = ({ value }: { value: string }) => {
@@ -37,15 +46,17 @@ const Stat = ({ icon, label, value, tint }: { icon: ReactNode; label: string; va
 export const RevenuePage = () => {
   const [leads, setLeads] = useState<LeadPaymentRow[]>([])
   const [badges, setBadges] = useState<BadgeRow[]>([])
+  const [pricing, setPricing] = useState<PricingRow[]>([])
   const [loading, setLoading] = useState(partlyEnabled)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!partlyEnabled) return
-    Promise.all([fetchLeadPayments(), fetchBadges()])
-      .then(([l, b]) => {
+    Promise.all([fetchLeadPayments(), fetchBadges(), fetchPricing()])
+      .then(([l, b, p]) => {
         setLeads(l)
         setBadges(b)
+        setPricing(p)
       })
       .catch((e) => setError(errMessage(e)))
       .finally(() => setLoading(false))
@@ -109,7 +120,7 @@ export const RevenuePage = () => {
                   </td>
                   <td className={tdCls}>
                     {r.pay_currency === 'usd' ? usd(r.amount_usd) : `${r.currency} ${Number(r.amount_local).toLocaleString()}`}
-                    <span className="block text-[12px] text-muted">{r.country_code ?? ''} · paid in {r.pay_currency}</span>
+                    <span className="block text-[12px] text-muted">{bothLine(pricing, r)} · paid in {r.pay_currency}</span>
                   </td>
                   <td className={tdCls}>{usd(r.amount_usd)}</td>
                   <td className={tdCls}><Pill value={r.status} /></td>
@@ -151,7 +162,7 @@ export const RevenuePage = () => {
                   <td className={tdCls}>{r.renewed_from ? 'Renewal' : 'First purchase'}</td>
                   <td className={tdCls}>
                     {r.pay_currency === 'usd' ? usd(r.amount_usd) : `${r.currency} ${Number(r.amount_local).toLocaleString()}`}
-                    <span className="block text-[12px] text-muted">{r.country_code ?? ''}</span>
+                    <span className="block text-[12px] text-muted">{bothLine(pricing, r)} · paid in {r.pay_currency}</span>
                   </td>
                   <td className={tdCls}><Pill value={r.status} /></td>
                   <td className={tdCls}>{fmt(r.purchased_at)}</td>

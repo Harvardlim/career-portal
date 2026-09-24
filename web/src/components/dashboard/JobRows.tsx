@@ -62,9 +62,11 @@ export function AppliedJobRow({
   const label =
     status === 'active'
       ? 'Submitted'
-      : status.charAt(0).toUpperCase() + status.slice(1)
+      : status === 'interested'
+        ? 'Business interested'
+        : status.charAt(0).toUpperCase() + status.slice(1)
   const color =
-    status === 'hired'
+    status === 'interested'
       ? 'text-[#0ba02c]'
       : status === 'rejected'
         ? 'text-danger'
@@ -101,10 +103,10 @@ export function AppliedJobRow({
         {label}
       </span>
       <Link
-        to={jobDetailPath(job)}
+        to={status === 'interested' ? '/dashboard/leads' : jobDetailPath(job)}
         className="rounded-[3px] bg-brand-50 px-6 py-2.5 text-center text-sm font-semibold text-brand hover:bg-brand-100"
       >
-        View Details
+        {status === 'interested' ? 'View warm lead' : 'View Details'}
       </Link>
     </div>
   )

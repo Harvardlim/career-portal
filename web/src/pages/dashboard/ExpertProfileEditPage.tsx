@@ -23,7 +23,7 @@ import { supabase } from '@/lib/supabase'
 type Portfolio = { label: string; url: string }
 
 const educationOptions = ['Select...', 'High School', 'Diploma', 'Bachelor Degree', 'Master Degree', 'PhD']
-const nationalityOptions = ['Select...', 'Malaysia', 'Singapore', 'Indonesia', 'India', 'United States', 'United Kingdom', 'Other']
+const nationalityOptions = ['Select...', 'Malaysia', 'Singapore', 'Indonesia', 'Thailand', 'Vietnam', 'Philippines', 'India', 'United States', 'United Kingdom', 'Other']
 const genderOptions = ['Select...', 'Male', 'Female', 'Other']
 const maritalOptions = ['Select...', 'Single', 'Married', 'Other']
 
@@ -157,6 +157,9 @@ export function ExpertProfileEditPage() {
 
   async function save() {
     if (!candidate || !session) return
+    // Both are required to apply to anything, so a saved profile can't be missing them.
+    if (!years) return toast.error('Select your years of experience.')
+    if (cats.length === 0) return toast.error('Pick at least one expert category.')
     setSaving(true)
     try {
       await updateMyCandidate(session.user.id, {

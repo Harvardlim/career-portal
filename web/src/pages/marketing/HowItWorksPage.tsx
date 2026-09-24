@@ -14,6 +14,7 @@ const TZ_TO_COUNTRY: Record<string, string> = {
   'Asia/Bangkok': 'TH',
   'Asia/Ho_Chi_Minh': 'VN',
   'Asia/Saigon': 'VN',
+  'Asia/Manila': 'PH',
 }
 
 function guessCountry(): string {

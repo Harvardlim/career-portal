@@ -34,7 +34,10 @@ export function emailShell(title: string, bodyHtml: string, ctaHref?: string, ct
 }
 
 export async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
-  if (!RESEND_API_KEY || !to) return false
+  if (!RESEND_API_KEY || !to) {
+    console.error('sendEmail skipped:', !RESEND_API_KEY ? 'RESEND_API_KEY is not set for this function' : 'no recipient')
+    return false
+  }
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',

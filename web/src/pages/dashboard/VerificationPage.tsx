@@ -6,7 +6,7 @@ import { Field, TextInput } from '@/components/dashboard/form'
 import { SelectMenu } from '@/components/app/SelectMenu'
 import { PaymentConfirmingOverlay } from '@/components/app/PaymentConfirmingOverlay'
 import { VerificationDocs } from '@/components/partly/VerificationDocs'
-import { Card, Notice, Pill, PrimaryButton, SecondaryButton, VerifiedChips } from '@/components/partly/ui'
+import { Card, FullyVerifiedBubble, Notice, Pill, PrimaryButton, SecondaryButton, VerifiedChips } from '@/components/partly/ui'
 import { updateMyCandidate } from '@/lib/candidateProfile'
 import { useCandidate } from '@/lib/dashboard'
 import {
@@ -14,7 +14,9 @@ import {
   ID_TYPE_BY_COUNTRY,
   countryName,
   fetchMyBadges,
+  formatBoth,
   formatLocal,
+  formatPaid,
   formatUsd,
   hasUploadedIdentityDoc,
   saveIdentityDigits,
@@ -73,7 +75,7 @@ export function VerificationPage() {
       setConfirming(true)
       confirmCheckout(sessionId)
         .then(async (ok) => {
-          if (ok) toast.success('Payment confirmed.')
+          if (ok) toast.success('Payment confirmed — your badge status is on your dashboard.', { action: { label: 'View dashboard', onClick: () => navigate('/dashboard') } })
           await reload()
           if (candidate) await fetchMyBadges(candidate.id).then(setBadges).catch(() => {})
         })
@@ -121,15 +123,16 @@ export function VerificationPage() {
         <div>
           <h1 className="text-xl font-semibold text-ink">Verification</h1>
           <p className="mt-1 text-sm text-muted">
-            The free basic check is self-serve — just your ID digits, and you can apply right away. The paid
-            Verified badge is a stricter check: it needs your ID document too, reviewed by our team.
+            <strong>Basic verified</strong> is free and self-serve — just your ID digits, and you can apply right away.
+            <strong> Fully verified</strong> is the paid annual badge: a stricter check that needs your ID document
+            too, reviewed by our team.
           </p>
         </div>
 
         {!loading && candidate && (
           <Notice tone={candidate.identity_verified ? 'success' : 'brand'}>
             <span className="flex flex-wrap items-center gap-2">
-              {candidate.identity_verified ? 'Basic verification complete — you can apply to any open need.' : 'Add your ID digits below to start applying.'}
+              {candidate.identity_verified ? 'You\u2019re Basic verified — you can apply to any open need once your profile is complete.' : 'Add your ID digits below to become Basic verified and start applying.'}
               <VerifiedChips identity={candidate.identity_verified} badge={badgeLive} />
             </span>
           </Notice>
@@ -175,7 +178,7 @@ export function VerificationPage() {
         {/* 2. Verified badge */}
         <Card className="flex flex-col gap-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">2 · Verified badge (annual, paid)</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">2 · Fully verified badge (annual, paid)</h2>
             {badgeLive && candidate?.verified_badge_until && (
               <Pill tone="brand">Active until {new Date(candidate.verified_badge_until).toLocaleDateString()}</Pill>
             )}
@@ -183,8 +186,9 @@ export function VerificationPage() {
           </div>
           <p className="text-sm text-muted">
             A stricter, credential-level check beyond the free basic one. Badge holders are always shown first when a
-            business's matches are drawn, and carry the Verified mark on every match card and public profile.
+            business's matches are drawn, and carry the Fully verified mark on every match card and public profile.
           </p>
+          <FullyVerifiedBubble audience="expert" />
 
           <div className="border-t border-line pt-4">
             <p className="mb-3 text-sm font-medium text-ink">Required: upload your identity document</p>
@@ -205,7 +209,7 @@ export function VerificationPage() {
 
           {badgeLive ? (
             <Notice tone="success">
-              Your badge is active. We'll remind you 30, 14, 7 and 1 days before it expires; renewing extends your
+              Your Fully verified badge is active. We'll remind you 30, 14, 7 and 1 days before it expires; renewing extends your
               current term rather than restarting it.
             </Notice>
           ) : awaitingReview ? (
@@ -216,6 +220,11 @@ export function VerificationPage() {
             !hasDoc && <Notice tone="warning">Upload your identity document above before buying the badge.</Notice>
           )}
 
+          {price && (
+            <p className="text-sm font-medium text-ink">
+              Annual fee: {formatBoth(price, price.badge_fee_local, price.badge_fee_usd)}
+            </p>
+          )}
           {price ? (
             <div className="grid gap-3 sm:grid-cols-2">
               <button
@@ -251,7 +260,7 @@ export function VerificationPage() {
               </SecondaryButton>
             ) : (
               <PrimaryButton onClick={buyBadge} disabled={buying || !price || !hasDoc || awaitingReview}>
-                {buying ? 'Redirecting…' : awaitingReview ? 'Payment received' : 'Get the Verified badge'}
+                {buying ? 'Redirecting…' : awaitingReview ? 'Payment received' : 'Get Fully verified'}
               </PrimaryButton>
             )}
           </div>
@@ -262,7 +271,7 @@ export function VerificationPage() {
                 {badges.map((b) => (
                   <li key={b.id} className="flex items-center justify-between">
                     <span className="text-ink">
-                      {b.renewed_from ? 'Renewal' : 'Purchase'} · {b.currency} {b.amount_local.toLocaleString()}
+                      {b.renewed_from ? 'Renewal' : 'Purchase'} · {formatPaid(pricing.find((p) => p.code === b.country_code), b)}
                       {b.purchased_at ? ` · ${new Date(b.purchased_at).toLocaleDateString()}` : ''}
                     </span>
                     <Pill tone={b.status === 'active' ? 'success' : b.status === 'awaiting_review' ? 'warning' : 'neutral'}>

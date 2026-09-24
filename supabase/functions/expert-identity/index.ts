@@ -1,5 +1,5 @@
 // Stores an Expert's local-ID digits (last 4 of NRIC/FIN / MyKad / KTP /
-// Thai ID / CCCD) for the FREE basic identity check. Self-serve: this is the
+// Thai ID / CCCD / PhilSys) for the FREE basic identity check. Self-serve: this is the
 // whole check -- it sets identity_verified immediately, with no admin wait,
 // so a free account can apply to jobs right away. (The paid Verified badge is
 // a separate, stricter step: it additionally requires an uploaded ID document
@@ -10,7 +10,7 @@
 // secrets, and the database column holding the ciphertext is unreadable by
 // the client roles.
 //
-//   POST { country_code: 'SG'|'MY'|'ID'|'TH'|'VN', id_type: string, last4: '567D' }
+//   POST { country_code: 'SG'|'MY'|'ID'|'TH'|'VN'|'PH', id_type: string, last4: '567D' }
 //
 // Required secrets:
 //   EXPERT_ID_KEY                - 32 random bytes, base64 (openssl rand -base64 32)
@@ -35,6 +35,7 @@ const ID_FORMATS: Record<string, { label: string; pattern: RegExp; hint: string 
   ID: { label: 'KTP', pattern: /^[0-9]{4}$/, hint: 'last 4 digits of your 16-digit NIK' },
   TH: { label: 'Thai National ID', pattern: /^[0-9]{4}$/, hint: 'last 4 digits of your 13-digit ID' },
   VN: { label: 'CCCD', pattern: /^[0-9]{4}$/, hint: 'last 4 digits of your 12-digit CCCD' },
+  PH: { label: 'PhilSys National ID', pattern: /^[0-9]{4}$/, hint: 'last 4 digits of your 12-digit PhilSys number (PSN)' },
 }
 
 async function importKey(): Promise<CryptoKey> {
@@ -76,7 +77,7 @@ Deno.serve(async (req) => {
   const country = typeof body.country_code === 'string' ? body.country_code.toUpperCase() : ''
   const last4 = typeof body.last4 === 'string' ? body.last4.trim().toUpperCase() : ''
   const format = ID_FORMATS[country]
-  if (!format) return json({ error: 'Experts must be based in Singapore, Malaysia, Indonesia, Thailand or Vietnam.' }, 400)
+  if (!format) return json({ error: 'Experts must be based in Singapore, Malaysia, Indonesia, Thailand, Vietnam or the Philippines.' }, 400)
   if (!format.pattern.test(last4)) {
     return json({ error: `That doesn't look like a ${format.label} — enter the ${format.hint}.` }, 400)
   }

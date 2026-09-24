@@ -12,8 +12,10 @@ import { useCategoryNames } from '@/lib/categories'
 import { errMessage } from '@/lib/errors'
 import { recordReferralAtSignup } from '@/lib/affiliate'
 import { lookupEmail, resolveAccountForRegister } from '@/lib/registerAccount'
-import { RegisteredEmailDialog } from '@/components/auth/RegisteredEmailDialog'
+import { AlreadySignedInNotice, RegisteredEmailDialog } from '@/components/auth/RegisteredEmailDialog'
+import { FullyVerifiedBubble } from '@/components/partly/ui'
 import { useSession } from '@/lib/useSession'
+import { clearDisplayUserCache, useDisplayUser } from '@/lib/useDisplayUser'
 import { BUSINESS_REG_FORMATS, COUNTRY_NAMES, validateBusinessRegNo } from '@/lib/partly'
 import { BriefcaseIcon, BuildingIcon, CheckIcon, CircleCheckIcon, MailIcon } from '@/components/icons'
 
@@ -54,6 +56,7 @@ export function EmployerRegisterPage() {
   const categoryOptions = useCategoryNames()
   const navigate = useNavigate()
   const { session } = useSession()
+  const { user: existingUser } = useDisplayUser()
   const [step, setStep] = useState(0)
   const [form, setForm] = useState<FormState>(initialState)
   const [consented, setConsented] = useState(false)
@@ -96,7 +99,7 @@ export function EmployerRegisterPage() {
     setError(null)
     try {
       const check = await lookupEmail(form.businessEmail)
-      if (check.role && !check.signedInSameUser) {
+      if (check.role) {
         setDupRole(check.role)
         setSubmitting(false)
         return
@@ -105,7 +108,7 @@ export function EmployerRegisterPage() {
       const { userId, needsConfirm } = await resolveAccountForRegister(form.businessEmail, form.password)
 
       const { data: existing } = await supabase.from('employers').select('id').eq('user_id', userId).maybeSingle()
-      if (existing) throw new Error('This account already has a business profile — just sign in.')
+      if (existing) throw new Error('This email already has a business account — just sign in.')
 
       const { error: insertError } = await supabase.from('employers').insert({
         user_id: userId,
@@ -126,14 +129,28 @@ export function EmployerRegisterPage() {
       if (needsConfirm) {
         setDone(true)
       } else {
-        toast.success('Business profile created. Upload your registration document to get verified.')
-        navigate('/employer/verification')
+        clearDisplayUserCache()
+        toast.success('Business profile created — you\u2019re Basic verified. Get Fully verified to attract better experts.')
+        navigate('/employer/dashboard')
       }
     } catch (err) {
       setError(errMessage(err))
     } finally {
       setSubmitting(false)
     }
+  }
+
+  if (!done && !submitting && existingUser?.role) {
+    return (
+      <RegWizardLayout steps={steps} activeStep={0} progress={0}>
+        <AlreadySignedInNotice
+          email={existingUser.email}
+          role={existingUser.role === 'employer' ? 'employer' : 'candidate'}
+          dashboardPath={existingUser.dashboardPath}
+          onSignOut={() => void supabase.auth.signOut()}
+        />
+      </RegWizardLayout>
+    )
   }
 
   if (done) {
@@ -148,8 +165,9 @@ export function EmployerRegisterPage() {
           </h1>
           <p className="max-w-md text-muted-600">Thanks for registering {form.companyName}.</p>
           <p className="max-w-md text-sm text-muted">
-            We&apos;ve sent a confirmation link to <b>{form.businessEmail}</b>. Click it, sign in, and upload your
-            registration document — once it&apos;s verified you can post your first project free.
+            We&apos;ve sent a confirmation link to <b>{form.businessEmail}</b>. Click it and you&apos;ll land on the
+            sign-in page. Once you&apos;re in you&apos;re Basic verified and can post your first project free — upload
+            your registration document and activate the badge to become Fully verified.
           </p>
           <Link to="/sign-in" className="rounded-md bg-navy px-6 py-3 text-base font-semibold text-white">
             Go to Sign In
@@ -180,7 +198,7 @@ export function EmployerRegisterPage() {
               ? 'Post your project. Meet your expert. Solve your problems — posting is completely free.'
               : step === 1
                 ? 'This helps us route the right experts to you. You can be based anywhere in the world.'
-                : 'Every business is registration-verified before a project goes live.'}
+                : 'Your registration number gets you the Basic verified mark straight away.'}
           </p>
         </div>
 
@@ -190,7 +208,7 @@ export function EmployerRegisterPage() {
           <>
             {session && (
               <p className="rounded-md bg-brand-50 px-4 py-3 text-sm text-brand">
-                You&apos;re signed in as <b>{signedInEmail}</b>. This adds a business profile to your existing account.
+                You&apos;re signed in as <b>{signedInEmail}</b>. This finishes setting up your business account.
               </p>
             )}
             <Field label="Registered company name">
@@ -257,10 +275,14 @@ export function EmployerRegisterPage() {
 
         {step === 2 && (
           <>
-            <div className="rounded-xl border border-gold/40 bg-gold-50 p-5 text-sm text-ink-600">
-              After sign-in you&apos;ll upload a copy of your business registration. Our team confirms it by hand and
-              your profile gets the <b>Verified</b> mark — every expert you match with is identity-verified in the same
-              way.
+            <div className="flex flex-col gap-4 rounded-xl border border-gold/40 bg-gold-50 p-5 text-sm text-ink-600">
+              <p>
+                Your business starts as <b>Basic verified</b> — the registration number you just gave us is enough to
+                post. To become <b>Fully verified</b>, upload a copy of your business registration after sign-in and
+                activate the annual badge: our team confirms it by hand and your profile carries the Fully verified
+                mark. Every expert you match with is identity-verified too.
+              </p>
+              <FullyVerifiedBubble audience="business" />
             </div>
             <ConsentStep checked={consented} onChange={setConsented} referralOptIn={referralOptIn} onReferralOptInChange={setReferralOptIn} />
           </>

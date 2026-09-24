@@ -1,5 +1,6 @@
-import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState, type FormEvent } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { AuthCheckbox, AuthField, AuthSubmit } from '@/components/auth/fields'
 import {
@@ -19,6 +20,7 @@ import { errMessage } from '@/lib/errors'
 
 export function SignInPage() {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const remembered = getRememberedEmail()
   const [email, setEmail] = useState(remembered)
   const [password, setPassword] = useState('')
@@ -35,6 +37,18 @@ export function SignInPage() {
   const [error, setError] = useState<string | null>(null)
   // Set when the signed-in account has BOTH a candidate and an employer profile.
   const [pickRole, setPickRole] = useState(false)
+
+  // The confirmation-email link lands here (?confirmed=1). GoTrue has already
+  // verified the address and, as a side effect, opened a session in this
+  // browser; drop it so the person actually signs in from the login page.
+  useEffect(() => {
+    if (params.get('confirmed') !== '1') return
+    toast.success('Your email is confirmed — sign in to continue.')
+    void supabase.auth.getSession().then(({ data }) => {
+      if (data.session) return supabase.auth.signOut()
+    })
+    navigate('/sign-in', { replace: true })
+  }, [params, navigate])
 
   function goAs(role: Role) {
     setActiveRole(role)

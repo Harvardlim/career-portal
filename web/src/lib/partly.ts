@@ -27,7 +27,7 @@ export type PricingCountry = {
   sort_order: number
 }
 
-export const EXPERT_COUNTRIES = ['SG', 'MY', 'ID', 'TH', 'VN'] as const
+export const EXPERT_COUNTRIES = ['SG', 'MY', 'ID', 'TH', 'VN', 'PH'] as const
 export type ExpertCountry = (typeof EXPERT_COUNTRIES)[number]
 
 export const ID_TYPE_BY_COUNTRY: Record<ExpertCountry, string> = {
@@ -36,6 +36,7 @@ export const ID_TYPE_BY_COUNTRY: Record<ExpertCountry, string> = {
   ID: 'KTP',
   TH: 'Thai National ID',
   VN: 'CCCD',
+  PH: 'PhilSys National ID',
 }
 
 export async function fetchPricing(): Promise<PricingCountry[]> {
@@ -74,6 +75,20 @@ export function formatLocal(p: PricingCountry, amount: number): string {
 
 export function formatUsd(amount: number): string {
   return `USD ${amount.toLocaleString('en-US')}`
+}
+
+/** Every price is shown in both currencies: "S$199 · USD 145". */
+export function formatBoth(p: PricingCountry, local: number, usd: number): string {
+  return `${formatLocal(p, local)} · ${formatUsd(usd)}`
+}
+
+/** A recorded payment (badge row, lead payment) in both currencies, from the amounts stored with it. */
+export function formatPaid(
+  p: PricingCountry | undefined,
+  paid: { currency: string; amount_local: number; amount_usd: number },
+): string {
+  const local = p ? formatLocal(p, paid.amount_local) : `${paid.currency} ${Number(paid.amount_local).toLocaleString('en-US')}`
+  return `${local} · ${formatUsd(Number(paid.amount_usd))}`
 }
 
 /* ---------- Postings (a Business's need) ---------- */
@@ -119,11 +134,36 @@ function slugify(s: string): string {
     .slice(0, 60)
 }
 
+/** Human-readable problem with a posting's details, or null when every detail is filled in. */
+export function validatePostingInput(
+  input: PostingInput,
+  opts: { requireSubcategory?: boolean } = {},
+): string | null {
+  if (input.title.trim().length < 5) return 'Give your need a clear title (at least 5 characters).'
+  if (!input.main_category_id) return 'Pick a main category.'
+  if (opts.requireSubcategory && input.subcategory_ids.length === 0) return 'Pick at least one sub-category.'
+  if (input.description.trim().length < 30) {
+    return 'Describe the project in the brief — the problem and the outcome you want (at least 30 characters).'
+  }
+  if (!input.country) return 'Pick the country where the work sits.'
+  if (!input.project_type) return 'Pick a project type.'
+  if (!input.project_duration?.trim()) return 'Add a duration or timeline.'
+  if (input.skill_requirements.length === 0) return 'List at least one skill or requirement.'
+  if (!Number.isFinite(input.people_required) || input.people_required < 1) return 'People required must be at least 1.'
+  if (input.budget_min == null || input.budget_max == null) return 'Enter a budget range — both From and To.'
+  if (input.budget_min <= 0 || input.budget_max <= 0) return 'Budget must be greater than zero.'
+  if (input.budget_min > input.budget_max) return 'Budget "From" can\'t be higher than "To".'
+  return null
+}
+
 export async function createPosting(
   employerId: string,
   companyName: string,
   input: PostingInput,
 ): Promise<string> {
+  const problem = validatePostingInput(input)
+  if (problem) throw new Error(problem)
+
   const { subcategory_ids, ...fields } = input
   const { data: cat } = await supabase
     .from('categories')
@@ -242,6 +282,9 @@ export type NeedFilters = {
 export type OpenNeedRow = PostingRow & {
   subcategories: { id: string; name: string }[]
   applied: boolean
+  /** The posting business's verification tier, shown to experts as Basic / Fully verified. */
+  business_basic_verified: boolean
+  business_badge_verified: boolean
 }
 
 export async function fetchOpenNeeds(filters: NeedFilters, candidateId?: string): Promise<OpenNeedRow[]> {
@@ -250,7 +293,7 @@ export async function fetchOpenNeeds(filters: NeedFilters, candidateId?: string)
   // category name / location / job_type columns.
   let q = supabase
     .from('jobs')
-    .select(`${POSTING_COLUMNS}, job_subcategories(subcategories(id,name))`)
+    .select(`${POSTING_COLUMNS}, job_subcategories(subcategories(id,name)), employer:employers(basic_verified,verified_badge_until)`)
     .eq('status', 'active')
     .eq('suspended', false)
     .in('matching_status', ['open', 'matched'])
@@ -283,9 +326,13 @@ export async function fetchOpenNeeds(filters: NeedFilters, candidateId?: string)
   return (data ?? []).map((row) => {
     const r = row as unknown as PostingRow & {
       job_subcategories: { subcategories: { id: string; name: string } | null }[]
+      employer: { basic_verified: boolean; verified_badge_until: string | null } | null
     }
     return {
       ...r,
+      business_basic_verified: !!r.employer?.basic_verified,
+      business_badge_verified:
+        !!r.employer?.verified_badge_until && new Date(r.employer.verified_badge_until) > new Date(),
       subcategories: (r.job_subcategories ?? [])
         .map((s) => s.subcategories)
         .filter((s): s is { id: string; name: string } => !!s),
@@ -383,9 +430,32 @@ export async function releaseContact(jobId: string, candidateIds: string[]): Pro
   const n = Number(data ?? 0)
   if (n > 0) {
     // Automation: emails every newly released expert, alongside the in-app notice.
-    supabase.functions.invoke('notify-interest', { body: { job_id: jobId, candidate_ids: candidateIds } }).catch(() => {})
+    supabase.functions
+      .invoke('notify-interest', { body: { job_id: jobId, candidate_ids: candidateIds } })
+      .then(({ data, error }) => {
+        if (error) console.warn('notify-interest failed', error)
+        else if ((data as { delivered?: number } | null)?.delivered === 0) console.warn('notify-interest: no email delivered', data)
+      })
+      .catch((err) => console.warn('notify-interest failed', err))
   }
   return n
+}
+
+/**
+ * "I'm interested" on an applicant: draws the fixed shortlist if it hasn't been
+ * drawn yet, then releases contact to that expert. The expert is notified (in
+ * app + email) and has 2 days to pay to unlock -- nothing is ever "hired" here.
+ */
+export async function expressInterest(jobId: string, candidateId: string): Promise<'released' | 'already'> {
+  await generateMatches(jobId)
+  const matches = await fetchMatches(jobId)
+  if (!matches.some((m) => m.candidate_id === candidateId)) {
+    throw new Error(
+      'This expert is not on the shortlist of 10 drawn for this posting, so contact can\'t be released to them.',
+    )
+  }
+  const n = await releaseContact(jobId, [candidateId])
+  return n > 0 ? 'released' : 'already'
 }
 
 export async function markNoFurtherMatches(jobId: string): Promise<void> {
@@ -468,6 +538,42 @@ export async function fetchMyLeads(candidateId: string): Promise<LeadRow[]> {
     .order('released_at', { ascending: false })
   if (error) throw error
   return (data ?? []) as unknown as LeadRow[]
+}
+
+/** Leads still inside their 2-day unlock window — what the "warm leads" badge counts. */
+export async function fetchWarmLeadCount(candidateId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('contact_release_details')
+    .select('id', { count: 'exact', head: true })
+    .eq('candidate_id', candidateId)
+    .eq('window_open', true)
+  if (error) throw error
+  return count ?? 0
+}
+
+/** Live warm-lead count for the signed-in expert; refreshes every minute and on focus. */
+export function useWarmLeadCount(candidateId: string | null | undefined): number {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    if (!candidateId) {
+      setCount(0)
+      return
+    }
+    let alive = true
+    const load = () =>
+      fetchWarmLeadCount(candidateId)
+        .then((n) => alive && setCount(n))
+        .catch((err) => console.error('warm lead count', err))
+    void load()
+    const t = setInterval(load, 60_000)
+    window.addEventListener('focus', load)
+    return () => {
+      alive = false
+      clearInterval(t)
+      window.removeEventListener('focus', load)
+    }
+  }, [candidateId])
+  return count
 }
 
 export async function fetchLead(releaseId: string): Promise<LeadRow | null> {
@@ -634,6 +740,21 @@ export async function fetchMyBadges(candidateId: string): Promise<BadgeRow[]> {
   return (data ?? []) as BadgeRow[]
 }
 
+/**
+ * What an Expert must fill in before applying to anything. Returns the missing
+ * items ([] when the profile is complete) — mirrored by a database trigger.
+ */
+export function missingApplyProfile(c: {
+  years_experience?: string | null
+  expertise_field?: string[] | null
+}): string[] {
+  const missing: string[] = []
+  const years = (c.years_experience ?? '').trim()
+  if (!years || years === 'Select...') missing.push('years of experience')
+  if ((c.expertise_field ?? []).length === 0) missing.push('expert categories')
+  return missing
+}
+
 /** Any identity document uploaded for this expert — the badge requires one, but not approval. */
 export async function hasUploadedIdentityDoc(candidateId: string): Promise<boolean> {
   const { data, error } = await supabase
@@ -648,6 +769,19 @@ export async function hasUploadedIdentityDoc(candidateId: string): Promise<boole
 }
 
 /* ---------- Business Verified badge ---------- */
+
+/** Any registration document uploaded for this business — the badge requires one, but not approval. */
+export async function hasUploadedRegistrationDoc(employerId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('verification_documents')
+    .select('id')
+    .eq('owner_kind', 'employer')
+    .eq('owner_id', employerId)
+    .eq('doc_type', 'business_registration')
+    .limit(1)
+  if (error) throw error
+  return (data ?? []).length > 0
+}
 
 export async function fetchMyEmployerBadges(employerId: string): Promise<BadgeRow[]> {
   const { data, error } = await supabase
@@ -969,6 +1103,7 @@ export const BUSINESS_REG_FORMATS: Record<string, { label: string; placeholder: 
   ID: { label: 'NIB', placeholder: '1234567890123', pattern: /^[0-9]{13}$/, hint: '13-digit Nomor Induk Berusaha (OSS)' },
   TH: { label: 'Juristic person ID', placeholder: '0105561012345', pattern: /^[0-9]{13}$/, hint: '13-digit DBD registration number' },
   VN: { label: 'Enterprise code', placeholder: '0312345678', pattern: /^[0-9]{10}(-[0-9]{3})?$/, hint: '10-digit Mã số doanh nghiệp (tax code)' },
+  PH: { label: 'SEC / DTI registration no.', placeholder: 'CS201912345', pattern: /^[A-Z0-9][A-Z0-9-]{5,15}$/i, hint: 'SEC registration number (e.g. CS201912345) or DTI business name number' },
 }
 
 export function validateBusinessRegNo(country: string, value: string): string | null {

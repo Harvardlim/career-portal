@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { useDisplayUser } from '@/lib/useDisplayUser'
+import { useWarmLeadCount } from '@/lib/partly'
 import {
   BriefcaseIcon,
   CircleCheckIcon,
@@ -27,6 +28,7 @@ const nav = [
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, loading } = useDisplayUser()
+  const warm = useWarmLeadCount(user?.role === 'candidate' ? user.profileId : null)
 
   // Expert-only area — send businesses to their own dashboard.
   if (!loading && user?.role === 'employer') {
@@ -34,7 +36,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <DashboardShell heading="Expert Dashboard" nav={nav}>
+    <DashboardShell
+      heading="Expert Dashboard"
+      nav={nav.map((item) => (item.to === '/dashboard/leads' && warm > 0 ? { ...item, badge: String(warm) } : item))}
+    >
       {children}
     </DashboardShell>
   )

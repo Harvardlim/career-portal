@@ -6,7 +6,7 @@ import { CtaButton, Eyebrow, GoldCircle, Headline, Section, Steps } from '@/comp
 import { errMessage } from '@/lib/errors'
 import { fetchMyAffiliate, joinAffiliate, referralLink, type AffiliateRow } from '@/lib/affiliate'
 import { useT } from '@/lib/i18n'
-import { COUNTRY_NAMES, formatLocal, usePricing } from '@/lib/partly'
+import { COUNTRY_NAMES, formatLocal, formatUsd, usePricing } from '@/lib/partly'
 import { useDisplayUser } from '@/lib/useDisplayUser'
 import { useSession } from '@/lib/useSession'
 
@@ -127,6 +127,9 @@ export function AffiliatePage() {
                       <td className="py-2 text-ink-600">
                         {formatLocal(p, c.key === 'badge' ? p.badge_fee_local : p.lead_fee_local)}
                         {c.key === 'badge' ? ' / yr' : ''}
+                        <span className="ml-1 text-xs text-muted">
+                          · {formatUsd(c.key === 'badge' ? p.badge_fee_usd : p.lead_fee_usd)}
+                        </span>
                       </td>
                       <td className="py-2 font-semibold text-navy">
                         {formatLocal(p, c.key === 'badge' ? p.affiliate_badge_local : p.affiliate_lead_local)}

@@ -30,7 +30,7 @@ import {
   isCreditPackageKey,
   isMembershipPlanKey,
 } from '../_shared/catalog.ts'
-import { formatLocal, isPayCurrency, loadPricing, stripeLineAmount } from '../_shared/partly.ts'
+import { bothCurrencies, isPayCurrency, loadPricing, stripeLineAmount } from '../_shared/partly.ts'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { httpClient: Stripe.createFetchHttpClient() })
 
@@ -334,10 +334,9 @@ async function checkoutLeadUnlock(
           unit_amount: line.unit_amount,
           product_data: {
             name: `Unlock contact — ${job?.title ?? 'released lead'}`,
-            description:
-              pay === 'usd'
-                ? `partly.asia released-lead fee (USD, forex absorbed) — ${formatLocal(price, line.amount_local)} in ${price.currency}`
-                : `partly.asia released-lead fee — fixed ${price.name} price`,
+            description: `partly.asia released-lead fee — ${bothCurrencies(price, line.amount_local, line.amount_usd)}${
+              pay === 'usd' ? ' (paid in USD, forex absorbed)' : ` (paid in ${price.currency}, fixed ${price.name} price)`
+            }`,
           },
         },
       },
@@ -444,11 +443,10 @@ async function checkoutVerifiedBadge(
           currency: line.currency,
           unit_amount: line.unit_amount,
           product_data: {
-            name: current ? 'Verified badge — annual renewal' : 'Verified badge — 1 year',
-            description:
-              pay === 'usd'
-                ? `partly.asia Verified credential badge (USD, forex absorbed) — ${formatLocal(price, line.amount_local)} in ${price.currency}`
-                : `partly.asia Verified credential badge — fixed ${price.name} price`,
+            name: current ? 'Fully verified badge — annual renewal' : 'Fully verified badge — 1 year',
+            description: `partly.asia Fully verified credential badge — ${bothCurrencies(price, line.amount_local, line.amount_usd)}${
+              pay === 'usd' ? ' (paid in USD, forex absorbed)' : ` (paid in ${price.currency}, fixed ${price.name} price)`
+            }`,
           },
         },
       },
@@ -473,9 +471,10 @@ async function checkoutVerifiedBadge(
 }
 
 /**
- * A business's own Verified badge -- same fixed fee as the Expert badge.
- * Gated on the business's registration document already being approved
- * (their identity check, equivalent to an Expert's ID document).
+ * A business's own Fully verified badge -- same fixed fee as the Expert badge.
+ * Gated on a registration document having been uploaded (equivalent to an
+ * Expert's ID document); payment comes first and the badge activates once an
+ * admin approves that document.
  */
 async function checkoutEmployerVerifiedBadge(
   body: Record<string, unknown>,
@@ -487,13 +486,22 @@ async function checkoutEmployerVerifiedBadge(
 
   const { data: employer } = await admin
     .from('employers')
-    .select('id, country_code, registration_verified, company_name')
+    .select('id, country_code, company_name')
     .eq('user_id', userId)
     .maybeSingle()
   if (!employer) return json({ error: 'No business profile for this account' }, 400)
-  if (!employer.registration_verified) {
+
+  const { data: regDoc } = await admin
+    .from('verification_documents')
+    .select('id')
+    .eq('owner_kind', 'employer')
+    .eq('owner_id', employer.id)
+    .eq('doc_type', 'business_registration')
+    .limit(1)
+    .maybeSingle()
+  if (!regDoc) {
     return json(
-      { error: 'Your business registration document must be approved before buying the Verified badge.' },
+      { error: 'Upload your business registration document from the Verification page before buying the badge.' },
       400,
     )
   }
@@ -540,11 +548,10 @@ async function checkoutEmployerVerifiedBadge(
           currency: line.currency,
           unit_amount: line.unit_amount,
           product_data: {
-            name: current ? 'Business Verified badge — annual renewal' : 'Business Verified badge — 1 year',
-            description:
-              pay === 'usd'
-                ? `partly.asia Verified business badge (USD, forex absorbed) — ${formatLocal(price, line.amount_local)} in ${price.currency}`
-                : `partly.asia Verified business badge — fixed ${price.name} price`,
+            name: current ? 'Fully verified business badge — annual renewal' : 'Fully verified business badge — 1 year',
+            description: `partly.asia Fully verified business badge — ${bothCurrencies(price, line.amount_local, line.amount_usd)}${
+              pay === 'usd' ? ' (paid in USD, forex absorbed)' : ` (paid in ${price.currency}, fixed ${price.name} price)`
+            }`,
           },
         },
       },

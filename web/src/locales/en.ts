@@ -90,26 +90,26 @@ export const en = {
   'pay.table.title': 'Fixed fees by country',
   'pay.table.country': 'Country',
   'pay.table.lead': 'Per released lead',
-  'pay.table.badge': 'Verified badge / year',
+  'pay.table.badge': 'Fully verified badge / year',
   'pay.table.note':
     'Local prices are fixed per market and charged exactly as shown. The USD figure is an alternative you can choose at checkout — forex exchange absorbed.',
   'pay.detect': 'Showing prices for {country}. Not right?',
-  'pay.badge.note': 'The Verified badge is optional. It adds a credential-level check and priority in match ranking.',
+  'pay.badge.note': 'The Fully verified badge is optional. It adds a credential-level check and priority in match ranking — and attracts more interested leads.',
 
   // Trust & verification
   'trust.headline': 'Verified on both sides. Every time.',
   'trust.business.title': 'How we verify businesses',
   'trust.business.body':
-    'Every business on partly.asia registers with a valid business registration number, confirmed before any project can be posted.',
+    'Every business registers with a valid business registration number and starts as Basic verified. Businesses that activate the paid badge and have their registration document reviewed by hand become Fully verified — a mark that attracts better experts.',
   'trust.business.point1': 'Registration number, validated per country',
-  'trust.business.point2': 'Registration document reviewed by our team',
+  'trust.business.point2': 'Fully verified: registration document reviewed by our team',
   'trust.business.point3': 'Website and public footprint checked',
   'trust.expert.title': 'How we verify experts',
   'trust.expert.body':
-    'Every expert verifies their identity before applying to any project. Optional credential verification is available for experts who want an extra trust signal.',
+    'Every expert verifies their identity (Basic verified) before applying to any project. Optional Fully verified credential checks are available for experts who want an extra trust signal.',
   'trust.expert.point1': 'Local ID check — digits are encrypted and never displayed',
-  'trust.expert.point2': 'ID document reviewed by our team',
-  'trust.expert.point3': 'Optional annual Verified badge for credential-level checks',
+  'trust.expert.point2': 'Fully verified: ID document reviewed by our team',
+  'trust.expert.point3': 'Optional annual Fully verified badge for credential-level checks',
   'faq.title': 'Questions we hear most',
   'faq.q1': 'What if my lead goes cold?',
   'faq.a1': 'You’re notified immediately, and you’re never charged for a lead you didn’t unlock.',

@@ -6,13 +6,16 @@ import { Field, TextInput } from '@/components/dashboard/form'
 import { SelectMenu } from '@/components/app/SelectMenu'
 import { PaymentConfirmingOverlay } from '@/components/app/PaymentConfirmingOverlay'
 import { VerificationDocs } from '@/components/partly/VerificationDocs'
-import { Card, Notice, Pill, PrimaryButton, SecondaryButton, VerifiedChips } from '@/components/partly/ui'
+import { Card, FullyVerifiedBubble, Notice, Pill, PrimaryButton, SecondaryButton, VerifiedChips } from '@/components/partly/ui'
 import { updateMyEmployer, useEmployer } from '@/lib/employers'
 import {
   COUNTRY_NAMES,
   fetchMyEmployerBadges,
+  formatBoth,
   formatLocal,
+  formatPaid,
   formatUsd,
+  hasUploadedRegistrationDoc,
   startEmployerBadgeCheckout,
   usePricing,
   validateBusinessRegNo,
@@ -30,6 +33,7 @@ export function EmployerVerificationPage() {
   const [country, setCountry] = useState('SG')
   const [saving, setSaving] = useState(false)
   const [badges, setBadges] = useState<BadgeRow[]>([])
+  const [hasDoc, setHasDoc] = useState(false)
   const [pay, setPay] = useState<PayCurrency>('local')
   const [buying, setBuying] = useState(false)
   const [confirming, setConfirming] = useState(false)
@@ -39,6 +43,7 @@ export function EmployerVerificationPage() {
       setRegNo(employer.reg_no ?? '')
       setCountry(employer.country_code ?? 'SG')
       fetchMyEmployerBadges(employer.id).then(setBadges).catch((err) => console.error('employer badges', err))
+      hasUploadedRegistrationDoc(employer.id).then(setHasDoc).catch(() => setHasDoc(false))
     }
   }, [employer])
 
@@ -54,7 +59,7 @@ export function EmployerVerificationPage() {
       setConfirming(true)
       confirmCheckout(sessionId)
         .then(async (ok) => {
-          if (ok) toast.success('Your business Verified badge is active.')
+          if (ok) toast.success('Payment confirmed — your badge status is on your dashboard.', { action: { label: 'View dashboard', onClick: () => navigate('/employer/dashboard') } })
           await reload()
           if (employer) await fetchMyEmployerBadges(employer.id).then(setBadges).catch(() => {})
         })
@@ -90,6 +95,7 @@ export function EmployerVerificationPage() {
 
   const price = pricing.find((p) => p.code === (employer?.country_code ?? country))
   const badgeLive = !!employer?.verified_badge_until && new Date(employer.verified_badge_until) > new Date()
+  const awaitingReview = badges.some((b) => b.status === 'awaiting_review')
 
   return (
     <EmployerDashboardLayout>
@@ -98,22 +104,29 @@ export function EmployerVerificationPage() {
         <div>
           <h1 className="text-xl font-semibold text-ink">Business verification</h1>
           <p className="mt-1 text-sm text-muted">
-            Every business on partly.asia registers with a valid business registration number, confirmed
-            before any project can be posted. You can be based anywhere in the world.
+            <strong>Basic verified</strong> is free — your registration number from sign-up is all it takes to post.
+            <strong> Fully verified</strong> is the paid annual badge: our team checks your registration document by
+            hand and your profile carries the Fully verified mark. You can be based anywhere in the world.
           </p>
         </div>
 
         {!loading && employer && (
-          <Notice tone={employer.registration_verified ? 'success' : 'brand'}>
+          <Notice tone={badgeLive ? 'success' : 'brand'}>
             <span className="flex flex-wrap items-center gap-2">
-              {employer.registration_verified ? 'Your business is verified.' : 'Verification pending — upload your registration document below.'}
-              <VerifiedChips registration={employer.registration_verified} />
+              {badgeLive
+                ? 'Your business is Fully verified.'
+                : awaitingReview
+                  ? 'Payment received — your Fully verified badge activates once your registration document is approved.'
+                  : employer.basic_verified
+                    ? 'Your business is Basic verified. Upload your registration document and activate the badge to become Fully verified.'
+                    : 'Add your registration number below to become Basic verified.'}
+              <VerifiedChips identity={employer.basic_verified} badge={badgeLive} />
             </span>
           </Notice>
         )}
 
         <Card className="flex flex-col gap-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Registration details</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">1 · Basic verification (free)</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Country of registration">
               <SelectMenu
@@ -133,31 +146,48 @@ export function EmployerVerificationPage() {
         </Card>
 
         {employer && session && (
-          <Card>
+          <Card className="flex flex-col gap-3">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">2 · Registration document (for Fully verified)</h2>
             <VerificationDocs
               userId={session.user.id}
               ownerKind="employer"
               ownerId={employer.id}
               docType="business_registration"
               hint="A copy of your business registration certificate or company profile (PDF or image)."
-              onChange={reload}
+              onChange={() => {
+                void reload()
+                if (employer) hasUploadedRegistrationDoc(employer.id).then(setHasDoc)
+              }}
             />
           </Card>
         )}
 
         <Card className="flex flex-col gap-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Business Verified badge (annual, optional)</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">3 · Fully verified badge (annual, paid)</h2>
             {badgeLive && employer?.verified_badge_until && (
               <Pill tone="brand">Active until {new Date(employer.verified_badge_until).toLocaleDateString()}</Pill>
             )}
           </div>
           <p className="text-sm text-muted">
-            Same fixed fee as the Expert badge. It requires your registration document to already be approved above —
-            that approval is your business's identity check, the same way an Expert's ID document works.
+            Same fixed fee as the Expert badge. Pay now and the badge switches on as soon as our team approves your
+            registration document — that approval is your business's identity check, the same way an Expert's ID
+            document works.
           </p>
-          {!employer?.registration_verified && (
-            <Notice tone="warning">Your registration document must be approved before buying this badge.</Notice>
+          <FullyVerifiedBubble audience="business" />
+          {badgeLive ? (
+            <Notice tone="success">Your Fully verified badge is active and shows on your dashboard and postings.</Notice>
+          ) : awaitingReview ? (
+            <Notice tone="warning">
+              Payment received — your badge activates automatically once our team approves your registration document.
+            </Notice>
+          ) : (
+            !hasDoc && <Notice tone="warning">Upload your registration document above before buying the badge.</Notice>
+          )}
+          {price && (
+            <p className="text-sm font-medium text-ink">
+              Annual fee: {formatBoth(price, price.badge_fee_local, price.badge_fee_usd)}
+            </p>
           )}
           {price ? (
             <div className="grid gap-3 sm:grid-cols-2">
@@ -189,12 +219,12 @@ export function EmployerVerificationPage() {
           )}
           <div className="flex items-center gap-3">
             {badgeLive ? (
-              <SecondaryButton onClick={buyBadge} disabled={buying || !price}>
+              <SecondaryButton onClick={buyBadge} disabled={buying || !price || !hasDoc}>
                 {buying ? 'Redirecting…' : 'Renew for another year'}
               </SecondaryButton>
             ) : (
-              <PrimaryButton onClick={buyBadge} disabled={buying || !price || !employer?.registration_verified}>
-                {buying ? 'Redirecting…' : 'Get the Verified badge'}
+              <PrimaryButton onClick={buyBadge} disabled={buying || !price || !hasDoc || awaitingReview}>
+                {buying ? 'Redirecting…' : awaitingReview ? 'Payment received' : 'Get Fully verified'}
               </PrimaryButton>
             )}
           </div>
@@ -205,11 +235,11 @@ export function EmployerVerificationPage() {
                 {badges.map((b) => (
                   <li key={b.id} className="flex items-center justify-between">
                     <span className="text-ink">
-                      {b.renewed_from ? 'Renewal' : 'Purchase'} · {b.currency} {b.amount_local.toLocaleString()}
+                      {b.renewed_from ? 'Renewal' : 'Purchase'} · {formatPaid(pricing.find((p) => p.code === b.country_code), b)}
                       {b.purchased_at ? ` · ${new Date(b.purchased_at).toLocaleDateString()}` : ''}
                     </span>
-                    <Pill tone={b.status === 'active' ? 'success' : 'neutral'}>
-                      {b.status}
+                    <Pill tone={b.status === 'active' ? 'success' : b.status === 'awaiting_review' ? 'warning' : 'neutral'}>
+                      {b.status === 'awaiting_review' ? 'Paid — awaiting document review' : b.status}
                       {b.expires_at && b.status === 'active' ? ` · until ${new Date(b.expires_at).toLocaleDateString()}` : ''}
                     </Pill>
                   </li>

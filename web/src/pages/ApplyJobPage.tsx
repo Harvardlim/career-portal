@@ -14,6 +14,7 @@ import {
   type ResumeRow,
 } from '@/lib/candidateProfile'
 import { useCandidate } from '@/lib/dashboard'
+import { missingApplyProfile } from '@/lib/partly'
 
 export function ApplyJobPage() {
   const [params] = useSearchParams()
@@ -98,6 +99,12 @@ export function ApplyJobPage() {
       return
     }
     if (!job) return
+    const missing = missingApplyProfile(candidate)
+    if (missing.length > 0) {
+      toast.error(`Complete your profile before applying: add your ${missing.join(' and ')}.`)
+      navigate('/dashboard/expert-profile')
+      return
+    }
     if (!resumeId) {
       toast.error('Choose or upload a resume to apply.')
       return

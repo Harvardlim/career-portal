@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
     emailShell(
       'You have a new applicant',
       `<p><b>${candidate?.full_name ?? 'An expert'}</b> just applied to <b>${job.title ?? 'your posting'}</b>.</p>
-       <p>Review your matches and release contact to the ones you'd like to hear from — you only pay them nothing; they pay a small fixed fee once you release contact.</p>`,
+       <p>Review your matches and tell the ones you like that you're interested. It costs you nothing — an expert pays a small fixed fee to unlock your contact once you do.</p>`,
       `${SITE_URL}/employer/postings/${application.job_id}/matches`,
       'Review matches',
     ),

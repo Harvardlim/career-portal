@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { EmployerDashboardLayout } from '@/components/dashboard/EmployerDashboardLayout'
 import { MoreIcon } from '@/components/icons'
+import { Pill, VerifiedChips } from '@/components/partly/ui'
 import { errMessage } from '@/lib/errors'
 import { initialsFromName } from '@/lib/name'
 import {
@@ -17,8 +18,18 @@ const COLUMNS: { key: ApplicationStatus; label: string }[] = [
   { key: 'active', label: 'New Applications' },
   { key: 'shortlisted', label: 'Shortlisted' },
   { key: 'rejected', label: 'Rejected' },
-  { key: 'hired', label: 'Hired' },
+  { key: 'interested', label: 'Interested' },
 ]
+
+/** Cards reach "Interested" only by releasing contact, so it is never a manual move target. */
+const MOVE_TARGETS = COLUMNS.filter((c) => c.key !== 'interested')
+
+const RELEASE_LABEL: Record<string, { text: string; tone: 'warning' | 'success' | 'neutral' }> = {
+  awaiting_payment: { text: 'Awaiting unlock', tone: 'warning' },
+  paid: { text: 'Unlocked', tone: 'success' },
+  cold: { text: 'Went cold', tone: 'neutral' },
+  job_closed: { text: 'Job closed', tone: 'neutral' },
+}
 
 export function JobApplicationsPage() {
   const { employer, loading: employerLoading } = useEmployer()
@@ -31,7 +42,7 @@ export function JobApplicationsPage() {
   const load = useCallback(() => {
     if (!employer) return
     setLoading(true)
-    fetchApplications(employer.id)
+    fetchApplications()
       .then(setRows)
       .catch((err) => console.error('applications', err))
       .finally(() => setLoading(false))
@@ -51,6 +62,7 @@ export function JobApplicationsPage() {
   )
 
   async function move(row: ApplicationRow, status: ApplicationStatus) {
+    if (row.status === 'interested' || status === 'interested') return
     setOpenMenu(null)
     setRows((prev) =>
       prev.map((r) => (r.id === row.id ? { ...r, status } : r)),
@@ -113,12 +125,14 @@ export function JobApplicationsPage() {
                               {row.candidate?.full_name ?? 'Unknown'}
                             </span>
                             <span className="text-xs text-muted">
-                              {row.candidate?.title ||
+                              {row.candidate?.headline ||
+                                row.candidate?.title ||
                                 row.candidate?.expertise_field?.[0] ||
                                 '—'}
                             </span>
                           </div>
                         </div>
+                        {row.status !== 'interested' && (
                         <div className="relative">
                           <button
                             type="button"
@@ -132,7 +146,7 @@ export function JobApplicationsPage() {
                           </button>
                           {openMenu === row.id && (
                             <div className="absolute right-0 top-9 z-10 w-40 rounded-lg border border-line bg-surface py-1 text-sm shadow-lg">
-                              {COLUMNS.filter((c) => c.key !== row.status).map(
+                              {MOVE_TARGETS.filter((c) => c.key !== row.status).map(
                                 (c) => (
                                   <button
                                     key={c.key}
@@ -147,7 +161,16 @@ export function JobApplicationsPage() {
                             </div>
                           )}
                         </div>
+                        )}
                       </div>
+                      {row.candidate && (
+                        <VerifiedChips identity={row.candidate.identity_verified} badge={row.candidate.badge_verified} />
+                      )}
+                      {row.status === 'interested' && row.release_status && (
+                        <Pill tone={RELEASE_LABEL[row.release_status]?.tone ?? 'neutral'}>
+                          {RELEASE_LABEL[row.release_status]?.text ?? row.release_status}
+                        </Pill>
+                      )}
                       <div className="flex items-center justify-between text-xs text-muted">
                         <span>{row.candidate?.education || '—'}</span>
                         <span>

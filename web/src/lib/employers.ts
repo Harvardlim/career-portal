@@ -29,13 +29,14 @@ export type EmployerRow = {
   phone: string | null
   founded: string | null
   country_code: string | null
+  basic_verified: boolean
   registration_verified: boolean
   registration_verified_at: string | null
   verified_badge_until: string | null
 }
 
 const EMPLOYER_COLS =
-  'id, company_name, reg_no, field, looking_for, business_email, business_details, logo_url, about, website, industry, size, location, phone, founded, country_code, registration_verified, registration_verified_at, verified_badge_until'
+  'id, company_name, reg_no, field, looking_for, business_email, business_details, logo_url, about, website, industry, size, location, phone, founded, country_code, basic_verified, registration_verified, registration_verified_at, verified_badge_until'
 
 export async function fetchMyEmployer(userId: string): Promise<EmployerRow | null> {
   const { data, error } = await supabase
@@ -340,67 +341,121 @@ export async function fetchHrInvites(
 
 /* ---------- Applications ---------- */
 
-export type ApplicationStatus = 'active' | 'shortlisted' | 'rejected' | 'hired'
+/** 'interested' means the business released contact (see release_contact); it is never set by hand. */
+export type ApplicationStatus = 'active' | 'shortlisted' | 'rejected' | 'interested'
 
+/** What a business may see of an applicant: the whole profile EXCEPT contact details. */
 export type ApplicationRow = {
   id: string
   status: ApplicationStatus
   applied_at: string
   cover_letter: string | null
+  release_status: 'awaiting_payment' | 'paid' | 'cold' | 'job_closed' | null
   job: { id: string; title: string } | null
-  resume: { id: string; file_name: string; storage_path: string } | null
   candidate: {
     id: string
     full_name: string
-    email: string | null
-    contact_number: string | null
+    headline: string | null
     title: string | null
+    avatar_path: string | null
+    biography: string | null
+    past_experience: string | null
     years_experience: string | null
     education: string | null
+    nationality: string | null
     expertise_field: string[] | null
+    subcategories: string[]
+    country_code: string | null
+    portfolio_links: { label: string; url: string }[] | null
+    public_slug: string | null
+    identity_verified: boolean
+    badge_verified: boolean
+    rating_count: number
+    avg_stars: number | null
   } | null
 }
 
-/** Short-lived signed URL for a resume in the private `resumes` bucket. */
-export async function resumeSignedUrl(storagePath: string): Promise<string> {
-  const { data, error } = await supabase.storage
-    .from('resumes')
-    .createSignedUrl(storagePath, 60 * 5)
-  if (error) throw error
-  return data.signedUrl
+type ApplicantProfileRow = {
+  application_id: string
+  job_id: string
+  job_title: string
+  status: ApplicationStatus
+  applied_at: string
+  cover_letter: string | null
+  release_status: ApplicationRow['release_status']
+  candidate_id: string
+  full_name: string
+  headline: string | null
+  title: string | null
+  avatar_path: string | null
+  biography: string | null
+  past_experience: string | null
+  years_experience: string | null
+  education: string | null
+  nationality: string | null
+  expertise_field: string[] | null
+  subcategories: string[] | null
+  country_code: string | null
+  portfolio_links: { label: string; url: string }[] | null
+  public_slug: string | null
+  identity_verified: boolean
+  badge_verified: boolean | null
+  rating_count: number
+  avg_stars: number | null
 }
 
-export async function fetchApplications(
-  employerId: string,
-): Promise<ApplicationRow[]> {
-  const jobIds =
-    (await supabase.from('jobs').select('id').eq('employer_id', employerId)).data?.map(
-      (j) => j.id as string,
-    ) ?? []
-  if (jobIds.length === 0) return []
+function toApplicationRow(r: ApplicantProfileRow): ApplicationRow {
+  return {
+    id: r.application_id,
+    status: r.status,
+    applied_at: r.applied_at,
+    cover_letter: r.cover_letter,
+    release_status: r.release_status,
+    job: { id: r.job_id, title: r.job_title },
+    candidate: {
+      id: r.candidate_id,
+      full_name: r.full_name,
+      headline: r.headline,
+      title: r.title,
+      avatar_path: r.avatar_path,
+      biography: r.biography,
+      past_experience: r.past_experience,
+      years_experience: r.years_experience,
+      education: r.education,
+      nationality: r.nationality,
+      expertise_field: r.expertise_field,
+      subcategories: r.subcategories ?? [],
+      country_code: r.country_code,
+      portfolio_links: r.portfolio_links,
+      public_slug: r.public_slug,
+      identity_verified: r.identity_verified,
+      badge_verified: !!r.badge_verified,
+      rating_count: Number(r.rating_count ?? 0),
+      avg_stars: r.avg_stars == null ? null : Number(r.avg_stars),
+    },
+  }
+}
+
+/** Every applicant to the signed-in business's postings (the view scopes itself to the caller). */
+export async function fetchApplications(): Promise<ApplicationRow[]> {
   const { data, error } = await supabase
-    .from('job_applications')
-    .select(
-      'id, status, applied_at, cover_letter, job:jobs(id,title), resume:candidate_resumes(id,file_name,storage_path), candidate:candidates(id,full_name,email,contact_number,title,years_experience,education,expertise_field)',
-    )
-    .in('job_id', jobIds)
+    .from('applicant_profiles')
+    .select('*')
     .order('applied_at', { ascending: false })
   if (error) throw error
-  return (data ?? []) as unknown as ApplicationRow[]
+  return ((data ?? []) as ApplicantProfileRow[]).map(toApplicationRow)
 }
 
 export async function fetchApplicationById(
   id: string,
 ): Promise<ApplicationRow | null> {
   const { data, error } = await supabase
-    .from('job_applications')
-    .select(
-      'id, status, applied_at, cover_letter, job:jobs(id,title), resume:candidate_resumes(id,file_name,storage_path), candidate:candidates(id,full_name,email,contact_number,title,years_experience,education,expertise_field)',
-    )
-    .eq('id', id)
+    .from('applicant_profiles')
+    .select('*')
+    .eq('application_id', id)
     .maybeSingle()
   if (error) throw error
-  return (data as unknown as ApplicationRow) ?? null
+  return data ? toApplicationRow(data as ApplicantProfileRow) : null
 }
 
 export async function updateApplicationStatus(
@@ -425,7 +480,6 @@ export type SavedCandidateRow = {
   candidate: {
     id: string
     full_name: string
-    email: string | null
     title: string | null
     years_experience: string | null
     expertise_field: string[] | null
@@ -438,7 +492,7 @@ export async function fetchSavedCandidates(
   const { data, error } = await supabase
     .from('saved_candidates')
     .select(
-      'id, created_at, candidate:candidates(id,full_name,email,title,years_experience,expertise_field)',
+      'id, created_at, candidate:candidates(id,full_name,title,years_experience,expertise_field)',
     )
     .eq('employer_id', employerId)
     .order('created_at', { ascending: false })
