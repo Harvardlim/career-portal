@@ -4,6 +4,7 @@ import { Avatar, Card, EmptyState, Pill, PrimaryButton, StarRating, VerifiedChip
 import { ReportButton } from '@/components/partly/ReportButton'
 import { countryName, fetchRatingsFor, type RatingWithAuthor } from '@/lib/partly'
 import { supabase } from '@/lib/supabase'
+import { useSeo } from '@/lib/seo'
 
 type PublicProfile = {
   candidate_id: string
@@ -31,6 +32,15 @@ export function ExpertProfilePage() {
   const [profile, setProfile] = useState<PublicProfile | null>(null)
   const [reviews, setReviews] = useState<RatingWithAuthor[]>([])
   const [loading, setLoading] = useState(true)
+
+  useSeo({
+    title: profile ? `${profile.full_name} — ${profile.headline ?? profile.title ?? 'Expert on partly.asia'}` : 'Expert profile',
+    description: profile
+      ? `${profile.full_name}${profile.business_name ? ` (${profile.business_name})` : ''} — ${(profile.expertise_field ?? []).join(', ') || 'verified expert'} based in ${countryName(profile.country_code)}. Hire through partly.asia.`
+      : undefined,
+    type: 'profile',
+    image: profile?.avatar_path ?? undefined,
+  })
 
   useEffect(() => {
     let alive = true

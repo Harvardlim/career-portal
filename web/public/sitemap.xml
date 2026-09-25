@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://trial.partly.asia/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://trial.partly.asia/for-businesses</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://trial.partly.asia/for-experts</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://trial.partly.asia/categories</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://trial.partly.asia/how-it-works</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://trial.partly.asia/trust</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://trial.partly.asia/needs</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://trial.partly.asia/affiliate</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://trial.partly.asia/about</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://trial.partly.asia/faq</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://trial.partly.asia/contact</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://trial.partly.asia/create-account</loc><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://trial.partly.asia/terms</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://trial.partly.asia/privacy</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
+</urlset>

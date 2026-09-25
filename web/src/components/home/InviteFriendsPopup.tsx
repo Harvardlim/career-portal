@@ -57,13 +57,8 @@ export function InviteFriendsPopup() {
       toast.success('Invite message copied — paste it to your friends.')
       close()
     } catch {
-      toast.error('Could not copy. Use the WhatsApp or LinkedIn buttons instead.')
+      toast.error('Could not copy the invite. Please share the link by hand: ' + SITE_URL)
     }
-  }
-
-  const share = (url: string) => {
-    window.open(url, '_blank', 'noopener')
-    close()
   }
 
   return (
@@ -111,30 +106,6 @@ export function InviteFriendsPopup() {
         >
           <ShareIcon className="size-5" /> Invite Now
         </button>
-
-        <div className="mt-3 flex justify-center gap-4 text-sm">
-          <button
-            type="button"
-            onClick={() => share(`https://wa.me/?text=${encodeURIComponent(MESSAGE)}`)}
-            className="font-medium text-brand hover:underline"
-          >
-            WhatsApp
-          </button>
-          <button
-            type="button"
-            onClick={() => share(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(SITE_URL)}`)}
-            className="font-medium text-brand hover:underline"
-          >
-            LinkedIn
-          </button>
-          <button
-            type="button"
-            onClick={() => share(`mailto:?subject=${encodeURIComponent('Have a look at partly.asia')}&body=${encodeURIComponent(MESSAGE)}`)}
-            className="font-medium text-brand hover:underline"
-          >
-            Email
-          </button>
-        </div>
 
         <p className="mt-5 text-xs text-muted">
           <Link to="/affiliate" onClick={close} className="underline hover:text-ink">

@@ -3,7 +3,13 @@
     {
       "name": "Default",
       "files": [
-        "web/index.html"
+        "web/index.html",
+        "web/public/apple-touch-icon.png",
+        "web/public/favicon.ico",
+        "web/public/favicon.png",
+        "web/public/apple-touch-icon-1.png",
+        "web/public/favicon-1.ico",
+        "web/public/favicon-1.png"
       ]
     }
   ],

@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <!-- ?v= busts the browser's favicon cache (Safari especially keeps the old icon otherwise). Bump it when the icon changes. -->
-    <link rel="icon" href="/favicon.ico?v=20260926" sizes="any" />
-    <link rel="icon" type="image/png" sizes="256x256" href="/favicon.png?v=20260926" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=20260926" />
+    <link rel="icon" href="/favicon-1.ico?v=20260926" sizes="any" />
+    <link rel="icon" type="image/png" sizes="256x256" href="/favicon-1.png?v=20260926" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-1.png?v=20260926" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,6 +18,53 @@
       name="description"
       content="partly.asia matches businesses with verified fractional experts across Southeast Asia — post free, pay only when a business shows real interest."
     />
+    <!-- Site-wide defaults; src/lib/seo.ts rewrites these per route (title, description, canonical, robots, social preview). -->
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#1b2a4a" />
+    <link rel="canonical" href="https://trial.partly.asia/" />
+    <meta property="og:site_name" content="partly.asia" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="partly.asia — Verified experts, matched to real business needs" />
+    <meta
+      property="og:description"
+      content="partly.asia matches businesses with verified fractional experts across Southeast Asia — post free, pay only when a business shows real interest."
+    />
+    <meta property="og:url" content="https://trial.partly.asia/" />
+    <meta property="og:image" content="https://trial.partly.asia/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_SG" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="partly.asia — Verified experts, matched to real business needs" />
+    <meta
+      name="twitter:description"
+      content="partly.asia matches businesses with verified fractional experts across Southeast Asia — post free, pay only when a business shows real interest."
+    />
+    <meta name="twitter:image" content="https://trial.partly.asia/og-image.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://trial.partly.asia/#organization",
+            "name": "partly.asia",
+            "url": "https://trial.partly.asia/",
+            "logo": "https://trial.partly.asia/logo.png",
+            "description": "A verified marketplace matching businesses with fractional experts across Southeast Asia.",
+            "areaServed": ["SG", "MY", "ID", "TH", "VN", "PH"]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://trial.partly.asia/#website",
+            "url": "https://trial.partly.asia/",
+            "name": "partly.asia",
+            "publisher": { "@id": "https://trial.partly.asia/#organization" },
+            "inLanguage": "en"
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

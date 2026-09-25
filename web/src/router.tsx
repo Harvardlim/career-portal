@@ -1,4 +1,5 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
+import { RouteSeo } from './components/app/RouteSeo'
 import { SiteLayout } from './layouts/SiteLayout'
 import { HomePage } from './pages/HomePage'
 import { CreateAccountPage } from './pages/auth/CreateAccountPage'
@@ -66,7 +67,20 @@ import { MyPostingsPage } from './pages/employer/MyPostingsPage'
 import { PostingMatchesPage } from './pages/employer/PostingMatchesPage'
 import { EmployerVerificationPage } from './pages/employer/EmployerVerificationPage'
 
+/** Wraps every route: per-page <head> metadata, then the matched page. */
+function Root() {
+  return (
+    <>
+      <RouteSeo />
+      <Outlet />
+    </>
+  )
+}
+
 export const router = createBrowserRouter([
+  {
+    element: <Root />,
+    children: [
   {
     element: <SiteLayout />,
     children: [
@@ -148,4 +162,6 @@ export const router = createBrowserRouter([
   { path: '/employer/billing', element: <PlansBillingPage /> },
   { path: '/employer/affiliate', element: <EmployerAffiliatePage /> },
   { path: '/employer/settings', element: <EmployerSettingsPage /> },
+    ],
+  },
 ])

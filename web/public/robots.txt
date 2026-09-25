@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+# Private, per-account screens — nothing here is useful in search results.
+Disallow: /dashboard
+Disallow: /employer/
+Disallow: /company/
+Disallow: /candidate/
+Disallow: /sign-in
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /email-verification
+Disallow: /apply-job
+Disallow: /send-email
+
+Sitemap: https://trial.partly.asia/sitemap.xml
