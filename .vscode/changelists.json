@@ -3,19 +3,7 @@
     {
       "name": "Default",
       "files": [
-        "web/src/pages/dashboard/VerificationPage.tsx",
-        ".vscode/changelists.json",
-        "backoffice/src/components/Sidebar.tsx",
-        "backoffice/src/lib/partly.ts",
-        "backoffice/src/lib/registrations.ts",
-        "backoffice/src/pages/UserDetailPage.tsx",
-        "backoffice/src/pages/UsersPage.tsx",
-        "web/src/pages/dashboard/HireMePage.tsx",
-        "web/src/pages/dashboard/LeadUnlockPage.tsx",
-        "web/src/pages/employer/EmployerVerificationPage.tsx",
-        "web/src/pages/employer/PlansBillingPage.tsx",
-        "web/src/components/app/PaymentConfirmingOverlay.tsx",
-        "backoffice/src/router.tsx"
+        "web/index.html"
       ]
     }
   ],

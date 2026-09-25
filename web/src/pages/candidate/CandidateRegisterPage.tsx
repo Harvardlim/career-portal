@@ -337,6 +337,9 @@ export function CandidateRegisterPage() {
             <Field label="Contact number">
               <TextInput required type="tel" placeholder="Phone number" icon={<PhoneIcon className="size-5" />} value={form.contactNumber} onChange={(e) => update('contactNumber', e.target.value)} />
             </Field>
+            <Field label="Business name (optional)">
+              <TextInput placeholder="If you work through your own company, e.g. Lim Advisory Pte Ltd" value={form.businessName} onChange={(e) => update('businessName', e.target.value)} />
+            </Field>
             <Field label="Email">
               <TextInput required type="email" placeholder="you@example.com" icon={<MailIcon className="size-5" />} value={form.email} readOnly={!!session} onChange={(e) => update('email', e.target.value)} />
             </Field>
@@ -358,9 +361,6 @@ export function CandidateRegisterPage() {
           <>
             <Field label="Headline">
               <TextInput placeholder="e.g. Fractional CFO · Series A–B fundraising · SaaS" value={form.headline} onChange={(e) => update('headline', e.target.value)} />
-            </Field>
-            <Field label="Business name (optional)">
-              <TextInput placeholder="If you work through your own company, e.g. Lim Advisory Pte Ltd" value={form.businessName} onChange={(e) => update('businessName', e.target.value)} />
             </Field>
             <div>
               <p className="mb-2 text-sm text-ink">Areas of expertise (required to apply)</p>
