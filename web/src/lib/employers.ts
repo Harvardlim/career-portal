@@ -372,6 +372,7 @@ export type ApplicationRow = {
     badge_verified: boolean
     rating_count: number
     avg_stars: number | null
+    business_name: string | null
   } | null
 }
 
@@ -402,6 +403,7 @@ type ApplicantProfileRow = {
   badge_verified: boolean | null
   rating_count: number
   avg_stars: number | null
+  business_name: string | null
 }
 
 function toApplicationRow(r: ApplicantProfileRow): ApplicationRow {
@@ -432,6 +434,7 @@ function toApplicationRow(r: ApplicantProfileRow): ApplicationRow {
       badge_verified: !!r.badge_verified,
       rating_count: Number(r.rating_count ?? 0),
       avg_stars: r.avg_stars == null ? null : Number(r.avg_stars),
+      business_name: r.business_name ?? null,
     },
   }
 }

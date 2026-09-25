@@ -403,6 +403,7 @@ export type MatchCard = {
   paid_at: string | null
   rating_count: number
   avg_stars: number | null
+  business_name: string | null
 }
 
 export async function generateMatches(jobId: string): Promise<number> {

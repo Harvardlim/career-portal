@@ -10,6 +10,7 @@ import {
   TrustStrip,
 } from '@/components/marketing/blocks'
 import { CategoryTiles } from '@/components/marketing/CategoryTiles'
+import { InviteFriendsPopup } from '@/components/home/InviteFriendsPopup'
 import {
   ChartBarIcon,
   CodeIcon,
@@ -46,6 +47,7 @@ export function HomePage() {
 
   return (
     <>
+      <InviteFriendsPopup />
       {/* Split hero: copy + CTA left, vertical icon grid right */}
       <Section tone="alt">
         <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_1fr]">

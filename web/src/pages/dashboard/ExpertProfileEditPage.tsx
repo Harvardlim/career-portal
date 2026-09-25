@@ -96,6 +96,7 @@ export function ExpertProfileEditPage() {
   const [fullName, setFullName] = useState('')
   const [headline, setHeadline] = useState('')
   const [title, setTitle] = useState('')
+  const [businessName, setBusinessName] = useState('')
   const [years, setYears] = useState('')
   const [bio, setBio] = useState('')
   const [linkedin, setLinkedin] = useState('')
@@ -122,6 +123,7 @@ export function ExpertProfileEditPage() {
     setFullName(candidate.full_name ?? '')
     setHeadline(candidate.headline ?? '')
     setTitle(candidate.title ?? '')
+    setBusinessName(candidate.business_name ?? '')
     setYears(candidate.years_experience ?? '')
     setBio(candidate.biography ?? '')
     setLinkedin(candidate.linkedin_url ?? '')
@@ -166,6 +168,7 @@ export function ExpertProfileEditPage() {
         full_name: fullName.trim() || candidate.full_name,
         headline: headline.trim() || null,
         title: title.trim() || null,
+        business_name: businessName.trim() || null,
         years_experience: years || null,
         biography: bio.trim() || null,
         linkedin_url: linkedin.trim() || null,
@@ -265,6 +268,9 @@ export function ExpertProfileEditPage() {
               <Select value={years} onChange={setYears} options={['Select...', ...experienceRanges]} />
             </Field>
           </div>
+          <Field label="Business name (optional)">
+            <TextInput value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="If you work through your own company, e.g. Lim Advisory Pte Ltd" />
+          </Field>
           <Field label="About you">
             <textarea
               rows={5}

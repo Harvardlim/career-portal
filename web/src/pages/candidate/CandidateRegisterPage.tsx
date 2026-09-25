@@ -48,6 +48,7 @@ type FormState = {
   password: string
   confirmPassword: string
   headline: string
+  businessName: string
   linkedin: string
   categories: string[]
   subcategoryIds: string[]
@@ -66,6 +67,7 @@ const initialState: FormState = {
   password: '',
   confirmPassword: '',
   headline: '',
+  businessName: '',
   linkedin: '',
   categories: [],
   subcategoryIds: [],
@@ -201,6 +203,7 @@ export function CandidateRegisterPage() {
           id_type: ID_TYPE_BY_COUNTRY[form.country],
           resume_path: resumePath,
           headline: form.headline || null,
+          business_name: form.businessName.trim() || null,
           linkedin_url: form.linkedin.trim() || null,
           past_experience: form.pastExperience || null,
           years_experience: form.yearsExperience || null,
@@ -355,6 +358,9 @@ export function CandidateRegisterPage() {
           <>
             <Field label="Headline">
               <TextInput placeholder="e.g. Fractional CFO · Series A–B fundraising · SaaS" value={form.headline} onChange={(e) => update('headline', e.target.value)} />
+            </Field>
+            <Field label="Business name (optional)">
+              <TextInput placeholder="If you work through your own company, e.g. Lim Advisory Pte Ltd" value={form.businessName} onChange={(e) => update('businessName', e.target.value)} />
             </Field>
             <div>
               <p className="mb-2 text-sm text-ink">Areas of expertise (required to apply)</p>

@@ -21,6 +21,7 @@ type PublicProfile = {
   badge_verified: boolean
   rating_count: number
   avg_stars: number | null
+  business_name: string | null
 }
 
 /** The page a "Hire me on partly.asia" badge links to. Contact-free by design. */
@@ -80,6 +81,7 @@ export function ExpertProfilePage() {
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-semibold text-ink">{profile.full_name}</h1>
             <p className="text-ink-600">{profile.headline ?? profile.title ?? 'Expert on partly.asia'}</p>
+            {profile.business_name && <p className="text-sm text-ink-600">{profile.business_name}</p>}
             <p className="mt-1 text-sm text-muted">
               {countryName(profile.country_code)}
               {profile.years_experience ? ` · ${profile.years_experience} experience` : ''}

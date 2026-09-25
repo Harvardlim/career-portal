@@ -1,16 +1,16 @@
 -- Empty the Supabase Authentication > Users list, and wipe every Expert and
--- Business account (and everything tied to them) with it.
+-- Business account, EVERY job posting, and everything tied to them.
 --
 -- NOT a migration -- run it by hand, once, in the Supabase SQL Editor
 -- (Dashboard > SQL Editor), which runs as the postgres role and can delete
 -- from auth.users. The backoffice does NOT use Supabase Auth: its admin logins
 -- live in the separate public.admin table, so they are untouched (as are
--- pricing, categories and the admin-created sample jobs).
+-- pricing and categories). ALL jobs are deleted, admin-created ones included.
 --
 -- 1. Run PART 1 (select it, click Run). Read the counts.
--- 2. Run PART 2. It runs in a transaction and ends with ROLLBACK, so the first
---    run only PREVIEWS the result. Change the last line to COMMIT to apply.
---    Deletion is permanent -- there is no undo.
+-- 2. Run PART 2. It runs in a transaction and ends with COMMIT, so it DELETES
+--    for real and permanently -- there is no undo. To preview instead, change
+--    the last line to `rollback;` first.
 --
 -- Uploaded files (CVs, photos, ID / registration documents) are NOT removed by
 -- SQL: Supabase blocks direct deletes on storage tables. Empty the buckets
@@ -23,8 +23,7 @@ select what, n from (
   select 1 as o, 'experts (candidates)' as what, count(*) as n from public.candidates
   union all select 2, 'businesses (employers)', count(*) from public.employers
   union all select 3, 'logins in Authentication > Users (ALL deleted)', count(*) from auth.users
-  union all select 4, 'postings by businesses', count(*) from public.jobs
-    where employer_id in (select id from public.employers)
+  union all select 4, 'jobs / postings (ALL deleted)', count(*) from public.jobs
   union all select 5, 'applications', count(*) from public.job_applications
   union all select 6, 'contact releases', count(*) from public.contact_releases
   union all select 7, 'notifications', count(*) from public.notifications
@@ -38,7 +37,7 @@ select what, n from (
 ) t order by o;
 
 -- ===========================================================================
--- PART 2 -- delete (transaction; ROLLBACK = preview, COMMIT = apply)
+-- PART 2 -- delete (transaction; COMMIT = apply, ROLLBACK = preview)
 -- ===========================================================================
 begin;
 
@@ -46,10 +45,9 @@ begin;
 create temp table _wipe_users on commit drop as
   select id from auth.users;
 
--- jobs.employer_id is ON DELETE SET NULL, so a business's postings would
--- survive as orphans; remove them first (cascades applications, matches,
--- releases, ratings on them).
-delete from public.jobs where employer_id in (select id from public.employers);
+-- Every job (jobs.employer_id is ON DELETE SET NULL, so they would otherwise
+-- survive as orphans). Cascades applications, matches, releases, saved jobs...
+delete from public.jobs;
 
 -- Reports about these people / their postings (reports.target_id is not a FK).
 delete from public.reports
@@ -71,9 +69,10 @@ delete from public.employers;
 select 'candidates left' as what, count(*) as n from public.candidates
 union all select 'employers left', count(*) from public.employers
 union all select 'applications left', count(*) from public.job_applications
+union all select 'jobs left', count(*) from public.jobs
 union all select 'contact releases left', count(*) from public.contact_releases
 union all select 'notifications left', count(*) from public.notifications
 union all select 'auth users left', count(*) from auth.users
 union all select 'backoffice admins (unchanged)', count(*) from public.admin;
 
-rollback;   -- <- change to COMMIT; to actually delete
+commit;   -- <- APPLIES the deletion permanently. Change to `rollback;` to preview only.

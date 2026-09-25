@@ -150,6 +150,7 @@ export function SingleApplicantPage() {
                 <Detail Icon={LayersIcon} label="Education" value={c.education} />
                 <Detail Icon={MapPinIcon} label="Based in" value={c.country_code ? countryName(c.country_code) : null} />
                 <Detail Icon={GlobeIcon} label="Nationality" value={c.nationality} />
+                {c.business_name && <Detail Icon={BriefcaseIcon} label="Business" value={c.business_name} />}
               </div>
 
               {(c.expertise_field?.length ?? 0) > 0 && (

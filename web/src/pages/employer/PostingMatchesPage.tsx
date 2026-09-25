@@ -339,6 +339,7 @@ export function PostingMatchesPage() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium text-ink">{m.full_name}</p>
                         <p className="truncate text-sm text-muted">{m.headline ?? m.title ?? 'Expert'}</p>
+                        {m.business_name && <p className="truncate text-xs text-muted">{m.business_name}</p>}
                         <p className="text-xs text-muted">
                           {m.years_experience ? `${m.years_experience} experience` : ''}
                           {m.years_experience && m.country_code ? ' · ' : ''}
