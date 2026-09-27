@@ -305,15 +305,19 @@ export type OpenNeedRow = PostingRow & {
 }
 
 export async function fetchOpenNeeds(filters: NeedFilters, candidateId?: string): Promise<OpenNeedRow[]> {
-  // Every active job is an open need -- including rows created in the
-  // backoffice before the partly fields existed, which carry only the legacy
-  // category name / location / job_type columns.
+  // Every active job owned by a business is an open need -- including rows
+  // created before the partly fields existed, which carry only the legacy
+  // category name / location / job_type columns. A posting with no business
+  // (a bare backoffice draft) can never draw matches, so it isn't listed, and
+  // the database refuses applications to it. 'released' postings stay listed:
+  // new applicants still fill any free slots on the shortlist.
   let q = supabase
     .from('jobs')
     .select(`${POSTING_COLUMNS}, job_subcategories(subcategories(id,name)), employer:employers(basic_verified,verified_badge_until)`)
     .eq('status', 'active')
     .eq('suspended', false)
-    .in('matching_status', ['open', 'matched'])
+    .not('employer_id', 'is', null)
+    .in('matching_status', ['open', 'matched', 'released'])
     .order('posted_at', { ascending: false })
     .limit(100)
   if (filters.categoryId) {

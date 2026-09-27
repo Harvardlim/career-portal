@@ -177,6 +177,11 @@ begin
   end if;
 
   if tg_op = 'INSERT' then
+    -- A posting with no business behind it (a bare backoffice listing) can
+    -- never draw matches, so an application there would just sit forever.
+    if v_job.employer_id is null then
+      raise exception 'This listing isn''t taking applications on partly.asia.';
+    end if;
     if v_job.suspended or v_job.matching_status in ('closed', 'no_further_matches') then
       raise exception 'This need is no longer open for applications.';
     end if;
@@ -424,3 +429,131 @@ where e.user_id = auth.uid()
   and not c.suspended;
 
 grant select on public.match_candidate_cards to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 7. Cohort updates don't masquerade as new warm leads
+-- ---------------------------------------------------------------------------
+-- Each later release re-notified every still-awaiting expert with the same
+-- "You have a warm lead ... pay within 2 days" text, although their window
+-- was NOT restarted -- it read as a duplicate lead with a wrong deadline.
+-- Newly released experts get the warm lead; earlier ones get a cohort update
+-- that states their real deadline. (Emails already go only to the new ones.)
+
+create or replace function public.release_contact(p_job_id uuid, p_candidate_ids uuid[])
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_employer_id uuid;
+  v_title text;
+  v_company text;
+  v_new uuid[];
+  v_released integer := 0;
+  v_cohort integer;
+  v_row record;
+  v_price record;
+  v_fee text;
+begin
+  select j.employer_id, j.title, j.company_name into v_employer_id, v_title, v_company
+  from public.jobs j
+  join public.employers e on e.id = j.employer_id
+  where j.id = p_job_id and e.user_id = auth.uid();
+
+  if v_employer_id is null then
+    raise exception 'not your posting';
+  end if;
+
+  if (select matching_status from public.jobs where id = p_job_id) in ('closed', 'no_further_matches') then
+    raise exception 'this posting is closed';
+  end if;
+
+  -- Only ever to someone on the shortlist, and never twice.
+  with ins as (
+    insert into public.contact_releases (job_id, candidate_id, employer_id, window_expires_at)
+    select p_job_id, m.candidate_id, v_employer_id, now() + interval '2 days'
+    from public.posting_matches m
+    where m.job_id = p_job_id
+      and m.candidate_id = any(p_candidate_ids)
+    on conflict (job_id, candidate_id) do nothing
+    returning candidate_id
+  )
+  select coalesce(array_agg(candidate_id), '{}') into v_new from ins;
+
+  v_released := cardinality(v_new);
+
+  -- Nothing new was released (a double-submit, or every pick was already
+  -- released), so nobody gets notified again.
+  if v_released = 0 then
+    return 0;
+  end if;
+
+  update public.jobs
+     set matching_status = 'released',
+         matches_viewed_at = coalesce(matches_viewed_at, now())
+   where id = p_job_id;
+
+  -- The applicant now reads "Interested" on the business's applications board.
+  update public.job_applications
+     set status = 'interested'
+   where job_id = p_job_id
+     and candidate_id = any(v_new)
+     and status <> 'interested';
+
+  select count(*) into v_cohort from public.contact_releases where job_id = p_job_id;
+
+  for v_row in
+    select r.id, r.candidate_id, r.window_expires_at, c.user_id, c.country_code
+    from public.contact_releases r
+    join public.candidates c on c.id = r.candidate_id
+    where r.job_id = p_job_id and r.status = 'awaiting_payment'
+  loop
+    if v_row.candidate_id = any(v_new) then
+      -- The fee, in both currencies, so the notification itself says what unlocking costs.
+      select p.currency_symbol, p.currency, p.lead_fee_local, p.lead_fee_usd
+        into v_price
+        from public.pricing_countries p
+       where p.code = v_row.country_code;
+      v_fee := case
+        when v_price.lead_fee_local is null then ''
+        else format(' Unlock fee: %s%s or USD %s.',
+                    v_price.currency_symbol,
+                    public.format_amount(v_price.lead_fee_local),
+                    public.format_amount(v_price.lead_fee_usd))
+      end;
+
+      perform public.notify_user(
+        v_row.user_id,
+        'warm_lead',
+        'You have a warm lead',
+        case
+          when v_cohort > 1 then
+            format('%s is interested in you for "%s" — you are one of %s experts being considered. Pay to unlock their contact within 2 days.%s',
+                   coalesce(v_company, 'A business'), v_title, v_cohort, v_fee)
+          else
+            format('%s is interested in you for "%s". Pay to unlock their contact within 2 days.%s',
+                   coalesce(v_company, 'A business'), v_title, v_fee)
+        end,
+        '/dashboard/leads/' || v_row.id,
+        jsonb_build_object('release_id', v_row.id, 'job_id', p_job_id, 'cohort_size', v_cohort)
+      );
+    else
+      perform public.notify_user(
+        v_row.user_id,
+        'lead_cohort_update',
+        'More experts are being considered',
+        format('%s is now considering %s experts for "%s". Your unlock window still closes %s (UTC).',
+               coalesce(v_company, 'The business'), v_cohort, v_title,
+               to_char(v_row.window_expires_at at time zone 'UTC', 'DD Mon, HH24:MI')),
+        '/dashboard/leads/' || v_row.id,
+        jsonb_build_object('release_id', v_row.id, 'job_id', p_job_id, 'cohort_size', v_cohort)
+      );
+    end if;
+  end loop;
+
+  return v_released;
+end;
+$$;
+
+grant execute on function public.release_contact(uuid, uuid[]) to authenticated;
