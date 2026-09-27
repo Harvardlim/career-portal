@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
@@ -7,15 +7,11 @@ import { TrashIcon } from '@/components/icons'
 import { supabase } from '@/lib/supabase'
 import { errMessage } from '@/lib/errors'
 import { useSession } from '@/lib/useSession'
-import {
-  fetchMyCandidate,
-  updateMyCandidate,
-  type CandidateProfileRow,
-} from '@/lib/candidateProfile'
+import { fetchMyCandidate, type CandidateProfileRow } from '@/lib/candidateProfile'
 
-// Personal details (name, photo, CV, nationality, DOB, gender, marital
-// status, education) live on the Expert Profile page now. This page is just
-// account-level: contact info, password, close account.
+// Personal and contact details (name, photo, CV, phone, nationality, month
+// and year of birth, gender, education) live on the Expert Profile page. This
+// page is just account-level: password and closing the account.
 export function SettingsPage() {
   const { session } = useSession()
   const userId = session?.user?.id ?? null
@@ -23,7 +19,6 @@ export function SettingsPage() {
 
   const [profile, setProfile] = useState<CandidateProfileRow | null>(null)
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
   const [accountEmail, setAccountEmail] = useState<string | null>(null)
   const [closePrompt, setClosePrompt] = useState(false)
   const [closing, setClosing] = useState(false)
@@ -45,34 +40,6 @@ export function SettingsPage() {
       alive = false
     }
   }, [userId])
-
-  const setField = useCallback((key: 'contact_number' | 'email', value: string | null) => {
-    setProfile((p) => (p ? { ...p, [key]: value } : p))
-  }, [])
-
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    if (!userId || !profile) return
-    setSaving(true)
-    try {
-      await updateMyCandidate(userId, {
-        contact_number: profile.contact_number,
-        email: profile.email,
-      })
-      if (profile.email && profile.email !== accountEmail) {
-        const { error } = await supabase.auth.updateUser({ email: profile.email })
-        if (error) throw error
-        setAccountEmail(profile.email)
-        toast.success('Saved. Check your inbox to confirm the new email.')
-      } else {
-        toast.success('Changes saved')
-      }
-    } catch (err) {
-      toast.error(errMessage(err))
-    } finally {
-      setSaving(false)
-    }
-  }
 
   async function confirmCloseAccount() {
     if (!profile) return
@@ -101,28 +68,6 @@ export function SettingsPage() {
           <p className="text-sm text-muted">No expert profile found for this account.</p>
         ) : (
           <div className="flex max-w-[720px] flex-col gap-10">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-              <h2 className="text-lg font-medium text-ink">Contact Info</h2>
-              <div className="grid gap-6 sm:grid-cols-2">
-                <Field label="Phone">
-                  <TextInput
-                    placeholder="Phone number.."
-                    value={profile.contact_number ?? ''}
-                    onChange={(e) => setField('contact_number', e.target.value || null)}
-                  />
-                </Field>
-                <Field label="Email">
-                  <TextInput
-                    type="email"
-                    placeholder="Email address"
-                    value={profile.email ?? ''}
-                    onChange={(e) => setField('email', e.target.value || null)}
-                  />
-                </Field>
-              </div>
-              <SaveButton disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</SaveButton>
-            </form>
-
             <ChangePasswordForm accountEmail={accountEmail ?? profile.email ?? ''} />
 
             <div className="flex flex-col gap-4">

@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { Field, Select, TextInput } from '@/components/dashboard/form'
 import { SelectMenu } from '@/components/app/SelectMenu'
-import { FileIcon, LinkedinIcon, PlusCircleIcon, TrashIcon } from '@/components/icons'
+import { FileIcon, LinkedinIcon, MailIcon, PhoneIcon, PlusCircleIcon, TrashIcon } from '@/components/icons'
 import { Avatar, Card, Notice, PrimaryButton, SecondaryButton, VerifiedChips } from '@/components/partly/ui'
 import {
   deleteResume,
@@ -112,6 +112,7 @@ export function ExpertProfileEditPage() {
   const [dobMonth, setDobMonth] = useState('')
   const [dobYear, setDobYear] = useState('')
   const [gender, setGender] = useState('')
+  const [phone, setPhone] = useState('')
   const [education, setEducation] = useState('')
   const [cats, setCats] = useState<string[]>([])
   const [subIds, setSubIds] = useState<string[]>([])
@@ -139,6 +140,7 @@ export function ExpertProfileEditPage() {
     setDobYear(candidate.date_of_birth?.slice(0, 4) ?? '')
     setDobMonth(candidate.date_of_birth?.slice(5, 7) ?? '')
     setGender(candidate.gender ?? '')
+    setPhone(candidate.contact_number ?? '')
     setEducation(candidate.education ?? '')
     setCats(candidate.expertise_field ?? [])
     setLinks(Array.isArray(candidate.portfolio_links) ? candidate.portfolio_links : [])
@@ -170,6 +172,7 @@ export function ExpertProfileEditPage() {
     // Both are required to apply to anything, so a saved profile can't be missing them.
     if (!years) return toast.error('Select your years of experience.')
     if (cats.length === 0) return toast.error('Pick at least one expert category.')
+    if (!phone.trim()) return toast.error('Add a phone number — it\u2019s shared with a business only after you unlock a lead.')
     setSaving(true)
     try {
       await updateMyCandidate(session.user.id, {
@@ -183,6 +186,7 @@ export function ExpertProfileEditPage() {
         nationality: nationality || null,
         date_of_birth: dobYear && dobMonth ? `${dobYear}-${dobMonth}-01` : null,
         gender: gender || null,
+        contact_number: phone.trim(),
         marital_status: null,
         education: education || null,
         expertise_field: cats,
@@ -350,6 +354,36 @@ export function ExpertProfileEditPage() {
           <SecondaryButton className="w-fit" onClick={() => setLinks((ls) => [...ls, { label: '', url: '' }])}>
             Add a link
           </SecondaryButton>
+        </Card>
+
+        <Card className="flex flex-col gap-4">
+          <div>
+            <p className="text-sm font-medium text-ink">Contact details</p>
+            <p className="text-xs text-muted">
+              Never shown on your profile — a business only sees these after you unlock their lead.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Phone">
+              <TextInput
+                type="tel"
+                icon={<PhoneIcon className="size-5" />}
+                placeholder="e.g. +65 9123 4567"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </Field>
+            <Field label="Email">
+              <TextInput
+                type="email"
+                icon={<MailIcon className="size-5" />}
+                value={candidate?.email ?? session?.user.email ?? ''}
+                disabled
+                title="This is the email you sign in with, so it can't be changed."
+              />
+              <p className="mt-1 text-xs text-muted">This is your sign-in email and can&apos;t be changed.</p>
+            </Field>
+          </div>
         </Card>
 
         <Card className="flex flex-col gap-4">
