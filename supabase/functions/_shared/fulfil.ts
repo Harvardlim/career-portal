@@ -12,6 +12,7 @@ import {
   isCreditPackageKey,
   isMembershipPlanKey,
 } from './catalog.ts'
+import { emailShell, escapeHtml, sendEmail, SITE_URL } from './email.ts'
 
 export type FulfilResult =
   | 'granted' // this call flipped the row
@@ -73,7 +74,76 @@ async function userIdForCandidate(
   return (data?.user_id as string) ?? null
 }
 
+// Stripe never emails receipts for test-mode payments, and in live mode only
+// when "Successful payments" emails are switched on in the Dashboard -- so
+// partly.asia sends its own. Only the call that actually flipped the row
+// ('granted') sends it, so the webhook and the browser confirm can't both.
+const ZERO_DECIMAL = new Set(['bif', 'clp', 'djf', 'gnf', 'jpy', 'kmf', 'krw', 'mga', 'pyg', 'rwf', 'ugx', 'vnd', 'vuv', 'xaf', 'xof', 'xpf'])
+
+const RECEIPT_ITEM: Record<string, string> = {
+  lead_unlock: 'Released-lead contact unlock',
+  verified_badge: 'Fully verified badge (1 year)',
+  employer_verified_badge: 'Fully verified business badge (1 year)',
+  credits: 'Job-posting credits',
+  membership: 'Membership',
+}
+
+function formatPaid(amountMinor: number, currency: string): string {
+  const cur = currency.toLowerCase()
+  const major = ZERO_DECIMAL.has(cur) ? amountMinor : amountMinor / 100
+  try {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: cur.toUpperCase() }).format(major)
+  } catch {
+    return `${cur.toUpperCase()} ${major.toLocaleString('en-US')}`
+  }
+}
+
+async function sendReceipt(session: Stripe.Checkout.Session): Promise<void> {
+  const to = session.customer_details?.email ?? session.customer_email ?? ''
+  if (!to || session.amount_total == null || !session.currency) return
+  const kind = session.metadata?.kind ?? ''
+  const item = RECEIPT_ITEM[kind] ?? 'partly.asia payment'
+  const amount = formatPaid(session.amount_total, session.currency)
+  const paidOn = new Date((session.created ?? Date.now() / 1000) * 1000).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+  const ref = typeof session.payment_intent === 'string' ? session.payment_intent : session.id
+  const row = (k: string, v: string) =>
+    `<tr><td style="padding:6px 0;color:#64748b;">${escapeHtml(k)}</td><td style="padding:6px 0;text-align:right;color:#1b2a4a;font-weight:600;">${escapeHtml(v)}</td></tr>`
+  const html = emailShell(
+    'Payment receipt',
+    `<p>Thank you — we've received your payment.</p>
+     <table style="width:100%;border-collapse:collapse;margin-top:12px;font-size:14px;">
+       ${row('Item', item)}
+       ${row('Amount paid', amount)}
+       ${row('Date', paidOn)}
+       ${row('Reference', ref)}
+     </table>
+     <p style="margin-top:16px;">Keep this email for your records.</p>`,
+    `${SITE_URL}/dashboard`,
+    'Open my dashboard',
+  )
+  await sendEmail(to, `Your partly.asia receipt — ${amount}`, html)
+}
+
 export async function fulfilCheckoutSession(
+  admin: SupabaseClient,
+  session: Stripe.Checkout.Session,
+): Promise<FulfilResult> {
+  const result = await fulfil(admin, session)
+  if (result === 'granted') {
+    try {
+      await sendReceipt(session)
+    } catch (err) {
+      console.error('receipt email failed', err)
+    }
+  }
+  return result
+}
+
+async function fulfil(
   admin: SupabaseClient,
   session: Stripe.Checkout.Session,
 ): Promise<FulfilResult> {

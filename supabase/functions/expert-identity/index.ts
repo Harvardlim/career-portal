@@ -10,7 +10,7 @@
 // secrets, and the database column holding the ciphertext is unreadable by
 // the client roles.
 //
-//   POST { country_code: 'SG'|'MY'|'ID'|'TH'|'VN'|'PH', id_type: string, last4: '567D' }
+//   POST { country_code: 'SG'|'MY'|'ID'|'TH'|'VN'|'PH', id_type: string, last4: '567D', user_id?: uuid }
 //
 // Required secrets:
 //   EXPERT_ID_KEY                - 32 random bytes, base64 (openssl rand -base64 32)
@@ -62,17 +62,36 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
-  const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '')
-  if (!token) return json({ error: 'Not signed in' }, 401)
-  const { data: userData, error: userErr } = await admin.auth.getUser(token)
-  if (userErr || !userData.user) return json({ error: 'Not signed in' }, 401)
-
   let body: Record<string, unknown>
   try {
     body = await req.json()
   } catch {
     return json({ error: 'Invalid JSON body' }, 400)
   }
+
+  // Normally the caller is the signed-in expert. The one exception is the
+  // registration form with email confirmation on: there is no session yet, so
+  // it passes the new account's user_id instead. That is accepted only for an
+  // account that is still unconfirmed, was created within the last hour and
+  // has no digits saved yet -- so the digits typed at sign-up aren't asked
+  // for a second time, and nobody can overwrite an existing expert's.
+  const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '')
+  let userId: string | null = null
+  if (token) {
+    const { data: userData } = await admin.auth.getUser(token)
+    userId = userData.user?.id ?? null
+  }
+  let signupPath = false
+  if (!userId && typeof body.user_id === 'string' && body.user_id) {
+    const { data: pending } = await admin.auth.admin.getUserById(body.user_id)
+    const u = pending?.user
+    const fresh = u && Date.now() - new Date(u.created_at).getTime() < 60 * 60 * 1000
+    if (u && !u.email_confirmed_at && fresh) {
+      userId = u.id
+      signupPath = true
+    }
+  }
+  if (!userId) return json({ error: 'Not signed in' }, 401)
 
   const country = typeof body.country_code === 'string' ? body.country_code.toUpperCase() : ''
   const last4 = typeof body.last4 === 'string' ? body.last4.trim().toUpperCase() : ''
@@ -84,7 +103,7 @@ Deno.serve(async (req) => {
 
   try {
     const cipher = await encrypt(last4)
-    const { data, error } = await admin
+    let update = admin
       .from('candidates')
       .update({
         country_code: country,
@@ -95,8 +114,9 @@ Deno.serve(async (req) => {
         identity_verified: true,
         identity_verified_at: new Date().toISOString(),
       })
-      .eq('user_id', userData.user.id)
-      .select('id')
+      .eq('user_id', userId)
+    if (signupPath) update = update.is('id_last5_cipher', null)
+    const { data, error } = await update.select('id')
     if (error) throw error
     if (!data || data.length === 0) return json({ error: 'No expert profile for this account' }, 400)
     return json({ ok: true })

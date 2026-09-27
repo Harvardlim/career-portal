@@ -105,8 +105,9 @@ export function ApplyJobPage() {
       navigate('/dashboard/expert-profile')
       return
     }
-    if (!resumeId) {
-      toast.error('Choose or upload a resume to apply.')
+    if (!candidate.identity_verified) {
+      toast.error('Finish Basic verification (the last 4 characters of your ID) before applying.')
+      navigate('/dashboard/verification')
       return
     }
     if (blocked) {
@@ -122,7 +123,7 @@ export function ApplyJobPage() {
           .from('job_applications')
           .update({
             status: 'active',
-            resume_id: resumeId,
+            resume_id: resumeId || null,
             cover_letter: cover.trim() || null,
             applied_at: new Date().toISOString(),
           })
@@ -133,7 +134,7 @@ export function ApplyJobPage() {
           job_id: job.id,
           candidate_id: candidate.id,
           user_id: session.user.id,
-          resume_id: resumeId,
+          resume_id: resumeId || null,
           cover_letter: cover.trim() || null,
         })
         if (error) {
@@ -246,7 +247,7 @@ export function ApplyJobPage() {
 
             <div className="flex flex-col gap-2 text-sm text-ink">
               <span>
-                Resume <span className="text-danger">*</span>
+                Resume <span className="text-muted">(optional)</span>
               </span>
               {resumes.length > 0 && (
                 <SelectMenu
@@ -271,7 +272,7 @@ export function ApplyJobPage() {
                 />
               </label>
               <span className="text-xs text-muted">
-                PDF or DOCX. Uploads are saved to your account and reusable next time.
+                PDF or DOCX. Not required — your expert profile is what businesses see first. Uploads are saved to your account for next time.
               </span>
             </div>
 
@@ -295,7 +296,7 @@ export function ApplyJobPage() {
               </Link>
               <button
                 type="submit"
-                disabled={submitting || uploading || !resumeId}
+                disabled={submitting || uploading}
                 className="flex items-center gap-2 rounded-[4px] bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {submitting ? 'Submitting…' : 'Apply Now'}

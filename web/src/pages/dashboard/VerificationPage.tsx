@@ -20,6 +20,8 @@ import {
   formatUsd,
   hasUploadedIdentityDoc,
   saveIdentityDigits,
+  idLast4Problem,
+  ID_LAST4_FORMAT,
   startBadgeCheckout,
   usePricing,
   type BadgeRow,
@@ -86,13 +88,16 @@ export function VerificationPage() {
   const price = pricing.find((p) => p.code === (candidate?.country_code ?? country))
   const badgeLive = !!candidate?.verified_badge_until && new Date(candidate.verified_badge_until) > new Date()
   const awaitingReview = badges.some((b) => b.status === 'awaiting_review')
-  const hasDigits = !!candidate?.id_type
 
   async function saveIdentity() {
     if (!session) return
     setSavingId(true)
     try {
-      if (last4.length === 4) await saveIdentityDigits(country, last4)
+      if (last4.length === 4) {
+        const problem = idLast4Problem(country, last4)
+        if (problem) throw new Error(problem)
+        await saveIdentityDigits(country, last4)
+      }
       if (linkedin.trim() !== (candidate?.linkedin_url ?? '')) {
         await updateMyCandidate(session.user.id, { linkedin_url: linkedin.trim() || null })
       }
@@ -154,7 +159,7 @@ export function VerificationPage() {
               <TextInput
                 value={last4}
                 onChange={(e) => setLast4(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4))}
-                placeholder={hasDigits ? '••••' : country === 'SG' ? 'e.g. 567D' : 'e.g. 1234'}
+                placeholder={candidate?.identity_verified ? '••••' : `e.g. ${ID_LAST4_FORMAT[country].example}`}
                 maxLength={4}
                 disabled={!!candidate?.identity_verified}
                 autoComplete="off"
@@ -168,6 +173,11 @@ export function VerificationPage() {
             Collected for verification only. The digits are encrypted before they're stored and are never displayed
             back to you, to any business, or to any third party. This is the whole free check — no document needed.
           </p>
+          {candidate?.identity_verified && (
+            <p className="text-sm font-semibold text-emerald-700">
+              ✓ Basic verified — your ID digits are on file. There's nothing more to do here.
+            </p>
+          )}
           {!candidate?.identity_verified && (
             <PrimaryButton className="w-fit" onClick={saveIdentity} disabled={savingId || last4.length !== 4}>
               {savingId ? 'Saving…' : 'Save & verify'}
@@ -209,12 +219,15 @@ export function VerificationPage() {
 
           {badgeLive ? (
             <Notice tone="success">
-              Your Fully verified badge is active. We'll remind you 30, 14, 7 and 1 days before it expires; renewing extends your
+              Your Fully verified badge is active. It shows as a “Fully verified” mark next to your name on your
+              dashboard, on every match card and applicant profile a business sees, and on your public Hire-me page.
+              We'll remind you 30, 14, 7 and 1 days before it expires; renewing extends your
               current term rather than restarting it.
             </Notice>
           ) : awaitingReview ? (
             <Notice tone="warning">
               Payment received — your badge activates automatically once our team approves your identity document.
+              Until then your dashboard shows “Basic verified”; it switches to “Fully verified” the moment it's approved.
             </Notice>
           ) : (
             !hasDoc && <Notice tone="warning">Upload your identity document above before buying the badge.</Notice>

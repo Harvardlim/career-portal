@@ -7,6 +7,7 @@ import { CheckboxGroup } from '@/components/wizard/CheckboxGroup'
 import { RichTextEditor } from '@/components/editor/RichTextEditor'
 import { LinkIcon, MailIcon, PhoneIcon } from '@/components/icons'
 import { errMessage } from '@/lib/errors'
+import { COUNTRY_NAMES, validateBusinessRegNo } from '@/lib/partly'
 import { useCategoryNames } from '@/lib/categories'
 import { clearDisplayUserCache } from '@/lib/useDisplayUser'
 import {
@@ -27,8 +28,8 @@ const INDUSTRIES = [
   'Other',
 ]
 const SIZES = ['1-10', '11-50', '51-200', '201-500', '501-1000', '1001+']
-// Same list as the backoffice job editor.
-const LOCATIONS = ['Malaysia', 'Singapore']
+// Every country a business can register from (same list as the sign-up wizard).
+const LOCATIONS = Object.values(COUNTRY_NAMES)
 
 /** Keeps an unknown existing value selectable (backoffice's withCurrent). */
 const withCurrent = (base: string[], current: string): Option[] => [
@@ -126,12 +127,30 @@ export function EmployerProfilePage() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!employer) return
+    const missing: string[] = []
+    if (!form.company_name.trim()) missing.push('company name')
+    if (!form.reg_no.trim()) missing.push('registration no.')
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.business_email.trim())) missing.push('a valid business email')
+    if (!form.industry) missing.push('industry')
+    if (!form.size) missing.push('team size')
+    if (!form.location) missing.push('location')
+    if (form.field.length === 0) missing.push('business field')
+    if (form.looking_for.length === 0) missing.push('what you’re looking to hire')
+    if (missing.length > 0) {
+      toast.error(`Please fill in: ${missing.join(', ')}.`)
+      return
+    }
+    const regErr = employer.country_code ? validateBusinessRegNo(employer.country_code, form.reg_no.trim()) : null
+    if (regErr) {
+      toast.error(regErr)
+      return
+    }
     setSaving(true)
     try {
       await updateMyEmployer(employer.id, {
-        company_name: form.company_name.trim() || employer.company_name,
-        reg_no: form.reg_no.trim() || employer.reg_no,
-        business_email: form.business_email.trim() || employer.business_email,
+        company_name: form.company_name.trim(),
+        reg_no: form.reg_no.trim(),
+        business_email: form.business_email.trim(),
         industry: form.industry || null,
         size: form.size || null,
         location: form.location || null,
@@ -166,13 +185,13 @@ export function EmployerProfilePage() {
         )}
 
         <div className="grid gap-6 sm:grid-cols-2">
-          <Field label="Company name">
+          <Field label="Company name *">
             <TextInput
               value={form.company_name}
               onChange={(e) => set('company_name', e.target.value)}
             />
           </Field>
-          <Field label="Registration No.">
+          <Field label="Registration No. *">
             <TextInput
               value={form.reg_no}
               onChange={(e) => set('reg_no', e.target.value)}
@@ -180,7 +199,7 @@ export function EmployerProfilePage() {
           </Field>
         </div>
 
-        <Field label="Business Email">
+        <Field label="Business Email *">
           <TextInput
             type="email"
             icon={<MailIcon className="size-5" />}
@@ -190,21 +209,21 @@ export function EmployerProfilePage() {
         </Field>
 
         <div className="grid gap-6 sm:grid-cols-3">
-          <Field label="Industry">
+          <Field label="Industry *">
             <SelectMenu
               options={withCurrent(INDUSTRIES, form.industry)}
               value={form.industry}
               onChange={(v) => set('industry', v)}
             />
           </Field>
-          <Field label="Team size">
+          <Field label="Team size *">
             <SelectMenu
               options={withCurrent(SIZES, form.size)}
               value={form.size}
               onChange={(v) => set('size', v)}
             />
           </Field>
-          <Field label="Location">
+          <Field label="Location *">
             <SelectMenu
               options={withCurrent(LOCATIONS, form.location)}
               value={form.location}

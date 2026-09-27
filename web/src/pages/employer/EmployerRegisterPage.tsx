@@ -85,8 +85,14 @@ export function EmployerRegisterPage() {
       const err = validateBusinessRegNo(form.country, form.regNo)
       if (err) return setError(err)
       if (!session && form.password !== form.confirmPassword) return setError('Passwords do not match.')
+      // Catch an already-registered email here, not three steps later.
+      setSubmitting(true)
+      const check = await lookupEmail(form.businessEmail).catch(() => ({ role: null }))
+      setSubmitting(false)
+      if (check.role) return setDupRole(check.role)
     }
     if (step === 1 && form.lookingFor.length === 0) return setError('Pick at least one area you need help in.')
+    if (step === 1 && form.field.length === 0) return setError('Pick your industry / field.')
 
     if (step < steps.length - 1) {
       setStep((s) => s + 1)
@@ -269,7 +275,7 @@ export function EmployerRegisterPage() {
                 onChange={(e) => update('businessDetails', e.target.value)}
               />
             </Field>
-            <CheckboxGroup label="Your industry / field (optional)" options={categoryOptions} selected={form.field} onToggle={toggle('field')} />
+            <CheckboxGroup label="Your industry / field" options={categoryOptions} selected={form.field} onToggle={toggle('field')} />
           </>
         )}
 

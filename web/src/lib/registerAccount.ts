@@ -15,7 +15,9 @@ export type EmailLookup = {
 
 /** Check whether an email already belongs to an account (and as which role). */
 export async function lookupEmail(email: string): Promise<EmailLookup> {
-  const e = email.trim()
+  // Escape LIKE wildcards: ilike is only used for case-insensitivity, and an
+  // underscore in an address must not match any character.
+  const e = email.trim().replace(/[\\%_]/g, (c) => `\\${c}`)
   const [candRes, empRes] = await Promise.all([
     supabase.from('candidates').select('id').ilike('email', e).limit(1),
     supabase.from('employers').select('id').ilike('business_email', e).limit(1),

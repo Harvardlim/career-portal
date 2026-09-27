@@ -3,7 +3,6 @@ import { InfoCard, OverviewGrid, ContactRow } from '@/components/app/InfoCard'
 import { SocialLinks } from '@/components/app/SocialLinks'
 import {
   BriefcaseIcon,
-  CakeIcon,
   DownloadIcon,
   FileIcon,
   GlobeIcon,
@@ -68,9 +67,7 @@ export function CandidateProfileBody({ actions }: { actions: ReactNode }) {
             <OverviewGrid
               columns={2}
               items={[
-                { Icon: CakeIcon, label: 'Date of birth', value: '14 June, 2021' },
                 { Icon: GlobeIcon, label: 'Notionality', value: 'Bangladesh' },
-                { Icon: UsersIcon, label: 'Marital Status', value: 'Single' },
                 { Icon: UsersIcon, label: 'Gender', value: 'Male' },
                 { Icon: BriefcaseIcon, label: 'Experience', value: '7 Years' },
                 { Icon: LayersIcon, label: 'Educations', value: 'Master Degree' },

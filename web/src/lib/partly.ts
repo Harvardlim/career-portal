@@ -39,6 +39,23 @@ export const ID_TYPE_BY_COUNTRY: Record<ExpertCountry, string> = {
   PH: 'PhilSys National ID',
 }
 
+/** Same formats the expert-identity edge function enforces — keep in sync. */
+export const ID_LAST4_FORMAT: Record<ExpertCountry, { pattern: RegExp; hint: string; example: string }> = {
+  SG: { pattern: /^[0-9]{3}[A-Z]$/, hint: '3 digits + the checksum letter', example: '567D' },
+  MY: { pattern: /^[0-9]{4}$/, hint: 'last 4 digits', example: '1234' },
+  ID: { pattern: /^[0-9]{4}$/, hint: 'last 4 digits of your NIK', example: '1234' },
+  TH: { pattern: /^[0-9]{4}$/, hint: 'last 4 digits', example: '1234' },
+  VN: { pattern: /^[0-9]{4}$/, hint: 'last 4 digits', example: '1234' },
+  PH: { pattern: /^[0-9]{4}$/, hint: 'last 4 digits of your PSN', example: '1234' },
+}
+
+/** Null when the digits are fine for that country, else a message to show. */
+export function idLast4Problem(country: ExpertCountry, last4: string): string | null {
+  const f = ID_LAST4_FORMAT[country]
+  if (f.pattern.test(last4)) return null
+  return `Enter the last 4 characters of your ${ID_TYPE_BY_COUNTRY[country]} — ${f.hint}, e.g. ${f.example}.`
+}
+
 export async function fetchPricing(): Promise<PricingCountry[]> {
   const { data, error } = await supabase
     .from('pricing_countries')
@@ -404,6 +421,7 @@ export type MatchCard = {
   rating_count: number
   avg_stars: number | null
   business_name: string | null
+  application_id: string | null
 }
 
 export async function generateMatches(jobId: string): Promise<number> {
@@ -701,9 +719,11 @@ export async function uploadVerificationDoc(args: {
  * — this sets identity_verified immediately, so a free account can apply
  * right away. The digits are encrypted server-side and never come back down.
  */
-export async function saveIdentityDigits(countryCode: string, last4: string): Promise<void> {
+export async function saveIdentityDigits(countryCode: string, last4: string, signupUserId?: string): Promise<void> {
+  // signupUserId: only at registration with email confirmation on, when there
+  // is no session yet (the function accepts it for a fresh unconfirmed account).
   const { data, error } = await supabase.functions.invoke('expert-identity', {
-    body: { country_code: countryCode, last4 },
+    body: { country_code: countryCode, last4, ...(signupUserId ? { user_id: signupUserId } : {}) },
   })
   if (error) {
     const ctx = (error as { context?: Response }).context
@@ -933,11 +953,12 @@ export async function markAllNotificationsRead(userId: string): Promise<void> {
 }
 
 export function useNotifications() {
-  const { session } = useSession()
+  const { session, loading: sessionLoading } = useSession()
   const [rows, setRows] = useState<NotificationRow[]>([])
   const [loading, setLoading] = useState(true)
 
   const reload = useCallback(async () => {
+    if (sessionLoading) return
     if (!session) {
       setRows([])
       setLoading(false)
@@ -950,7 +971,7 @@ export function useNotifications() {
     } finally {
       setLoading(false)
     }
-  }, [session])
+  }, [session, sessionLoading])
 
   useEffect(() => {
     void reload()

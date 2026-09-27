@@ -21,6 +21,8 @@ import {
   ID_TYPE_BY_COUNTRY,
   countryName,
   saveIdentityDigits,
+  idLast4Problem,
+  ID_LAST4_FORMAT,
   type ExpertCountry,
 } from '@/lib/partly'
 import {
@@ -153,6 +155,11 @@ export function CandidateRegisterPage() {
     if (step === 0) {
       if (!isValidEmail(form.email)) return toast.error('Please enter a valid email address.')
       if (!session && form.password !== form.confirmPassword) return toast.error('Passwords do not match.')
+      // Catch an already-registered email on the first step, not at the end.
+      setSubmitting(true)
+      const check = await lookupEmail(form.email).catch(() => ({ role: null }))
+      setSubmitting(false)
+      if (check.role) return setDupRole(check.role)
     }
     if (step === 1 && form.categories.length === 0) return toast.error('Pick at least one area of expertise.')
     if (step === 1 && !form.yearsExperience) return toast.error('Select your years of experience — you can\u2019t apply without it.')
@@ -163,8 +170,9 @@ export function CandidateRegisterPage() {
       return
     }
 
-    if (!/^[A-Z0-9]{4}$/.test(form.last4)) {
-      setError(`Enter exactly the last 4 characters of your ${ID_TYPE_BY_COUNTRY[form.country]}.`)
+    const idProblem = idLast4Problem(form.country, form.last4)
+    if (idProblem) {
+      setError(idProblem)
       return
     }
     if (!consented) {
@@ -225,16 +233,23 @@ export function CandidateRegisterPage() {
 
       await recordReferralAtSignup(userId, 'candidate', form.email)
 
-      // The digits are encrypted server-side, which needs a signed-in session.
-      // With email confirmation on there is none yet, so they are collected
-      // again (never stored in the browser) right after the first sign-in.
+      // The digits are encrypted server-side and saved now, so they're never
+      // asked for twice. With email confirmation on there is no session yet;
+      // the function then accepts this fresh, unconfirmed account's user id.
+      const idSaved = await saveIdentityDigits(form.country, form.last4, needsConfirm ? userId : undefined)
+        .then(() => true)
+        .catch(() => false)
+      setIdentityDeferred(!idSaved)
       if (!needsConfirm) {
-        await saveIdentityDigits(form.country, form.last4).catch(() => setIdentityDeferred(true))
         clearDisplayUserCache()
-        toast.success('Expert profile created — you\u2019re Basic verified. Get Fully verified to attract more interested leads.')
-        navigate('/dashboard')
+        if (idSaved) {
+          toast.success('Expert profile created — you\u2019re Basic verified. Get Fully verified to attract more interested leads.')
+          navigate('/dashboard')
+        } else {
+          toast.error('Profile created, but your ID digits could not be saved. Please enter them once more to finish Basic verification.')
+          navigate('/dashboard/verification')
+        }
       } else {
-        setIdentityDeferred(true)
         setDone('confirm')
       }
     } catch (err) {
@@ -276,8 +291,10 @@ export function CandidateRegisterPage() {
           <p className="max-w-md text-muted-600">Thanks, {form.fullName.split(' ')[0] || 'there'}.</p>
           <p className="max-w-md text-sm text-muted">
             We&apos;ve sent a confirmation link to <b>{form.email}</b>. Click it and you&apos;ll land on the sign-in
-            page — sign in and finish the 30-second identity check {identityDeferred ? '(your ID digits are asked for again then — we never keep them in the browser)' : ''}{' '}
-            so you can start applying.
+            page.{' '}
+            {identityDeferred
+              ? 'Your ID digits could not be saved just now — after signing in, enter them once on the Verification page so you can start applying.'
+              : 'You’re already Basic verified, so you can start applying as soon as you sign in.'}
           </p>
           <Link to="/sign-in" className="rounded-md bg-navy px-6 py-3 text-base font-semibold text-white">
             Go to Sign In
@@ -428,7 +445,7 @@ export function CandidateRegisterPage() {
               <Field label={`Last 4 characters of your ${ID_TYPE_BY_COUNTRY[form.country]} (${countryName(form.country)})`}>
                 <TextInput
                   required
-                  placeholder="e.g. 1234A"
+                  placeholder={`e.g. ${ID_LAST4_FORMAT[form.country].example}`}
                   maxLength={4}
                   autoComplete="off"
                   value={form.last4}

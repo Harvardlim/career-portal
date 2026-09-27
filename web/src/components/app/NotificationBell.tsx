@@ -12,6 +12,10 @@ import {
 /** Re-check for new notifications this often, and whenever the tab regains focus. */
 const POLL_MS = 60_000
 
+/** Anything older than this tab's start is backlog: it sits in the bell, it doesn't pop. */
+const APP_STARTED_AT = Date.now()
+const toasted = new Set<string>()
+
 function timeAgo(iso: string): string {
   const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000))
   if (s < 60) return 'just now'
@@ -30,20 +34,20 @@ export function NotificationBell({ userId }: { userId: string }) {
   const { notifications, unread, loading, reload } = useNotifications()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-  const seen = useRef<Set<string> | null>(null)
 
-  // Toast anything that arrives after the first load (never the backlog).
+  // Toast only what arrives while the app is open, and each notification at
+  // most once per tab. The bell remounts on every page (each page renders its
+  // own layout), and its first load can land after the session resolves, so a
+  // per-instance "seen" set re-toasted the whole unread backlog on every
+  // navigation. The time cut-off plus a module-level set fixes both.
   useEffect(() => {
     if (loading) return
-    if (seen.current === null) {
-      seen.current = new Set(notifications.map((n) => n.id))
-      return
-    }
     for (const n of notifications) {
-      if (seen.current.has(n.id)) continue
-      seen.current.add(n.id)
-      if (n.read_at) continue
+      if (toasted.has(n.id)) continue
+      toasted.add(n.id)
+      if (n.read_at || new Date(n.created_at).getTime() < APP_STARTED_AT - 5_000) continue
       toast(n.title, {
+        id: n.id,
         description: n.body ?? undefined,
         duration: 10_000,
         action: n.link

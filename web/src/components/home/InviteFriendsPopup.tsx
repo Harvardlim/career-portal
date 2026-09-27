@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
-import { ShareIcon, XCircleIcon } from '@/components/icons'
+import { MailIcon, ShareIcon, XCircleIcon } from '@/components/icons'
 import { GoldCircle } from '@/components/marketing/blocks'
 import { SITE_URL } from '@/lib/site'
 
-/** Shown once per browser session, so a visitor bouncing between pages isn't nagged every time. */
-const SEEN_KEY = 'invite-popup-seen'
-
-const MESSAGE = `I found partly.asia — verified fractional experts matched to real business needs across Southeast Asia. Have a look: ${SITE_URL}`
+const MESSAGE = `I found partly.asia — warm leads matched to real business needs across Southeast Asia. Have a look: ${SITE_URL}`
+const WHATSAPP_HREF = `https://wa.me/?text=${encodeURIComponent(MESSAGE)}`
+const EMAIL_HREF = `mailto:?subject=${encodeURIComponent('Have a look at partly.asia')}&body=${encodeURIComponent(MESSAGE)}`
 
 /**
  * The "invite your friends" pop-out a visitor sees on arriving at the home
@@ -18,13 +17,8 @@ const MESSAGE = `I found partly.asia — verified fractional experts matched to 
 export function InviteFriendsPopup() {
   const [open, setOpen] = useState(false)
 
+  // Shown on every visit to the home page (by request), not once per session.
   useEffect(() => {
-    try {
-      if (sessionStorage.getItem(SEEN_KEY)) return
-      sessionStorage.setItem(SEEN_KEY, '1')
-    } catch {
-      /* storage unavailable: still show it once for this page load */
-    }
     const t = setTimeout(() => setOpen(true), 800)
     return () => clearTimeout(t)
   }, [])
@@ -40,22 +34,10 @@ export function InviteFriendsPopup() {
 
   const close = () => setOpen(false)
 
-  async function inviteNow() {
-    // Native share sheet where it exists (phones); otherwise copy the message.
-    const nav = navigator as Navigator & { share?: (d: { title: string; text: string; url: string }) => Promise<void> }
-    if (nav.share) {
-      try {
-        await nav.share({ title: 'partly.asia', text: MESSAGE, url: SITE_URL })
-        close()
-        return
-      } catch {
-        /* user dismissed the sheet, or it failed: fall through to copying */
-      }
-    }
+  async function copyMessage() {
     try {
       await navigator.clipboard.writeText(MESSAGE)
-      toast.success('Invite message copied — paste it to your friends.')
-      close()
+      toast.success('Invite message copied — paste it anywhere.')
     } catch {
       toast.error('Could not copy the invite. Please share the link by hand: ' + SITE_URL)
     }
@@ -99,12 +81,28 @@ export function InviteFriendsPopup() {
           have an account, your referral link also earns you a commission every time an invite pays off.
         </p>
 
-        <button
-          type="button"
-          onClick={inviteNow}
-          className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-brand px-6 text-base font-semibold text-white transition-colors hover:bg-brand-600"
-        >
-          <ShareIcon className="size-5" /> Invite Now
+        <p className="mt-4 rounded-md bg-surface-alt p-3 text-left text-sm leading-6 text-ink-600">{MESSAGE}</p>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <a
+            href={WHATSAPP_HREF}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={close}
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-[#25D366] px-6 text-base font-semibold text-white transition-opacity hover:opacity-90"
+          >
+            <ShareIcon className="size-5" /> WhatsApp
+          </a>
+          <a
+            href={EMAIL_HREF}
+            onClick={close}
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-brand px-6 text-base font-semibold text-white transition-colors hover:bg-brand-600"
+          >
+            <MailIcon className="size-5" /> Email
+          </a>
+        </div>
+        <button type="button" onClick={copyMessage} className="mt-3 text-sm font-medium text-brand underline hover:text-brand-600">
+          Copy message instead
         </button>
 
         <p className="mt-5 text-xs text-muted">

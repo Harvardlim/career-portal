@@ -56,8 +56,9 @@ export function PostingMatchesPage() {
       const p = await fetchPosting(id)
       setPosting(p)
       if (!p) return
-      if (p.matching_status === 'open' || p.matching_status === 'matched') {
-        // Idempotent: draws the 10 once, then returns the same fixed set.
+      if (p.matching_status === 'open' || p.matching_status === 'matched' || p.matching_status === 'released') {
+        // Keeps everyone already drawn, in order; only fills empty slots (up
+        // to 10) with experts who applied since.
         await generateMatches(id).catch(() => 0)
       }
       const [m, c] = await Promise.all([fetchMatches(id), fetchBusinessContacts(id)])
@@ -108,9 +109,9 @@ export function PostingMatchesPage() {
 
   function handlePassOnAll() {
     setConfirmState({
-      title: 'Pass on all 10 matches?',
+      title: `Pass on all ${matches.length} matches?`,
       message:
-        'These are the only matches for this posting — no further candidates will be surfaced and the posting will be marked as having no further matches.',
+        'No further candidates will be surfaced for this posting, including anyone who applies later, and it will be marked as having no further matches.',
       confirmLabel: 'Pass on all',
       tone: 'danger',
       run: async () => {
@@ -316,8 +317,9 @@ export function PostingMatchesPage() {
 
           {matches.length > 0 && !isClosed && (
             <Notice tone="warning">
-              <strong>These are your only matches for this posting — choose carefully.</strong> The shortlist is fixed
-              at 10; passing on all of them means no further candidates will be surfaced.
+              <strong>Your shortlist holds at most 10 experts — choose carefully.</strong> Experts already on it keep
+              their place; while there are free slots, new applicants are added below them. Passing on all of them
+              means no further candidates will be surfaced.
             </Notice>
           )}
 
@@ -337,7 +339,16 @@ export function PostingMatchesPage() {
                     <div className="flex items-start gap-3">
                       <Avatar name={m.full_name} src={m.avatar_path} />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium text-ink">{m.full_name}</p>
+                        {m.application_id ? (
+                          <Link
+                            to={`/employer/applications/applicant?id=${m.application_id}`}
+                            className="block truncate font-medium text-ink hover:text-brand hover:underline"
+                          >
+                            {m.full_name}
+                          </Link>
+                        ) : (
+                          <p className="truncate font-medium text-ink">{m.full_name}</p>
+                        )}
                         <p className="truncate text-sm text-muted">{m.headline ?? m.title ?? 'Expert'}</p>
                         {m.business_name && <p className="truncate text-xs text-muted">{m.business_name}</p>}
                         <p className="text-xs text-muted">
@@ -352,6 +363,14 @@ export function PostingMatchesPage() {
                     <VerifiedChips identity={m.identity_verified} badge={m.badge_verified} />
                     {m.expertise_field && m.expertise_field.length > 0 && (
                       <p className="line-clamp-2 text-xs text-ink-600">{m.expertise_field.join(' · ')}</p>
+                    )}
+                    {m.application_id && (
+                      <Link
+                        to={`/employer/applications/applicant?id=${m.application_id}`}
+                        className="w-fit text-xs font-semibold text-brand hover:underline"
+                      >
+                        View full profile →
+                      </Link>
                     )}
                     <div className="mt-auto flex items-center gap-2 pt-1">
                       {done ? (

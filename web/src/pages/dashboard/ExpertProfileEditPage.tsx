@@ -2,7 +2,8 @@ import { useEffect, useId, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
-import { DateInput, Field, Select, TextInput } from '@/components/dashboard/form'
+import { Field, Select, TextInput } from '@/components/dashboard/form'
+import { SelectMenu } from '@/components/app/SelectMenu'
 import { FileIcon, LinkedinIcon, PlusCircleIcon, TrashIcon } from '@/components/icons'
 import { Avatar, Card, Notice, PrimaryButton, SecondaryButton, VerifiedChips } from '@/components/partly/ui'
 import {
@@ -25,7 +26,14 @@ type Portfolio = { label: string; url: string }
 const educationOptions = ['Select...', 'High School', 'Diploma', 'Bachelor Degree', 'Master Degree', 'PhD']
 const nationalityOptions = ['Select...', 'Malaysia', 'Singapore', 'Indonesia', 'Thailand', 'Vietnam', 'Philippines', 'India', 'United States', 'United Kingdom', 'Other']
 const genderOptions = ['Select...', 'Male', 'Female', 'Other']
-const maritalOptions = ['Select...', 'Single', 'Married', 'Other']
+// Only month + year of birth is kept (never the day) — enough to confirm age.
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+const monthOptions = [{ value: '', label: 'Month' }, ...MONTHS.map((m, i) => ({ value: String(i + 1).padStart(2, '0'), label: m }))]
+const THIS_YEAR = new Date().getFullYear()
+const yearOptions = [
+  { value: '', label: 'Year' },
+  ...Array.from({ length: 70 }, (_, i) => String(THIS_YEAR - 16 - i)).map((y) => ({ value: y, label: y })),
+]
 
 function ResumeList({ candidateId, resumes, onChange }: { candidateId: string; resumes: ResumeRow[]; onChange: () => void }) {
   const id = useId()
@@ -101,9 +109,9 @@ export function ExpertProfileEditPage() {
   const [bio, setBio] = useState('')
   const [linkedin, setLinkedin] = useState('')
   const [nationality, setNationality] = useState('')
-  const [dob, setDob] = useState('')
+  const [dobMonth, setDobMonth] = useState('')
+  const [dobYear, setDobYear] = useState('')
   const [gender, setGender] = useState('')
-  const [marital, setMarital] = useState('')
   const [education, setEducation] = useState('')
   const [cats, setCats] = useState<string[]>([])
   const [subIds, setSubIds] = useState<string[]>([])
@@ -128,9 +136,9 @@ export function ExpertProfileEditPage() {
     setBio(candidate.biography ?? '')
     setLinkedin(candidate.linkedin_url ?? '')
     setNationality(candidate.nationality ?? '')
-    setDob(candidate.date_of_birth ?? '')
+    setDobYear(candidate.date_of_birth?.slice(0, 4) ?? '')
+    setDobMonth(candidate.date_of_birth?.slice(5, 7) ?? '')
     setGender(candidate.gender ?? '')
-    setMarital(candidate.marital_status ?? '')
     setEducation(candidate.education ?? '')
     setCats(candidate.expertise_field ?? [])
     setLinks(Array.isArray(candidate.portfolio_links) ? candidate.portfolio_links : [])
@@ -173,9 +181,9 @@ export function ExpertProfileEditPage() {
         biography: bio.trim() || null,
         linkedin_url: linkedin.trim() || null,
         nationality: nationality || null,
-        date_of_birth: dob || null,
+        date_of_birth: dobYear && dobMonth ? `${dobYear}-${dobMonth}-01` : null,
         gender: gender || null,
-        marital_status: marital || null,
+        marital_status: null,
         education: education || null,
         expertise_field: cats,
         portfolio_links: links.filter((l) => l.url.trim()),
@@ -350,14 +358,14 @@ export function ExpertProfileEditPage() {
             <Field label="Nationality">
               <Select value={nationality} onChange={setNationality} options={nationalityOptions} />
             </Field>
-            <Field label="Date of birth">
-              <DateInput value={dob} onChange={(e) => setDob(e.target.value)} />
+            <Field label="Month & year of birth">
+              <div className="grid grid-cols-2 gap-2">
+                <SelectMenu value={dobMonth} onChange={setDobMonth} options={monthOptions} />
+                <SelectMenu value={dobYear} onChange={setDobYear} options={yearOptions} />
+              </div>
             </Field>
             <Field label="Gender">
               <Select value={gender} onChange={setGender} options={genderOptions} />
-            </Field>
-            <Field label="Marital status">
-              <Select value={marital} onChange={setMarital} options={maritalOptions} />
             </Field>
             <Field label="Education">
               <Select value={education} onChange={setEducation} options={educationOptions} />
