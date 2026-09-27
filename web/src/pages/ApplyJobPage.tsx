@@ -1,3 +1,4 @@
+import { isOutsideExpertise } from '@/lib/partly'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -103,6 +104,10 @@ export function ApplyJobPage() {
     if (missing.length > 0) {
       toast.error(`Complete your profile before applying: add your ${missing.join(' and ')}.`)
       navigate('/dashboard/expert-profile')
+      return
+    }
+    if (isOutsideExpertise(job.category, candidate.expertise_field)) {
+      toast.error(`This need is in ${job.category}, which isn't one of the categories you serve.`)
       return
     }
     if (!candidate.identity_verified) {

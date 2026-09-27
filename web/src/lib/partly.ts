@@ -290,6 +290,8 @@ export async function fetchPosting(id: string): Promise<PostingRow | null> {
 export type NeedFilters = {
   categoryId?: string
   categoryName?: string
+  /** Any of these category names (an expert's own categories). Ignored when categoryId is set. */
+  categoryNames?: string[]
   country?: string
   projectType?: ProjectType | ''
   minBudget?: number
@@ -302,6 +304,17 @@ export type OpenNeedRow = PostingRow & {
   /** The posting business's verification tier, shown to experts as Basic / Fully verified. */
   business_basic_verified: boolean
   business_badge_verified: boolean
+}
+
+/**
+ * Experts may only apply to needs in a category they serve (their expert
+ * categories). A posting with no category at all isn't restricted. The
+ * database enforces the same rule on every application.
+ */
+export function isOutsideExpertise(postingCategory: string | null | undefined, expertise: string[] | null | undefined): boolean {
+  if (!postingCategory) return false
+  const mine = (expertise ?? []).map((c) => c.trim().toLowerCase())
+  return !mine.includes(postingCategory.trim().toLowerCase())
 }
 
 export async function fetchOpenNeeds(filters: NeedFilters, candidateId?: string): Promise<OpenNeedRow[]> {
@@ -320,6 +333,9 @@ export async function fetchOpenNeeds(filters: NeedFilters, candidateId?: string)
     .in('matching_status', ['open', 'matched', 'released'])
     .order('posted_at', { ascending: false })
     .limit(100)
+  if (!filters.categoryId && filters.categoryNames && filters.categoryNames.length > 0) {
+    q = q.in('category', filters.categoryNames)
+  }
   if (filters.categoryId) {
     q = filters.categoryName
       ? q.or(`main_category_id.eq.${filters.categoryId},category.eq.${filters.categoryName.replace(/,/g, ' ')}`)

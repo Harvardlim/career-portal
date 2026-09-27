@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { EmployerDashboardLayout } from '@/components/dashboard/EmployerDashboardLayout'
@@ -39,6 +39,20 @@ export function PostNeedPage() {
   const [submitting, setSubmitting] = useState(false)
 
   const category = useMemo(() => categories.find((c) => c.id === categoryId), [categories, categoryId])
+
+  // Only the functions the business said it's looking to hire for (Business
+  // profile → Looking to Hire). An old profile with none ticked sees them all.
+  const lookingFor = useMemo(() => employer?.looking_for ?? [], [employer])
+  const offered = useMemo(() => {
+    const picked = categories.filter((c) => lookingFor.includes(c.name))
+    return picked.length > 0 ? picked : categories
+  }, [categories, lookingFor])
+  const restricted = offered.length < categories.length
+
+  // With a single function there is nothing to choose.
+  useEffect(() => {
+    if (offered.length === 1 && !categoryId) setCategoryId(offered[0].id)
+  }, [offered, categoryId])
 
   function toggleSub(id: string) {
     setSubIds((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]))
@@ -148,9 +162,20 @@ export function PostNeedPage() {
 
         <Card className="flex flex-col gap-5">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">2 · Category</h2>
-          <p className="text-sm text-muted">One main category and at least one sub-category.</p>
+          <p className="text-sm text-muted">
+            One main category and at least one sub-category.
+            {restricted && (
+              <>
+                {' '}Showing what you're looking to hire for —{' '}
+                <Link to="/company/register" className="font-medium underline">
+                  change in your Business profile
+                </Link>
+                .
+              </>
+            )}
+          </p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {categories.map((c) => (
+            {offered.map((c) => (
               <button
                 type="button"
                 key={c.id}

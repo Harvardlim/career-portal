@@ -9,6 +9,7 @@ import {
   COUNTRY_NAMES,
   PROJECT_TYPES,
   applyToNeed,
+  isOutsideExpertise,
   budgetLabel,
   fetchOpenNeeds,
   missingApplyProfile,
@@ -33,7 +34,12 @@ export function BrowseNeedsPage() {
   const [loading, setLoading] = useState(true)
   const [applying, setApplying] = useState<string | null>(null)
 
-  const categoryId = params.get('category') ?? ''
+  // A signed-in expert starts on the categories they serve; 'all' opts out.
+  const categoryParam = params.get('category') ?? ''
+  const myCategories = candidate?.expertise_field ?? []
+  const mineDefault = myCategories.length > 0 && categoryParam === ''
+  const categoryId = categoryParam === 'all' ? '' : categoryParam
+  const categoryNames = mineDefault ? myCategories : undefined
   const country = params.get('country') ?? ''
   const projectType = (params.get('type') ?? '') as ProjectType | ''
   const minBudget = Number(params.get('budget') ?? '') || 0
@@ -51,14 +57,16 @@ export function BrowseNeedsPage() {
   useEffect(() => {
     let alive = true
     setLoading(true)
-    fetchOpenNeeds({ categoryId, categoryName, country, projectType, minBudget, q }, candidate?.id)
+    fetchOpenNeeds({ categoryId, categoryName, categoryNames, country, projectType, minBudget, q }, candidate?.id)
       .then((d) => alive && setRows(d))
       .catch((err) => console.error('open needs', err))
       .finally(() => alive && setLoading(false))
     return () => {
       alive = false
     }
-  }, [categoryId, categoryName, country, projectType, minBudget, q, candidate?.id])
+    // categoryNames is derived from the candidate; its contents are the dependency.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryId, categoryName, (categoryNames ?? []).join('|'), country, projectType, minBudget, q, candidate?.id])
 
   async function handleApply(row: OpenNeedRow) {
     if (!session) {
@@ -73,6 +81,10 @@ export function BrowseNeedsPage() {
     if (missing.length > 0) {
       toast.error(`Complete your profile before applying: add your ${missing.join(' and ')}.`)
       navigate('/dashboard/expert-profile')
+      return
+    }
+    if (isOutsideExpertise(row.category, candidate.expertise_field)) {
+      toast.error(`This need is in ${row.category}, which isn't one of the categories you serve.`)
       return
     }
     if (!candidate.identity_verified) {
@@ -110,10 +122,18 @@ export function BrowseNeedsPage() {
           className={selectCls}
         />
         <SelectMenu
-          value={categoryId}
+          value={categoryParam}
           onChange={(v) => setParam('category', v)}
           placeholder="All categories"
-          options={categories.map((c) => ({ value: c.id, label: c.name }))}
+          options={[
+            ...(myCategories.length > 0
+              ? [
+                  { value: '', label: `My categories (${myCategories.join(', ')})` },
+                  { value: 'all', label: 'All categories' },
+                ]
+              : []),
+            ...categories.map((c) => ({ value: c.id, label: c.name })),
+          ]}
         />
         <SelectMenu
           value={country}
@@ -197,6 +217,15 @@ export function BrowseNeedsPage() {
               <div className="shrink-0">
                 {row.applied ? (
                   <SecondaryButton disabled>Applied</SecondaryButton>
+                ) : candidate && isOutsideExpertise(row.category, candidate.expertise_field) ? (
+                  <div className="flex flex-col items-start gap-1 md:items-end">
+                    <SecondaryButton disabled title={`You serve: ${(candidate.expertise_field ?? []).join(', ') || 'no categories yet'}`}>
+                      Not your expertise
+                    </SecondaryButton>
+                    <Link to="/dashboard/expert-profile" className="text-xs text-muted underline hover:text-ink">
+                      Edit the categories you serve
+                    </Link>
+                  </div>
                 ) : (
                   <PrimaryButton
                     onClick={() => handleApply(row)}
