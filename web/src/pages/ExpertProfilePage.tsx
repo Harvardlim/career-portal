@@ -5,6 +5,7 @@ import { ReportButton } from '@/components/partly/ReportButton'
 import { countryName, fetchRatingsFor, type RatingWithAuthor } from '@/lib/partly'
 import { supabase } from '@/lib/supabase'
 import { useSeo } from '@/lib/seo'
+import { formatDate } from '@/lib/format'
 
 type PublicProfile = {
   candidate_id: string
@@ -147,7 +148,7 @@ export function ExpertProfilePage() {
                 </div>
                 {r.comment && <p className="text-sm text-ink-600">{r.comment}</p>}
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs text-muted">{new Date(r.created_at).toLocaleDateString()}</p>
+                  <p className="text-xs text-muted">{formatDate(r.created_at)}</p>
                   <ReportButton targetKind="rating" targetId={r.id} label="Report" />
                 </div>
               </div>

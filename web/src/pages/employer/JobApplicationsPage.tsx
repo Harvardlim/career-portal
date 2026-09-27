@@ -13,6 +13,7 @@ import {
   type ApplicationRow,
   type ApplicationStatus,
 } from '@/lib/employers'
+import { formatDate } from '@/lib/format'
 
 const COLUMNS: { key: ApplicationStatus; label: string }[] = [
   { key: 'active', label: 'New Applications' },
@@ -174,7 +175,7 @@ export function JobApplicationsPage() {
                       <div className="flex items-center justify-between text-xs text-muted">
                         <span>{row.candidate?.education || '—'}</span>
                         <span>
-                          {new Date(row.applied_at).toLocaleDateString()}
+                          {formatDate(row.applied_at)}
                         </span>
                       </div>
                       <Link

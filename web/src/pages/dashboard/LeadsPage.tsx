@@ -4,6 +4,7 @@ import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { Card, Countdown, EmptyState, Notice, Pill, PrimaryButton } from '@/components/partly/ui'
 import { useCandidate } from '@/lib/dashboard'
 import { countryName, fetchMyLeads, formatBoth, projectTypeLabel, usePricing, type LeadRow } from '@/lib/partly'
+import { formatDate } from '@/lib/format'
 
 function statusPill(l: LeadRow) {
   if (l.status === 'paid')
@@ -105,10 +106,10 @@ export function LeadsPage() {
                       {statusPill(l)}
                     </div>
                     <p className="text-xs text-muted">
-                      Released {new Date(l.released_at).toLocaleDateString()}
+                      Released {formatDate(l.released_at)}
                       {l.ended_reason ? ` · ${l.ended_reason}` : ''}
                       {l.status === 'paid' && l.contact_expires_at
-                        ? ` · contact ${l.contact_visible ? 'visible until' : 'expired'} ${new Date(l.contact_expires_at).toLocaleDateString()}`
+                        ? ` · contact ${l.contact_visible ? 'visible until' : 'expired'} ${formatDate(l.contact_expires_at)}`
                         : ''}
                     </p>
                   </div>

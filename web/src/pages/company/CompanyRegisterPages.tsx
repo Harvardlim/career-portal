@@ -130,7 +130,6 @@ export function EmployerProfilePage() {
     const missing: string[] = []
     if (!form.company_name.trim()) missing.push('company name')
     if (!form.reg_no.trim()) missing.push('registration no.')
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.business_email.trim())) missing.push('a valid business email')
     if (!form.industry) missing.push('industry')
     if (!form.size) missing.push('team size')
     if (!form.location) missing.push('location')
@@ -150,7 +149,6 @@ export function EmployerProfilePage() {
       await updateMyEmployer(employer.id, {
         company_name: form.company_name.trim(),
         reg_no: form.reg_no.trim(),
-        business_email: form.business_email.trim(),
         industry: form.industry || null,
         size: form.size || null,
         location: form.location || null,
@@ -199,13 +197,16 @@ export function EmployerProfilePage() {
           </Field>
         </div>
 
-        <Field label="Business Email *">
+        <Field label="Business Email">
           <TextInput
             type="email"
             icon={<MailIcon className="size-5" />}
             value={form.business_email}
-            onChange={(e) => set('business_email', e.target.value)}
+            disabled
+            readOnly
+            title="This is the email you sign in with, so it can't be changed here."
           />
+          <p className="mt-1 text-xs text-muted">This is your sign-in email and can&apos;t be changed here.</p>
         </Field>
 
         <div className="grid gap-6 sm:grid-cols-3">

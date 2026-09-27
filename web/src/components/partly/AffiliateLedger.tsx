@@ -10,6 +10,7 @@ import {
   type CommissionRow,
 } from '@/lib/partly'
 import { supabase } from '@/lib/supabase'
+import { formatDate } from '@/lib/format'
 
 const EVENT_LABEL: Record<CommissionRow['event_type'], string> = {
   badge_purchase: 'Verified badge — first purchase',
@@ -89,7 +90,7 @@ export function AffiliateLedger({ affiliateId, userId }: { affiliateId: string; 
           <p className="mt-2 text-xs text-muted">
             {nextPayout
               ? `Next payout: USD ${nextPayout.amount_usd.toLocaleString()} — ${nextPayout.status}`
-              : `Next payout cycle: ${nextCycle.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })} — in USD, less FX and transaction fees.`}
+              : `Next payout cycle: ${nextCycle.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} — in USD, less FX and transaction fees.`}
           </p>
         </div>
       </InfoCard>
@@ -106,13 +107,13 @@ export function AffiliateLedger({ affiliateId, userId }: { affiliateId: string; 
               return (
                 <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
                   <span className="font-medium text-ink">{EVENT_LABEL[r.event_type]}</span>
-                  <span className="text-muted-600">{new Date(r.earned_at).toLocaleDateString()}</span>
+                  <span className="text-muted-600">{formatDate(r.earned_at)}</span>
                   <span className="text-muted-600">
                     {p ? formatLocal(p, r.amount_local) : `${r.currency} ${r.amount_local.toLocaleString()}`} ·{' '}
                     USD {r.amount_usd.toLocaleString()}
                   </span>
                   <Pill tone={r.status === 'paid' ? 'brand' : r.status === 'earned' ? 'success' : 'neutral'}>
-                    {r.status === 'paid' && r.paid_at ? `Paid ${new Date(r.paid_at).toLocaleDateString()}` : r.status}
+                    {r.status === 'paid' && r.paid_at ? `Paid ${formatDate(r.paid_at)}` : r.status}
                   </Pill>
                 </div>
               )

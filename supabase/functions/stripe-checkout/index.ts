@@ -353,6 +353,12 @@ async function checkoutLeadUnlock(
     ),
     success_url: `${origin}/dashboard/leads/${release.id}?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/dashboard/leads/${release.id}?checkout=cancelled`,
+    // A numbered, paid Stripe invoice (PDF + hosted page) for the buyer's
+    // records; its link goes into the partly.asia receipt email.
+    invoice_creation: {
+      enabled: true,
+      invoice_data: { description: 'Released-lead contact unlock — partly.asia', footer: 'partly.asia · Thank you for your payment.' },
+    },
     metadata: {
       kind: 'lead_unlock',
       release_id: release.id,
@@ -453,6 +459,12 @@ async function checkoutVerifiedBadge(
     ],
     success_url: `${origin}/dashboard/verification?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/dashboard/verification?checkout=cancelled`,
+    // A numbered, paid Stripe invoice (PDF + hosted page) for the buyer's
+    // records; its link goes into the partly.asia receipt email.
+    invoice_creation: {
+      enabled: true,
+      invoice_data: { description: 'Fully verified badge (1 year) — partly.asia', footer: 'partly.asia · Thank you for your payment.' },
+    },
     metadata: {
       kind: 'verified_badge',
       badge_id: badge.id,
@@ -558,6 +570,12 @@ async function checkoutEmployerVerifiedBadge(
     ],
     success_url: `${origin}/employer/verification?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/employer/verification?checkout=cancelled`,
+    // A numbered, paid Stripe invoice (PDF + hosted page) for the buyer's
+    // records; its link goes into the partly.asia receipt email.
+    invoice_creation: {
+      enabled: true,
+      invoice_data: { description: 'Fully verified business badge (1 year) — partly.asia', footer: 'partly.asia · Thank you for your payment.' },
+    },
     metadata: {
       kind: 'employer_verified_badge',
       badge_id: badge.id,

@@ -18,6 +18,7 @@ import {
   type ProjectType,
 } from '@/lib/partly'
 import { useDisplayUser } from '@/lib/useDisplayUser'
+import { formatDate } from '@/lib/format'
 
 const selectCls =
   'h-11 w-full rounded-md border border-line bg-surface px-3 text-sm text-ink outline-none focus:border-brand'
@@ -189,7 +190,7 @@ export function BrowseNeedsPage() {
                   </div>
                 )}
                 <p className="mt-2 text-xs text-muted">
-                  Posted {new Date(row.posted_at).toLocaleDateString()} · {row.people_required} expert
+                  Posted {formatDate(row.posted_at)} · {row.people_required} expert
                   {row.people_required === 1 ? '' : 's'} needed
                 </p>
               </div>

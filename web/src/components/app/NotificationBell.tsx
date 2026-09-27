@@ -8,6 +8,7 @@ import {
   useNotifications,
   type NotificationRow,
 } from '@/lib/partly'
+import { justReturnedFromCheckout } from '@/lib/useCheckoutReturn'
 
 /** Re-check for new notifications this often, and whenever the tab regains focus. */
 const POLL_MS = 60_000
@@ -15,6 +16,7 @@ const POLL_MS = 60_000
 /** Anything older than this tab's start is backlog: it sits in the bell, it doesn't pop. */
 const APP_STARTED_AT = Date.now()
 const toasted = new Set<string>()
+const PAYMENT_KINDS = new Set(['badge_active', 'badge_awaiting_review', 'contact_unlocked'])
 
 function timeAgo(iso: string): string {
   const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000))
@@ -46,6 +48,9 @@ export function NotificationBell({ userId }: { userId: string }) {
       if (toasted.has(n.id)) continue
       toasted.add(n.id)
       if (n.read_at || new Date(n.created_at).getTime() < APP_STARTED_AT - 5_000) continue
+      // The page you land on after paying already confirms it; don't pop the
+      // matching notification on top (it still sits in the bell).
+      if (PAYMENT_KINDS.has(n.kind) && justReturnedFromCheckout()) continue
       toast(n.title, {
         id: n.id,
         description: n.body ?? undefined,

@@ -47,6 +47,7 @@ Deno.serve(async (req) => {
       const result = await fulfilCheckoutSession(
         admin,
         event.data.object as Stripe.Checkout.Session,
+        stripe,
       )
       console.log('webhook fulfil', result)
     }

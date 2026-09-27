@@ -34,6 +34,7 @@ import {
   type MatchCard,
   type PostingRow,
 } from '@/lib/partly'
+import { formatDate } from '@/lib/format'
 
 export function PostingMatchesPage() {
   const { id = '' } = useParams()
@@ -230,7 +231,7 @@ export function PostingMatchesPage() {
                         )}
                       </div>
                       <p className="mt-2 text-xs text-muted">
-                        Visible until {new Date(c.contact_expires_at).toLocaleDateString()} — keep this conversation on partly.asia.
+                        Visible until {formatDate(c.contact_expires_at)} — keep this conversation on partly.asia.
                       </p>
                       <div className="mt-3">
                         <RatingWidget releaseId={c.release_id} raterKind="employer" raterLabel="this expert" />

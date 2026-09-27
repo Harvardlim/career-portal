@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { CloudUploadIcon } from '@/components/icons'
 import { Pill, SecondaryButton } from '@/components/partly/ui'
 import { fetchMyVerificationDocs, uploadVerificationDoc, type VerificationDoc } from '@/lib/partly'
+import { formatDate } from '@/lib/format'
 
 const LABEL: Record<VerificationDoc['doc_type'], string> = {
   identity: 'Identity document',
@@ -87,7 +88,7 @@ export function VerificationDocs({
       )}
       {latest?.purged_at && (
         <p className="text-xs text-muted">
-          The file itself was securely deleted {new Date(latest.purged_at).toLocaleDateString()}, 90 days after
+          The file itself was securely deleted {formatDate(latest.purged_at)}, 90 days after
           review — we keep only the decision, not the document.
         </p>
       )}

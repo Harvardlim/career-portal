@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { InviteFriendPanel } from '@/components/partly/InviteFriendPanel'
@@ -22,12 +22,11 @@ import {
   type LeadRow,
   type PayCurrency,
 } from '@/lib/partly'
-import { confirmCheckout, readCheckoutParams } from '@/lib/stripe'
+import { useCheckoutReturn } from '@/lib/useCheckoutReturn'
+import { formatDateTime } from '@/lib/format'
 
 export function LeadUnlockPage() {
   const { id = '' } = useParams()
-  const location = useLocation()
-  const navigate = useNavigate()
   const { candidate, loading: candidateLoading } = useCandidate()
   const { pricing } = usePricing()
   const [lead, setLead] = useState<LeadRow | null>(null)
@@ -35,7 +34,6 @@ export function LeadUnlockPage() {
   const [pay, setPay] = useState<PayCurrency>('local')
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
-  const [confirming, setConfirming] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -54,24 +52,11 @@ export function LeadUnlockPage() {
   }, [load])
 
   // Return from Stripe: confirm server-side so the contact appears immediately.
-  useEffect(() => {
-    const { outcome, sessionId } = readCheckoutParams(location.search)
-    if (!outcome) return
-    navigate(location.pathname, { replace: true })
-    if (outcome === 'cancelled') {
-      toast('Payment cancelled — the lead is still yours until the window closes.')
-      return
-    }
-    if (sessionId) {
-      setConfirming(true)
-      confirmCheckout(sessionId)
-        .then(async (ok) => {
-          if (ok) toast.success('Contact unlocked.')
-          await load()
-        })
-        .finally(() => setConfirming(false))
-    }
-  }, [location.search, location.pathname, navigate, load])
+  const { confirming } = useCheckoutReturn({
+    successMessage: 'Contact unlocked.',
+    cancelledMessage: 'Payment cancelled — the lead is still yours until the window closes.',
+    onConfirmed: load,
+  })
 
   const price = pricing.find((p) => p.code === candidate?.country_code)
 
@@ -156,7 +141,7 @@ export function LeadUnlockPage() {
                   )}
                 </div>
                 <Notice tone="warning">
-                  These details are visible until <strong>{new Date(contact.contact_expires_at).toLocaleString()}</strong>{' '}
+                  These details are visible until <strong>{formatDateTime(contact.contact_expires_at)}</strong>{' '}
                   (5 calendar days). For security and privacy, refer to this lead only through partly.asia — we never
                   email contact details out.
                 </Notice>

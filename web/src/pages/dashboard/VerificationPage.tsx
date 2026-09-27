@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { Field, TextInput } from '@/components/dashboard/form'
@@ -28,7 +28,8 @@ import {
   type ExpertCountry,
   type PayCurrency,
 } from '@/lib/partly'
-import { confirmCheckout, readCheckoutParams } from '@/lib/stripe'
+import { useCheckoutReturn } from '@/lib/useCheckoutReturn'
+import { formatDate } from '@/lib/format'
 
 const BADGE_STATUS_LABEL: Record<string, string> = {
   pending: 'Checkout started',
@@ -42,7 +43,6 @@ const BADGE_STATUS_LABEL: Record<string, string> = {
 export function VerificationPage() {
   const { candidate, session, loading, reload } = useCandidate()
   const { pricing } = usePricing()
-  const location = useLocation()
   const navigate = useNavigate()
 
   const [country, setCountry] = useState<ExpertCountry>('SG')
@@ -53,7 +53,6 @@ export function VerificationPage() {
   const [hasDoc, setHasDoc] = useState(false)
   const [pay, setPay] = useState<PayCurrency>('local')
   const [buying, setBuying] = useState(false)
-  const [confirming, setConfirming] = useState(false)
 
   useEffect(() => {
     if (!candidate) return
@@ -65,25 +64,15 @@ export function VerificationPage() {
     hasUploadedIdentityDoc(candidate.id).then(setHasDoc).catch(() => setHasDoc(false))
   }, [candidate])
 
-  useEffect(() => {
-    const { outcome, sessionId } = readCheckoutParams(location.search)
-    if (!outcome) return
-    navigate(location.pathname, { replace: true })
-    if (outcome === 'cancelled') {
-      toast('Badge purchase cancelled.')
-      return
-    }
-    if (sessionId) {
-      setConfirming(true)
-      confirmCheckout(sessionId)
-        .then(async (ok) => {
-          if (ok) toast.success('Payment confirmed — your badge status is on your dashboard.', { action: { label: 'View dashboard', onClick: () => navigate('/dashboard') } })
-          await reload()
-          if (candidate) await fetchMyBadges(candidate.id).then(setBadges).catch(() => {})
-        })
-        .finally(() => setConfirming(false))
-    }
-  }, [location.search, location.pathname, navigate, reload, candidate])
+  const { confirming } = useCheckoutReturn({
+    successMessage: 'Payment confirmed — your badge status is on your dashboard.',
+    successAction: { label: 'View dashboard', onClick: () => navigate('/dashboard') },
+    cancelledMessage: 'Badge purchase cancelled.',
+    onConfirmed: async () => {
+      await reload()
+      if (candidate) await fetchMyBadges(candidate.id).then(setBadges).catch(() => {})
+    },
+  })
 
   const price = pricing.find((p) => p.code === (candidate?.country_code ?? country))
   const badgeLive = !!candidate?.verified_badge_until && new Date(candidate.verified_badge_until) > new Date()
@@ -190,7 +179,7 @@ export function VerificationPage() {
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">2 · Fully verified badge (annual, paid)</h2>
             {badgeLive && candidate?.verified_badge_until && (
-              <Pill tone="brand">Active until {new Date(candidate.verified_badge_until).toLocaleDateString()}</Pill>
+              <Pill tone="brand">Active until {formatDate(candidate.verified_badge_until)}</Pill>
             )}
             {awaitingReview && <Pill tone="warning">Awaiting document review</Pill>}
           </div>
@@ -285,11 +274,11 @@ export function VerificationPage() {
                   <li key={b.id} className="flex items-center justify-between">
                     <span className="text-ink">
                       {b.renewed_from ? 'Renewal' : 'Purchase'} · {formatPaid(pricing.find((p) => p.code === b.country_code), b)}
-                      {b.purchased_at ? ` · ${new Date(b.purchased_at).toLocaleDateString()}` : ''}
+                      {b.purchased_at ? ` · ${formatDate(b.purchased_at)}` : ''}
                     </span>
                     <Pill tone={b.status === 'active' ? 'success' : b.status === 'awaiting_review' ? 'warning' : 'neutral'}>
                       {BADGE_STATUS_LABEL[b.status] ?? b.status}
-                      {b.expires_at && b.status === 'active' ? ` · until ${new Date(b.expires_at).toLocaleDateString()}` : ''}
+                      {b.expires_at && b.status === 'active' ? ` · until ${formatDate(b.expires_at)}` : ''}
                     </Pill>
                   </li>
                 ))}

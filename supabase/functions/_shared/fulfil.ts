@@ -98,7 +98,20 @@ function formatPaid(amountMinor: number, currency: string): string {
   }
 }
 
-async function sendReceipt(session: Stripe.Checkout.Session): Promise<void> {
+/** The Stripe invoice's PDF + hosted page, when the session created one. */
+async function invoiceLinks(stripe: Stripe | undefined, session: Stripe.Checkout.Session): Promise<{ pdf?: string; page?: string }> {
+  const id = typeof session.invoice === 'string' ? session.invoice : session.invoice?.id
+  if (!stripe || !id) return {}
+  try {
+    const inv = await stripe.invoices.retrieve(id)
+    return { pdf: inv.invoice_pdf ?? undefined, page: inv.hosted_invoice_url ?? undefined }
+  } catch (err) {
+    console.error('invoice lookup failed', err)
+    return {}
+  }
+}
+
+async function sendReceipt(session: Stripe.Checkout.Session, stripe?: Stripe): Promise<void> {
   const to = session.customer_details?.email ?? session.customer_email ?? ''
   if (!to || session.amount_total == null || !session.currency) return
   const kind = session.metadata?.kind ?? ''
@@ -110,6 +123,7 @@ async function sendReceipt(session: Stripe.Checkout.Session): Promise<void> {
     year: 'numeric',
   })
   const ref = typeof session.payment_intent === 'string' ? session.payment_intent : session.id
+  const inv = await invoiceLinks(stripe, session)
   const row = (k: string, v: string) =>
     `<tr><td style="padding:6px 0;color:#64748b;">${escapeHtml(k)}</td><td style="padding:6px 0;text-align:right;color:#1b2a4a;font-weight:600;">${escapeHtml(v)}</td></tr>`
   const html = emailShell(
@@ -121,6 +135,11 @@ async function sendReceipt(session: Stripe.Checkout.Session): Promise<void> {
        ${row('Date', paidOn)}
        ${row('Reference', ref)}
      </table>
+     ${
+       inv.pdf || inv.page
+         ? `<p style="margin-top:16px;">Your invoice: ${inv.pdf ? `<a href="${inv.pdf}" style="color:#d4a12a;">Download invoice (PDF)</a>` : ''}${inv.pdf && inv.page ? ' · ' : ''}${inv.page ? `<a href="${inv.page}" style="color:#d4a12a;">View online</a>` : ''}</p>`
+         : ''
+     }
      <p style="margin-top:16px;">Keep this email for your records.</p>`,
     `${SITE_URL}/dashboard`,
     'Open my dashboard',
@@ -131,11 +150,12 @@ async function sendReceipt(session: Stripe.Checkout.Session): Promise<void> {
 export async function fulfilCheckoutSession(
   admin: SupabaseClient,
   session: Stripe.Checkout.Session,
+  stripe?: Stripe,
 ): Promise<FulfilResult> {
   const result = await fulfil(admin, session)
   if (result === 'granted') {
     try {
-      await sendReceipt(session)
+      await sendReceipt(session, stripe)
     } catch (err) {
       console.error('receipt email failed', err)
     }

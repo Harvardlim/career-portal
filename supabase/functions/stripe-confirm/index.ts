@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
       return json({ error: 'Unrecognised checkout session' }, 400)
     }
 
-    const result = await fulfilCheckoutSession(admin, session)
+    const result = await fulfilCheckoutSession(admin, session, stripe)
     return json({
       active: result === 'granted' || result === 'already_done',
       result,
