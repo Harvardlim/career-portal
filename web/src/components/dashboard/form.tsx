@@ -45,7 +45,7 @@ export function TextInput({
       )}
       <input
         type={resolvedType}
-        className={`h-12 w-full rounded-md border border-line bg-surface text-base text-ink outline-none focus:border-brand placeholder:text-muted-400 ${
+        className={`h-12 w-full rounded-md border border-line bg-surface text-base text-ink outline-none focus:border-brand placeholder:text-muted-400 disabled:cursor-not-allowed disabled:bg-surface-alt disabled:text-muted ${
           icon ? 'pl-10' : 'pl-4'
         } ${isPassword ? 'pr-11' : 'pr-4'} ${className ?? ''}`}
         {...rest}
