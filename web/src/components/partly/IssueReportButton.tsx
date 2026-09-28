@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { SelectMenu } from '@/components/app/SelectMenu'
 import { useSession } from '@/lib/useSession'
 import { fileIssueReport, ISSUE_CATEGORIES, type IssueCategory } from '@/lib/partly'
 
@@ -66,21 +67,13 @@ export function IssueReportButton() {
             <h2 className="text-lg font-medium text-ink">Report an issue</h2>
             <p className="mt-1 text-sm text-muted-600">Tell us what went wrong — our team reads every report.</p>
 
-            <label className="mt-4 block text-sm font-medium text-ink" htmlFor="issue-category">
-              What is it about?
-            </label>
-            <select
-              id="issue-category"
+            <p className="mt-4 text-sm font-medium text-ink">What is it about?</p>
+            <SelectMenu
+              className="mt-1"
               value={category}
-              onChange={(e) => setCategory(e.target.value as IssueCategory)}
-              className="mt-1 h-10 w-full rounded-md border border-line bg-surface px-3 text-sm text-ink outline-none focus:border-brand"
-            >
-              {ISSUE_CATEGORIES.map((c) => (
-                <option key={c.value} value={c.value}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => setCategory(v as IssueCategory)}
+              options={ISSUE_CATEGORIES.map((c) => ({ value: c.value, label: c.label }))}
+            />
 
             <label className="mt-4 block text-sm font-medium text-ink" htmlFor="issue-message">
               What happened?

@@ -39,6 +39,8 @@ export function SelectMenu({
     }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        // Close just the list, not an enclosing dialog that also listens for Esc.
+        e.stopPropagation()
         setOpen(false)
         return
       }

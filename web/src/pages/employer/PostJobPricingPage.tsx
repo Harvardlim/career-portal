@@ -16,8 +16,8 @@ import {
   type CreditPackageKey,
 } from '@/lib/stripe'
 import { ArrowRightIcon, CheckIcon, MailIcon } from '@/components/icons'
+import { validateEmail } from '@/lib/partly'
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const defaultInvitation =
   "Hi,\n\nI'd like to invite you to join our hiring team on Partly Asia so we can post jobs together.\n\nThanks,\nThe hiring team"
@@ -42,7 +42,7 @@ function ReferralPackageCard({
     return !!v && emails.some((e, j) => j !== i && e.trim().toLowerCase() === v)
   }
   const rowReady = (i: number) =>
-    EMAIL_RE.test(emails[i].trim()) && consents[i] && !dupInForm(i)
+    !validateEmail(emails[i]) && consents[i] && !dupInForm(i)
   const canBuy = [0, 1, 2].every((i) => sent[i]) && !disabled && !pending
 
   async function sendRow(i: number) {

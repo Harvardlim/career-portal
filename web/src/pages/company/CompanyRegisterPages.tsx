@@ -124,38 +124,39 @@ export function EmployerProfilePage() {
     }
   }
 
+  // Save stays disabled until every required field is filled and valid.
+  const missing: string[] = []
+  if (!form.company_name.trim()) missing.push('company name')
+  if (!form.reg_no.trim()) missing.push('registration no.')
+  if (!form.industry) missing.push('industry')
+  if (!form.size) missing.push('team size')
+  if (!form.location) missing.push('location')
+  if (form.field.length === 0) missing.push('business field')
+  if (form.looking_for.length === 0) missing.push('what you’re looking to hire')
+  if (!form.phone.trim()) missing.push('phone')
+  if (!form.business_details.trim()) missing.push('business details')
+  if (plainTextLength(form.about) === 0) missing.push('about us')
+
+  const problems: string[] = []
+  if (form.phone.trim()) {
+    const phoneErr = validatePhone(form.phone)
+    if (phoneErr) problems.push(phoneErr)
+  }
+  if (
+    (form.business_details.trim() && form.business_details.trim().length < MIN_BUSINESS_TEXT) ||
+    (plainTextLength(form.about) > 0 && plainTextLength(form.about) < MIN_BUSINESS_TEXT)
+  ) {
+    problems.push(`Business details and About us each need at least ${MIN_BUSINESS_TEXT} characters.`)
+  }
+  if (employer && form.reg_no.trim()) {
+    const regErr = validateBusinessRegNo(employer.country_code ?? '', form.reg_no.trim())
+    if (regErr) problems.push(regErr)
+  }
+  const canSave = !!employer && missing.length === 0 && problems.length === 0
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (!employer) return
-    const missing: string[] = []
-    if (!form.company_name.trim()) missing.push('company name')
-    if (!form.reg_no.trim()) missing.push('registration no.')
-    if (!form.industry) missing.push('industry')
-    if (!form.size) missing.push('team size')
-    if (!form.location) missing.push('location')
-    if (form.field.length === 0) missing.push('business field')
-    if (form.looking_for.length === 0) missing.push('what you’re looking to hire')
-    if (!form.phone.trim()) missing.push('phone')
-    if (!form.business_details.trim()) missing.push('business details')
-    if (plainTextLength(form.about) === 0) missing.push('about us')
-    if (missing.length > 0) {
-      toast.error(`Please fill in: ${missing.join(', ')}.`)
-      return
-    }
-    const phoneErr = validatePhone(form.phone)
-    if (phoneErr) {
-      toast.error(phoneErr)
-      return
-    }
-    if (form.business_details.trim().length < MIN_BUSINESS_TEXT || plainTextLength(form.about) < MIN_BUSINESS_TEXT) {
-      toast.error(`Business details and About us each need at least ${MIN_BUSINESS_TEXT} characters.`)
-      return
-    }
-    const regErr = validateBusinessRegNo(employer.country_code ?? '', form.reg_no.trim())
-    if (regErr) {
-      toast.error(regErr)
-      return
-    }
+    if (!employer || !canSave) return
     setSaving(true)
     try {
       await updateMyEmployer(employer.id, {
@@ -347,13 +348,21 @@ export function EmployerProfilePage() {
           )}
         </Field>
 
-        <button
-          type="submit"
-          disabled={saving || !employer}
-          className="w-fit rounded-[4px] bg-brand px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {saving ? 'Saving...' : 'Save Changes'}
-        </button>
+        <div className="flex flex-col gap-2">
+          <button
+            type="submit"
+            disabled={saving || !canSave}
+            className="w-fit rounded-[4px] bg-brand px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+          {employer && missing.length > 0 && (
+            <span className="text-xs text-muted">Missing to save: {missing.join(', ')}</span>
+          )}
+          {employer && missing.length === 0 && problems.length > 0 && (
+            <span className="text-xs text-danger">{problems[0]}</span>
+          )}
+        </div>
       </form>
     </EmployerDashboardLayout>
   )

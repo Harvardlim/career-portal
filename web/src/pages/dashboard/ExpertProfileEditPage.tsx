@@ -22,6 +22,7 @@ import { useCandidate } from '@/lib/dashboard'
 import { clearDisplayUserCache } from '@/lib/useDisplayUser'
 import { experienceRanges } from '@/data/categories'
 import { supabase } from '@/lib/supabase'
+import { validatePhone } from '@/lib/partly'
 
 type Portfolio = { label: string; url: string }
 
@@ -178,6 +179,8 @@ export function ExpertProfileEditPage() {
     if (!experience.trim()) return toast.error('Add your experience summary — businesses read it before choosing you.')
     if (cats.length === 0) return toast.error('Pick at least one expert category.')
     if (!phone.trim()) return toast.error('Add a phone number — it\u2019s shared with a business only after you unlock a lead.')
+    const phoneErr = validatePhone(phone)
+    if (phoneErr) return toast.error(phoneErr)
     const dobProblem = birthMonthProblem(dobYear, dobMonth)
     if (dobProblem) return toast.error(dobProblem)
     setSaving(true)
@@ -389,6 +392,9 @@ export function ExpertProfileEditPage() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
+              {phone.trim() && validatePhone(phone) && (
+                <p className="mt-1 text-xs text-danger">{validatePhone(phone)}</p>
+              )}
             </Field>
             <Field label="Email">
               <TextInput

@@ -23,6 +23,8 @@ import {
   saveIdentityDigits,
   idLast4Problem,
   ID_LAST4_FORMAT,
+  validateEmail,
+  validatePhone,
   type ExpertCountry,
 } from '@/lib/partly'
 import {
@@ -58,8 +60,6 @@ type FormState = {
   pastExperience: string
   last4: string
 }
-
-const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
 
 const initialState: FormState = {
   fullName: '',
@@ -153,7 +153,10 @@ export function CandidateRegisterPage() {
     e.preventDefault()
 
     if (step === 0) {
-      if (!isValidEmail(form.email)) return toast.error('Please enter a valid email address.')
+      const emailErr = validateEmail(form.email)
+      if (emailErr) return toast.error(emailErr)
+      const phoneErr = validatePhone(form.contactNumber)
+      if (phoneErr) return toast.error(phoneErr)
       if (!session && form.password !== form.confirmPassword) return toast.error('Passwords do not match.')
       // Catch an already-registered email on the first step, not at the end.
       setSubmitting(true)
@@ -309,8 +312,8 @@ export function CandidateRegisterPage() {
   const isLastStep = step === steps.length - 1
   const isStep0Filled =
     form.fullName.trim() !== '' &&
-    form.contactNumber.trim() !== '' &&
-    isValidEmail(form.email) &&
+    !validatePhone(form.contactNumber) &&
+    !validateEmail(form.email) &&
     (!!session || (form.password.length >= 6 && form.password === form.confirmPassword))
 
   const pickedCategories = allCategories.filter((c) => form.categories.includes(c.name))
@@ -353,13 +356,19 @@ export function CandidateRegisterPage() {
               </Field>
             </div>
             <Field label="Contact number">
-              <TextInput required type="tel" placeholder="Phone number" icon={<PhoneIcon className="size-5" />} value={form.contactNumber} onChange={(e) => update('contactNumber', e.target.value)} />
+              <TextInput required type="tel" placeholder="e.g. +65 9123 4567" icon={<PhoneIcon className="size-5" />} value={form.contactNumber} onChange={(e) => update('contactNumber', e.target.value)} />
+              {form.contactNumber.trim() && validatePhone(form.contactNumber) && (
+                <p className="mt-1 text-xs text-danger">{validatePhone(form.contactNumber)}</p>
+              )}
             </Field>
             <Field label="Business name (optional)">
               <TextInput placeholder="If you work through your own company, e.g. Lim Advisory Pte Ltd" value={form.businessName} onChange={(e) => update('businessName', e.target.value)} />
             </Field>
             <Field label="Email">
               <TextInput required type="email" placeholder="you@example.com" icon={<MailIcon className="size-5" />} value={form.email} readOnly={!!session} onChange={(e) => update('email', e.target.value)} />
+              {!session && form.email.trim() && validateEmail(form.email) && (
+                <p className="mt-1 text-xs text-danger">{validateEmail(form.email)}</p>
+              )}
             </Field>
             {!session && (
               <div className="grid gap-4 sm:grid-cols-2">

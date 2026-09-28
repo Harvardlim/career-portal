@@ -1239,9 +1239,32 @@ export function isFreeEmailDomain(email: string): boolean {
   return FREE_EMAIL_DOMAINS.has(domain) || FREE_EMAIL_LABELS.has(domain.split('.')[0])
 }
 
+// Dot-atom local part, dot-separated domain labels, and a 2+ letter TLD (so "a@b.c" and "a@b" fail).
+const EMAIL_SHAPE =
+  /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*\.[A-Za-z]{2,}$/
+
+/** Format check for any email (experts may use Gmail, Yahoo, etc.). Businesses use validateBusinessEmail. */
+export function validateEmail(email: string): string | null {
+  const v = email.trim()
+  if (!v) return 'Enter an email address.'
+  const local = v.split('@')[0]
+  if (
+    v.length > 254 ||
+    local.length > 64 ||
+    v.includes('..') ||
+    local.startsWith('.') ||
+    local.endsWith('.') ||
+    !EMAIL_SHAPE.test(v)
+  ) {
+    return 'Enter a valid email address, e.g. you@example.com.'
+  }
+  return null
+}
+
 export function validateBusinessEmail(email: string): string | null {
   const v = email.trim()
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'Enter a valid email address.'
+  const formatErr = validateEmail(v)
+  if (formatErr) return formatErr
   if (isFreeEmailDomain(v)) {
     return 'Please use your business email on your company domain (e.g. you@yourcompany.com) — Gmail, Yahoo, Outlook and other free mailboxes aren’t accepted.'
   }

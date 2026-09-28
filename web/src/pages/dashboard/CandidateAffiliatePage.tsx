@@ -15,13 +15,13 @@ import {
   type AffiliateRow,
   type ReferralRow,
 } from '@/lib/affiliate'
+import { validateEmail } from '@/lib/partly'
 
 const dateFmt = new Intl.DateTimeFormat('en-US', {
   month: 'short',
   day: 'numeric',
   year: 'numeric',
 })
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const defaultInvitation =
   "Hi,\n\nI'd like to invite you to join partly.asia.\n\nThanks"
 
@@ -81,7 +81,9 @@ export function CandidateAffiliatePage() {
   )
   const inviteError = !inviteLc
     ? null
-    : isOwn
+    : validateEmail(inviteEmail)
+      ? 'Enter a valid email address, e.g. name@company.com.'
+      : isOwn
       ? "You can't invite your own email address."
       : isDup
         ? 'That email is already in your list.'
@@ -89,7 +91,7 @@ export function CandidateAffiliatePage() {
 
   async function sendInvite() {
     const to = inviteEmail.trim()
-    if (!EMAIL_RE.test(to) || !inviteMsg.trim() || inviting || inviteError) return
+    if (!!validateEmail(to) || !inviteMsg.trim() || inviting || inviteError) return
     setInviting(true)
     try {
       const { delivered } = await sendHrInvite(to, inviteMsg.trim())
@@ -202,7 +204,7 @@ export function CandidateAffiliatePage() {
                   onClick={sendInvite}
                   disabled={
                     inviting ||
-                    !EMAIL_RE.test(inviteEmail.trim()) ||
+                    !!validateEmail(inviteEmail) ||
                     !inviteMsg.trim() ||
                     !!inviteError
                   }
