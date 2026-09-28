@@ -313,7 +313,7 @@ export const JobEditForm = ({ job, onSaved, onCancel }: Props) => {
           </div>
           <p className="mt-1 text-[11px] text-muted">
             Leave blank for “Not posted”. Shown as{' '}
-            {buildSalaryLabel(form.salary_min, form.salary_max, form.salary_type) ?? '—'}
+            {buildSalaryLabel(form.salary_min, form.salary_max, form.salary_type) ?? ','}
           </p>
         </div>
 

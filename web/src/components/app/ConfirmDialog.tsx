@@ -2,7 +2,7 @@ import { useEffect, type ReactNode } from 'react'
 import { PrimaryButton, SecondaryButton } from '@/components/partly/ui'
 
 /**
- * The one confirm modal for the app — replaces browser `confirm()` popups,
+ * The one confirm modal for the app ,  replaces browser `confirm()` popups,
  * which look inconsistent across browsers and block on the main thread.
  */
 export function ConfirmDialog({

@@ -83,11 +83,11 @@ Deno.serve(async (req) => {
     const title = escapeHtml(job.title ?? 'your application')
     const ok = await sendEmail(
       c.email,
-      `A business is interested in you — "${job.title}"`,
+      `A business is interested in you , "${job.title}"`,
       emailShell(
         'You have a warm lead',
         `<p><b>${company}</b> is interested in you for <b>"${title}"</b> and has released their contact.</p>
-         <p>Pay ${feeLine} within <b>2 days</b> to unlock their contact details — yours are shared with them at the same time. If you don't pay, the lead simply goes cold and you are never charged.</p>`,
+         <p>Pay ${feeLine} within <b>2 days</b> to unlock their contact details , yours are shared with them at the same time. If you don't pay, the lead simply goes cold and you are never charged.</p>`,
         `${SITE_URL}/dashboard/leads/${releaseByCandidate.get(c.id)}`,
         'Pay to unlock contact',
       ),

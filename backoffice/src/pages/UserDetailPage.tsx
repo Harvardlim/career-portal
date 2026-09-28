@@ -22,11 +22,12 @@ import {
   type ReferredBy as ReferredByRow,
   type ResumeLinks,
 } from '../lib/registrations'
+import { formatStoredPhone } from '@/lib/phone'
 
 const fmtDate = (iso: string | null) =>
   iso
     ? new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
-    : '—'
+    : ','
 
 const usd = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0)
@@ -41,7 +42,7 @@ const btnBase =
   'inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-[13px] font-semibold transition'
 
 const Chips = ({ items }: { items: string[] }) => {
-  if (!items || items.length === 0) return <span className="text-muted">—</span>
+  if (!items || items.length === 0) return <span className="text-muted">,</span>
   return (
     <span className="flex flex-wrap gap-1">
       {items.map((it) => (
@@ -64,7 +65,7 @@ const YesNo = ({ value }: { value: boolean }) => (
   <span className={value ? 'text-success' : 'text-muted'}>{value ? 'Yes' : 'No'}</span>
 )
 
-/** Shared 64px round picture — used for both candidate photo and company logo. */
+/** Shared 64px round picture , used for both candidate photo and company logo. */
 const Portrait = ({ src }: { src: string | null }) =>
   src ? (
     <img
@@ -209,13 +210,13 @@ const CandidateBody = ({ c }: { c: Candidate }) => {
             {c.email}
           </a>
         </DField>
-        <DField label="Contact">{c.contact_number}</DField>
+        <DField label="Contact">{formatStoredPhone(c.contact_number)}</DField>
         <DField label="Expertise">
-          {c.expertise_field.length ? <Chips items={c.expertise_field} /> : '—'}
+          {c.expertise_field.length ? <Chips items={c.expertise_field} /> : ','}
         </DField>
-        <DField label="Experience">{c.years_experience || '—'}</DField>
-        <DField label="Past experience">{c.past_experience || '—'}</DField>
-        <DField label="Interests">{c.interests.length ? <Chips items={c.interests} /> : '—'}</DField>
+        <DField label="Experience">{c.years_experience || ','}</DField>
+        <DField label="Past experience">{c.past_experience || ','}</DField>
+        <DField label="Interests">{c.interests.length ? <Chips items={c.interests} /> : ','}</DField>
         <DField label="Joined referral program at sign-up">
           <YesNo value={c.referral_opt_in} />
         </DField>
@@ -246,7 +247,7 @@ const CandidateBody = ({ c }: { c: Candidate }) => {
             <DField label="Expires">{fmtDate(m.expires_at)}</DField>
           </>
         ) : (
-          <DField label="Membership">Free — not subscribed</DField>
+          <DField label="Membership">Free , not subscribed</DField>
         )}
       </dl>
       <CandidateResumes candidateId={c.id} legacyPath={c.resume_path} />
@@ -258,14 +259,14 @@ const EmployerBody = ({ e }: { e: Employer }) => (
   <dl>
     <DField label="Company">{e.company_name}</DField>
     <DField label="Reg. no">{e.reg_no}</DField>
-    <DField label="Field">{e.field.length ? <Chips items={e.field} /> : '—'}</DField>
+    <DField label="Field">{e.field.length ? <Chips items={e.field} /> : ','}</DField>
     <DField label="Business email">
       <a href={`mailto:${e.business_email}`} className="text-brand-2 hover:underline">
         {e.business_email}
       </a>
     </DField>
-    <DField label="Details">{e.business_details || '—'}</DField>
-    <DField label="Looking for">{e.looking_for.length ? <Chips items={e.looking_for} /> : '—'}</DField>
+    <DField label="Details">{e.business_details || ','}</DField>
+    <DField label="Looking for">{e.looking_for.length ? <Chips items={e.looking_for} /> : ','}</DField>
     <DField label="Joined referral program at sign-up">
       <YesNo value={e.referral_opt_in} />
     </DField>
@@ -389,7 +390,7 @@ export const UserDetailPage = () => {
           {isSuspended && (
             <div className="mb-5 rounded-lg border border-danger/40 bg-danger/10 p-4 text-[13px] text-danger">
               <p className="font-semibold">
-                {kind === 'employer' ? 'This business' : 'This expert'} is suspended — they can&apos;t sign in
+                {kind === 'employer' ? 'This business' : 'This expert'} is suspended , they can&apos;t sign in
                 {kind === 'employer' ? ' and their postings are hidden.' : '.'}
               </p>
               {(kind === 'employer' ? employer?.suspended_reason : candidate?.suspended_reason) && (

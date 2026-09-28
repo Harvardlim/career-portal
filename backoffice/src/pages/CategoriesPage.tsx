@@ -272,7 +272,7 @@ export const CategoriesPage = () => {
                     <AddForm
                       label="Add"
                       placeholder="e.g. Logo Design, Brand Identity, Packaging"
-                      hint="Add several at once — separate names with commas."
+                      hint="Add several at once , separate names with commas."
                       busy={pending}
                       onAdd={(raw) => addSubcategories(raw)}
                     />

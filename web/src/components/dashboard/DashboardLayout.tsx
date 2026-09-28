@@ -30,7 +30,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, loading } = useDisplayUser()
   const warm = useWarmLeadCount(user?.role === 'candidate' ? user.profileId : null)
 
-  // Expert-only area — send businesses to their own dashboard.
+  // Expert-only area ,  send businesses to their own dashboard.
   if (!loading && user?.role === 'employer') {
     return <Navigate to="/employer/dashboard" replace />
   }

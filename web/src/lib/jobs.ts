@@ -162,7 +162,7 @@ export type NewJobInput = {
   responsibilities: string | null
   requirements: string | null
   benefits: string | null
-  /** Set when a job is created straight into 'active' — it has paid its credit
+  /** Set when a job is created straight into 'active' ,  it has paid its credit
    *  and its 30-day window is anchored here. */
   credit_charged?: boolean
   first_published_at?: string | null
@@ -179,7 +179,7 @@ export function slugify(value: string): string {
   )
 }
 
-/** "$50-$85/hourly" style label — matches the backoffice's buildSalaryLabel. */
+/** "$50-$85/hourly" style label ,  matches the backoffice's buildSalaryLabel. */
 export function buildSalaryLabel(
   min: number | null,
   max: number | null,
@@ -236,13 +236,13 @@ export function jobSalaryText(j: RateFields): string {
 /** Country of a need, else the legacy free-text location; null when neither is set. */
 export function jobLocationText(j: Pick<JobRow, 'country' | 'location'>): string | null {
   const v = postingCountry(j)
-  return v === '—' ? null : v
+  return v === ', ' ? null : v
 }
 
 /** Project type of a need ("Hourly", "Project-based"...), else the legacy job type. */
 export function jobTypeText(j: Pick<JobRow, 'project_type' | 'job_type'>): string | null {
   const v = projectTypeLabel(j.project_type, j.job_type)
-  return v === '—' ? null : v
+  return v === ', ' ? null : v
 }
 
 /** Adapt a DB row to the fixture `Job` shape so <JobCard> can render it. */

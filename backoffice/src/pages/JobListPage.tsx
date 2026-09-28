@@ -29,7 +29,7 @@ import { errMessage } from '../lib/errors'
 const fmtDate = (iso: string | null) =>
   iso
     ? new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
-    : '—'
+    : ','
 
 const JobIcon = ({ seed }: { seed: number }) => (
   <span
@@ -324,10 +324,10 @@ export const JobListPage = () => {
                           ) : null}
                         </span>
                       </td>
-                      <td className="px-3 py-4 text-muted">{j.category ?? '—'}</td>
-                      <td className="px-3 py-4 text-ink-200">{j.job_type ?? '—'}</td>
+                      <td className="px-3 py-4 text-muted">{j.category ?? ','}</td>
+                      <td className="px-3 py-4 text-ink-200">{j.job_type ?? ','}</td>
                       <td className="px-3 py-4">
-                        <CompanyBadge name={j.company_name || '—'} />
+                        <CompanyBadge name={j.company_name || ','} />
                       </td>
                       <td className="px-3 py-4">
                         <button

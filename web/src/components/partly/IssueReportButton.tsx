@@ -33,7 +33,7 @@ export function IssueReportButton() {
     setSubmitting(true)
     try {
       await fileIssueReport({ category, message })
-      toast.success('Thanks — we received your report and will look into it.')
+      toast.success('Thanks ,  we received your report and will look into it.')
       setOpen(false)
       setMessage('')
       setCategory('bug')
@@ -65,7 +65,7 @@ export function IssueReportButton() {
         >
           <div role="dialog" aria-modal="true" aria-label="Report an issue" className="w-full max-w-[460px] rounded-xl bg-surface p-6 shadow-2xl">
             <h2 className="text-lg font-medium text-ink">Report an issue</h2>
-            <p className="mt-1 text-sm text-muted-600">Tell us what went wrong — our team reads every report.</p>
+            <p className="mt-1 text-sm text-muted-600">Tell us what went wrong ,  our team reads every report.</p>
 
             <p className="mt-4 text-sm font-medium text-ink">What is it about?</p>
             <SelectMenu

@@ -119,11 +119,11 @@ export const AccountSettingsPage = () => {
           <dl className="mt-4 space-y-3 text-[13px]">
             <div className="flex justify-between gap-4">
               <dt className="text-muted">Name</dt>
-              <dd className="font-medium text-ink">{session?.name ?? '—'}</dd>
+              <dd className="font-medium text-ink">{session?.name ?? ','}</dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-muted">Email</dt>
-              <dd className="font-medium text-ink">{session?.email ?? '—'}</dd>
+              <dd className="font-medium text-ink">{session?.email ?? ','}</dd>
             </div>
           </dl>
           <button

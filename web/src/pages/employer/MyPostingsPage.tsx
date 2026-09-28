@@ -75,7 +75,7 @@ export function MyPostingsPage() {
     setReposting(row.id)
     try {
       const id = await repostPosting(row.id, employer.id, employer.company_name)
-      toast.success('Reposted — a fresh copy is now live.')
+      toast.success('Reposted ,  a fresh copy is now live.')
       navigate(`/employer/postings/${id}/matches`)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not repost')
@@ -97,7 +97,7 @@ export function MyPostingsPage() {
         </div>
 
         {rows.length === 0 ? (
-          <EmptyState>{loading ? 'Loading…' : 'No postings yet. Post your first need — it’s free.'}</EmptyState>
+          <EmptyState>{loading ? 'Loading…' : 'No postings yet. Post your first need ,  it’s free.'}</EmptyState>
         ) : (
           <div className="flex flex-col divide-y divide-line rounded-xl border border-line">
             {rows.map((row) => {
@@ -168,7 +168,7 @@ export function MyPostingsPage() {
         title={closing ? `Close "${closing.title}"?` : ''}
         message={
           closing && closing.released - closing.unlocked > 0
-            ? `${closing.released - closing.unlocked} released expert${closing.released - closing.unlocked === 1 ? '' : 's'} still have an open payment window — closing ends all of them now and they will not be charged.`
+            ? `${closing.released - closing.unlocked} released expert${closing.released - closing.unlocked === 1 ? '' : 's'} still have an open payment window ,  closing ends all of them now and they will not be charged.`
             : 'Experts will no longer be able to apply.'
         }
         confirmLabel="Close posting"

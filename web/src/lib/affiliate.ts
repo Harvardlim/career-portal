@@ -29,7 +29,7 @@ function makeCode(): string {
   return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join('')
 }
 
-/** Joins the affiliate program (idempotent — returns the existing row if the
+/** Joins the affiliate program (idempotent ,  returns the existing row if the
  *  user already joined). Retries once on the unlikely referral-code collision. */
 export async function joinAffiliate(userId: string): Promise<AffiliateRow> {
   const existing = await fetchMyAffiliate(userId)
@@ -54,7 +54,7 @@ export async function joinAffiliate(userId: string): Promise<AffiliateRow> {
   throw new Error('Could not join the affiliate program. Please try again.')
 }
 
-/** Full shareable referral URL for a code — always the trial site. */
+/** Full shareable referral URL for a code ,  always the trial site. */
 export function referralLink(code: string): string {
   return `https://trial.partly.asia/?ref=${code}`
 }
@@ -134,7 +134,7 @@ async function claimPendingReferral(
  * Records affiliate attribution for a user who just registered:
  *  1. an HR-team invitation sent to this email by an enrolled affiliate, or
  *  2. a stored ?ref= code from an enrolled affiliate's link.
- * Self-referrals are ignored. Safe to call without a session; never throws —
+ * Self-referrals are ignored. Safe to call without a session; never throws , 
  * attribution must not block registration.
  */
 export async function recordReferralAtSignup(

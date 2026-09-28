@@ -129,7 +129,7 @@ export function JobApplicationsPage() {
                               {row.candidate?.headline ||
                                 row.candidate?.title ||
                                 row.candidate?.expertise_field?.[0] ||
-                                '—'}
+                                ', '}
                             </span>
                           </div>
                         </div>
@@ -173,7 +173,7 @@ export function JobApplicationsPage() {
                         </Pill>
                       )}
                       <div className="flex items-center justify-between text-xs text-muted">
-                        <span>{row.candidate?.education || '—'}</span>
+                        <span>{row.candidate?.education || ', '}</span>
                         <span>
                           {formatDate(row.applied_at)}
                         </span>

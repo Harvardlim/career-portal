@@ -44,12 +44,12 @@ export function PlansBillingPage() {
         if (!alive) return
         toast.success(
           active
-            ? 'Payment confirmed — your credits are ready.'
-            : 'Payment received — your credits will appear here shortly.',
+            ? 'Payment confirmed ,  your credits are ready.'
+            : 'Payment received ,  your credits will appear here shortly.',
         )
         setRefreshKey((k) => k + 1)
       } else {
-        toast('Checkout cancelled — no charge was made.')
+        toast('Checkout cancelled ,  no charge was made.')
       }
       if (alive) navigate('/employer/billing', { replace: true })
     })()
@@ -89,7 +89,7 @@ export function PlansBillingPage() {
           <InfoCard title="Credit Balance">
             <div className="flex items-end gap-2">
               <span className="text-4xl font-medium text-ink">
-                {loading ? '—' : left}
+                {loading ? ', ' : left}
               </span>
               <span className="pb-1 text-sm text-muted">
                 credit{left === 1 ? '' : 's'} remaining
@@ -123,7 +123,7 @@ export function PlansBillingPage() {
           <InfoCard title="Total Spent">
             <span className="text-4xl font-medium text-ink">
               {loading
-                ? '—'
+                ? ', '
                 : `$${(balance?.total_spent_usd ?? 0).toLocaleString()}`}
             </span>
             <p className="mt-3 text-sm text-muted-600">
@@ -163,7 +163,7 @@ export function PlansBillingPage() {
                       downloadInvoice(
                         {
                           id: p.id,
-                          description: `${p.package} — ${p.credits} credit${p.credits === 1 ? '' : 's'}`,
+                          description: `${p.package} ,  ${p.credits} credit${p.credits === 1 ? '' : 's'}`,
                           amount_usd: p.amount_usd,
                           status: p.status,
                           created_at: p.created_at,

@@ -74,7 +74,7 @@ export function HireMePage() {
       await reload()
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Could not save'
-      toast.error(msg.includes('duplicate') ? 'That link is taken — try another.' : msg)
+      toast.error(msg.includes('duplicate') ? 'That link is taken ,  try another.' : msg)
     } finally {
       setSaving(false)
     }
@@ -85,7 +85,7 @@ export function HireMePage() {
       await navigator.clipboard.writeText(text)
       toast.success(`${what} copied.`)
     } catch {
-      toast.error('Could not copy — select and copy it manually.')
+      toast.error('Could not copy ,  select and copy it manually.')
     }
   }
 
@@ -117,7 +117,7 @@ export function HireMePage() {
             </PrimaryButton>
           </div>
           <p className="text-xs text-muted">
-            Your public profile shows your name, headline, experience and verification marks — never your email or
+            Your public profile shows your name, headline, experience and verification marks ,  never your email or
             phone. Those are only exchanged after a business releases contact and you unlock it.
           </p>
         </Card>
@@ -163,7 +163,7 @@ export function HireMePage() {
 
             <Notice tone="brand">
               Each badge link is unique to you, so we can show you how many profile views and applications come from
-              it. It links to your public profile — never to a payment or contact screen.
+              it. It links to your public profile ,  never to a payment or contact screen.
             </Notice>
           </>
         )}

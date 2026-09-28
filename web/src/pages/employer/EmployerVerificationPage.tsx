@@ -48,7 +48,7 @@ export function EmployerVerificationPage() {
   }, [employer])
 
   const { confirming } = useCheckoutReturn({
-    successMessage: 'Payment confirmed — your badge status is on your dashboard.',
+    successMessage: 'Payment confirmed ,  your badge status is on your dashboard.',
     successAction: { label: 'View dashboard', onClick: () => navigate('/employer/dashboard') },
     cancelledMessage: 'Badge purchase cancelled.',
     onConfirmed: async () => {
@@ -96,7 +96,7 @@ export function EmployerVerificationPage() {
         <div>
           <h1 className="text-xl font-semibold text-ink">Business verification</h1>
           <p className="mt-1 text-sm text-muted">
-            <strong>Basic verified</strong> is free — your registration number from sign-up is all it takes to post.
+            <strong>Basic verified</strong> is free ,  your registration number from sign-up is all it takes to post.
             <strong> Fully verified</strong> is the paid annual badge: our team checks your registration document by
             hand and your profile carries the Fully verified mark. You can be based anywhere in the world.
           </p>
@@ -108,7 +108,7 @@ export function EmployerVerificationPage() {
               {badgeLive
                 ? 'Your business is Fully verified.'
                 : awaitingReview
-                  ? 'Payment received — your Fully verified badge activates once your registration document is approved.'
+                  ? 'Payment received ,  your Fully verified badge activates once your registration document is approved.'
                   : employer.basic_verified
                     ? 'Your business is Basic verified. Upload your registration document and activate the badge to become Fully verified.'
                     : 'Add your registration number below to become Basic verified.'}
@@ -131,7 +131,7 @@ export function EmployerVerificationPage() {
               <TextInput value={regNo} onChange={(e) => setRegNo(e.target.value)} placeholder="e.g. 202412345K (UEN), 1234567-X (SSM)…" />
             </Field>
           </div>
-          <p className="text-xs text-muted">The format varies by country — enter it exactly as it appears on your registration.</p>
+          <p className="text-xs text-muted">The format varies by country ,  enter it exactly as it appears on your registration.</p>
           <PrimaryButton className="w-fit" onClick={save} disabled={saving || !regNo.trim()}>
             {saving ? 'Saving…' : 'Save details'}
           </PrimaryButton>
@@ -163,7 +163,7 @@ export function EmployerVerificationPage() {
           </div>
           <p className="text-sm text-muted">
             Same fixed fee as the Expert badge. Pay now and the badge switches on as soon as our team approves your
-            registration document — that approval is your business's identity check, the same way an Expert's ID
+            registration document ,  that approval is your business's identity check, the same way an Expert's ID
             document works.
           </p>
           <FullyVerifiedBubble audience="business" />
@@ -171,7 +171,7 @@ export function EmployerVerificationPage() {
             <Notice tone="success">Your Fully verified badge is active and shows on your dashboard and postings.</Notice>
           ) : awaitingReview ? (
             <Notice tone="warning">
-              Payment received — your badge activates automatically once our team approves your registration document.
+              Payment received ,  your badge activates automatically once our team approves your registration document.
             </Notice>
           ) : (
             !hasDoc && <Notice tone="warning">Upload your registration document above before buying the badge.</Notice>
@@ -236,7 +236,7 @@ export function EmployerVerificationPage() {
                       {b.purchased_at ? ` · ${formatDate(b.purchased_at)}` : ''}
                     </span>
                     <Pill tone={b.status === 'active' ? 'success' : b.status === 'awaiting_review' ? 'warning' : 'neutral'}>
-                      {b.status === 'awaiting_review' ? 'Paid — awaiting document review' : b.status}
+                      {b.status === 'awaiting_review' ? 'Paid ,  awaiting document review' : b.status}
                       {b.expires_at && b.status === 'active' ? ` · until ${formatDate(b.expires_at)}` : ''}
                     </Pill>
                   </li>

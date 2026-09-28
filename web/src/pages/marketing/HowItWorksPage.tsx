@@ -30,7 +30,7 @@ function guessCountry(): string {
   return 'SG'
 }
 
-/** "How Payment Works" — replaces the template's subscription pricing table. */
+/** "How Payment Works" ,  replaces the template's subscription pricing table. */
 export function HowItWorksPage() {
   const t = useT()
   const { pricing } = usePricing()

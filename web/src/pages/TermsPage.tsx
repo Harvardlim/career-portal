@@ -36,13 +36,13 @@ const sections: Section[] = [
       'To keep the rest of these Terms readable, a few platform-specific words are used throughout:',
     ],
     bullets: [
-      '"Business" — a company or individual registered to post projects ("Postings") and hire Experts.',
-      '"Expert" — an individual registered to apply to Postings and be matched to Businesses.',
-      '"Posting" — a project, role, or need a Business publishes on the Platform.',
-      '"Match" — one of up to 10 Experts the matching algorithm shortlists for a given Posting.',
-      '"Release" — a Business’s decision to release its contact details to one or more Matches.',
-      '"Unlock" — an Expert’s payment of the fixed fee that reveals a Business’s contact details after a Release, and shares the Expert’s own contact details with that Business in return.',
-      '"Verified Badge" — an optional, paid, annually-renewed credential badge available to Experts and Businesses.',
+      '"Business" ,  a company or individual registered to post projects ("Postings") and hire Experts.',
+      '"Expert" ,  an individual registered to apply to Postings and be matched to Businesses.',
+      '"Posting" ,  a project, role, or need a Business publishes on the Platform.',
+      '"Match" ,  one of up to 10 Experts the matching algorithm shortlists for a given Posting.',
+      '"Release" ,  a Business’s decision to release its contact details to one or more Matches.',
+      '"Unlock" ,  an Expert’s payment of the fixed fee that reveals a Business’s contact details after a Release, and shares the Expert’s own contact details with that Business in return.',
+      '"Verified Badge" ,  an optional, paid, annually-renewed credential badge available to Experts and Businesses.',
     ],
   },
   {
@@ -61,7 +61,7 @@ const sections: Section[] = [
     num: '4.',
     title: 'The Platform Is a Matching Marketplace',
     body: [
-      'partly.asia is a technology platform that helps Businesses and Experts find each other. We are not an employer, staffing agency, or recruiter, and we are not a party to any engagement, contract, or agreement a Business and an Expert enter into. Any work arrangement — scope, deliverables, rate, payment terms, and legal relationship (including whether it is an independent contractor or any other arrangement) — is agreed directly between the Business and the Expert, off-platform, and is solely their responsibility.',
+      'partly.asia is a technology platform that helps Businesses and Experts find each other. We are not an employer, staffing agency, or recruiter, and we are not a party to any engagement, contract, or agreement a Business and an Expert enter into. Any work arrangement ,  scope, deliverables, rate, payment terms, and legal relationship (including whether it is an independent contractor or any other arrangement) ,  is agreed directly between the Business and the Expert, off-platform, and is solely their responsibility.',
       'We do not guarantee that a Posting will receive applicants, that a Business will release contact to any Expert, that a released Expert will unlock the contact, or that any engagement will result from a Match. Matching is based on the information both sides provide us and is not a verification of skill, character, or fit for a specific role.',
       'partly.asia is a matching service only. We do not sell, ship, handle, warehouse, or take title to any physical goods, and we are not a party to the sale, delivery, or exchange of any physical product. If a Posting or engagement happens to involve physical goods (for example, materials an Expert needs to complete a project), that exchange is arranged and fulfilled entirely between the Business and the Expert, off-platform, and partly.asia has no responsibility for it.',
     ],
@@ -71,7 +71,7 @@ const sections: Section[] = [
     num: '5.',
     title: 'Posting & Matching',
     body: [
-      'Posting a project and browsing open needs is free for Businesses. Applying to a Posting is free for Experts and is always the Expert’s own opt-in — we do not perform cold outreach to Experts on a Business’s behalf.',
+      'Posting a project and browsing open needs is free for Businesses. Applying to a Posting is free for Experts and is always the Expert’s own opt-in ,  we do not perform cold outreach to Experts on a Business’s behalf.',
       'For each Posting, our matching algorithm shortlists a maximum of 10 Experts. This is a hard cap: if a Business does not release contact to any of its 10 Matches, no further Matches are ever surfaced for that Posting. This scarcity rule is intentional and cannot be reset by contacting support.',
       'A Business may release contact to one or more of its 10 Matches at the same time. Every Expert who is released contact is told, transparently, whether the Business released contact to other Experts for the same Posting.',
       'A Business may close a Posting at any time. Closing a Posting immediately ends every outstanding payment window for that Posting (see Section 7) and notifies affected Experts that the lead has gone cold, with no charge to them.',
@@ -94,13 +94,13 @@ const sections: Section[] = [
     title: 'Contact Release, Unlock & Fees',
     intro: 'This is the core of how money moves on partly.asia, so we spell it out precisely:',
     body: [
-      'When a Business releases contact to an Expert, that Expert has a 2-day window to pay a fixed fee to Unlock the Business’s contact details. The fee is fixed per country and displayed before payment; it is charged in the Expert’s local currency as listed, or in USD if the Expert chooses that option (a fixed exchange cost is already built into the USD price — see Section 8).',
+      'When a Business releases contact to an Expert, that Expert has a 2-day window to pay a fixed fee to Unlock the Business’s contact details. The fee is fixed per country and displayed before payment; it is charged in the Expert’s local currency as listed, or in USD if the Expert chooses that option (a fixed exchange cost is already built into the USD price ,  see Section 8).',
       'If the Expert unlocks within the window, full contact details are exchanged in both directions and remain visible on the Platform for 5 calendar days. All further negotiation and engagement happens off-platform, directly between the Business and the Expert.',
-      'If the Expert does not unlock within the 2-day window, the lead simply goes cold. No payment is ever taken, and there is nothing to refund — this is treated as a normal part of the process, not an error or a broken transaction.',
+      'If the Expert does not unlock within the 2-day window, the lead simply goes cold. No payment is ever taken, and there is nothing to refund ,  this is treated as a normal part of the process, not an error or a broken transaction.',
       'Businesses never pay to post, browse, or release contact. The fee is charged only to the Expert, and only once a Business has shown real interest by releasing contact.',
     ],
     bullets: [
-      'For security and to keep the process fair for everyone, refer to a released lead only through the Platform while the contact window is open — do not ask a counterpart to move the conversation off-platform, or attempt to identify and contact a Business or Expert before a Release, in order to avoid the fee. We may suspend accounts that circumvent this process.',
+      'For security and to keep the process fair for everyone, refer to a released lead only through the Platform while the contact window is open ,  do not ask a counterpart to move the conversation off-platform, or attempt to identify and contact a Business or Expert before a Release, in order to avoid the fee. We may suspend accounts that circumvent this process.',
       'partly.asia has no visibility into and no responsibility for what happens after contact is unlocked and the conversation moves off-platform.',
     ],
   },
@@ -120,8 +120,8 @@ const sections: Section[] = [
     title: 'Verified Badge Subscription',
     body: [
       'The Verified Badge is an optional, annual credential available to Experts and Businesses at a fixed fee per country, payable in local currency or USD.',
-      'The Verified Badge does not auto-renew and you are never charged automatically at the end of a term — you choose to renew, and renewing extends your existing term rather than starting a new one.',
-      'For Experts, the badge requires an uploaded identity document. Payment is taken first; the badge activates once our team approves the document. If the document is rejected, contact support — no additional badge fee is owed for a re-review.',
+      'The Verified Badge does not auto-renew and you are never charged automatically at the end of a term ,  you choose to renew, and renewing extends your existing term rather than starting a new one.',
+      'For Experts, the badge requires an uploaded identity document. Payment is taken first; the badge activates once our team approves the document. If the document is rejected, contact support ,  no additional badge fee is owed for a re-review.',
       'For Businesses, the badge requires an already-approved business registration document before purchase.',
     ],
   },
@@ -132,7 +132,7 @@ const sections: Section[] = [
     body: [
       'Businesses, Experts, and third parties may enrol in our affiliate program and generate a personal referral link. Attribution is first-click and permanent: once someone signs up through your link, you are credited as their referrer for as long as their account exists.',
       'You earn a fixed, local-currency commission when a person you referred buys or renews a Verified Badge (recurring, every year it renews) or successfully unlocks a released lead (one-time, per lead). Commission amounts are shown on our pricing pages and may change for future events without affecting commissions already earned.',
-      'You must share your referral link yourself, through your own channels (WhatsApp, LinkedIn, email, etc.) — partly.asia never contacts a referred person on your behalf, and you may not misrepresent your relationship to partly.asia when sharing it, use paid advertising containing our trademarks without permission, or spam.',
+      'You must share your referral link yourself, through your own channels (WhatsApp, LinkedIn, email, etc.) ,  partly.asia never contacts a referred person on your behalf, and you may not misrepresent your relationship to partly.asia when sharing it, use paid advertising containing our trademarks without permission, or spam.',
       'Payouts are made in USD, less applicable foreign-exchange and transaction fees, once your accrued balance clears the minimum payout threshold shown in your affiliate dashboard. We may withhold or reverse commissions obtained through fraud, self-referral, or violation of these Terms.',
     ],
   },
@@ -166,8 +166,8 @@ const sections: Section[] = [
     num: '13.',
     title: 'Content & Intellectual Property',
     body: [
-      'You retain ownership of the content you submit (profile details, Postings, portfolio links, uploaded documents). By submitting content, you grant partly.asia a worldwide, royalty-free licence to host, display, and use it to operate and promote the Platform — for example, showing your profile to a matched counterpart, or your headline on a public "Hire me" page you choose to publish.',
-      'The Platform itself — including its software, design, trademarks, and the "partly.asia" name and logo — is owned by us or our licensors and may not be copied, modified, or used without our written permission.',
+      'You retain ownership of the content you submit (profile details, Postings, portfolio links, uploaded documents). By submitting content, you grant partly.asia a worldwide, royalty-free licence to host, display, and use it to operate and promote the Platform ,  for example, showing your profile to a matched counterpart, or your headline on a public "Hire me" page you choose to publish.',
+      'The Platform itself ,  including its software, design, trademarks, and the "partly.asia" name and logo ,  is owned by us or our licensors and may not be copied, modified, or used without our written permission.',
       'Verification documents you upload (identity documents, business registration documents) are used solely for the review described in Section 6 and are never displayed publicly.',
     ],
   },
@@ -256,7 +256,7 @@ export function TermsPage() {
             <p className="text-sm text-muted">Last updated: {LAST_UPDATED}</p>
             <p className="mt-3 rounded-md bg-brand-50 px-4 py-3 text-sm leading-6 text-brand-800">
               This draft is written to match how partly.asia actually works today. It is provided as a starting
-              point for your own legal counsel to review before it is relied on commercially — it is not legal
+              point for your own legal counsel to review before it is relied on commercially ,  it is not legal
               advice.
             </p>
           </div>

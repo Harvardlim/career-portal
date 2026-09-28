@@ -144,13 +144,13 @@ export function PostJobPage() {
   const salaryMin = form.salary_min.trim() === '' ? null : Number(form.salary_min)
   const salaryMax = form.salary_max.trim() === '' ? null : Number(form.salary_max)
   const previewLabel =
-    buildSalaryLabel(salaryMin, salaryMax, form.salary_type || null) ?? '—'
+    buildSalaryLabel(salaryMin, salaryMax, form.salary_type || null) ?? ', '
 
   const missing = REQUIRED_FIELDS.filter((r) => !r.filled(form)).map((r) => r.label)
 
   /**
    * `forceDraft` saves a draft (no credit). Otherwise the job is published:
-   * missing required fields are refused, and — unless `confirmed` — a
+   * missing required fields are refused, and ,  unless `confirmed` ,  a
    * "1 credit will be deducted" prompt is shown first.
    */
   async function persist(forceDraft: boolean, confirmed = false) {
@@ -159,7 +159,7 @@ export function PostJobPage() {
       return
     }
     if (form.title.trim() === '') {
-      setError('Title is required — even a draft needs one.')
+      setError('Title is required ,  even a draft needs one.')
       return
     }
 
@@ -218,7 +218,7 @@ export function PostJobPage() {
         navigate('/employer/my-jobs')
       } else {
         await spendJobCredit(user.profileId, `Job post: ${input.title}`)
-        toast.success('Job published — live for 30 days')
+        toast.success('Job published ,  live for 30 days')
         navigate(`/job/${slug}`)
       }
     } catch (err) {

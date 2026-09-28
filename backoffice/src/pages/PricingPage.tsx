@@ -72,7 +72,7 @@ export const PricingPage = () => {
       <div>
         <h1 className="text-[22px] font-semibold text-ink">Pricing by country</h1>
         <p className="text-[13px] text-muted">
-          Fixed local prices — not live-converted. The USD figure is the forex-absorbed alternative offered at checkout.
+          Fixed local prices , not live-converted. The USD figure is the forex-absorbed alternative offered at checkout.
           Affiliate commissions are frozen on each event when it fires.
         </p>
       </div>

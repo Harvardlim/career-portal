@@ -66,7 +66,7 @@ export function CandidateAffiliatePage() {
       const row = await joinAffiliate(userId)
       setAffiliate(row)
       setReferrals(await fetchMyReferrals(row.id))
-      toast.success("You're enrolled — start sharing your referral link.")
+      toast.success("You're enrolled ,  start sharing your referral link.")
     } catch (err) {
       toast.error(errMessage(err))
     } finally {
@@ -115,7 +115,7 @@ export function CandidateAffiliatePage() {
       await navigator.clipboard.writeText(referralLink(affiliate.referral_code))
       toast.success('Referral link copied')
     } catch {
-      toast.error('Could not copy — select and copy the link manually.')
+      toast.error('Could not copy ,  select and copy the link manually.')
     }
   }
 
@@ -139,7 +139,7 @@ export function CandidateAffiliatePage() {
             <ul className="mt-4 flex flex-col gap-2 text-sm text-ink-600">
               {[
                 '~20% of the fixed local lead fee, every time a referred expert unlocks a released lead (one-time per lead)',
-                '~20% of the fixed local badge fee when a referred expert buys a Verified badge — and again on every annual renewal',
+                '~20% of the fixed local badge fee when a referred expert buys a Verified badge ,  and again on every annual renewal',
                 'Paid in USD once your balance clears USD 50',
               ].map((f) => (
                 <li key={f} className="flex items-center gap-2">
@@ -264,7 +264,7 @@ export function CandidateAffiliatePage() {
                 </div>
               ) : (
                 <p className="py-4 text-center text-sm text-muted">
-                  No referrals yet — share your link or send an invitation.
+                  No referrals yet ,  share your link or send an invitation.
                 </p>
               )}
             </InfoCard>

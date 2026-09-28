@@ -7,7 +7,7 @@ import { fetchIssueReports, partlyEnabled, updateIssueStatus, type IssueRow } fr
 const thCls = 'px-3 py-3 font-medium first:pl-6 last:pr-6'
 const tdCls = 'px-3 py-4 align-top first:pl-6 last:pr-6'
 const fmt = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'
+  iso ? new Date(iso).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ','
 const errMessage = (e: unknown) => (e instanceof Error ? e.message : 'Something went wrong')
 
 const CATEGORY_LABEL: Record<IssueRow['category'], string> = {
@@ -130,7 +130,7 @@ export const IssuesPage = () => {
                   </td>
                   <td className={tdCls}>
                     <span className="block max-w-[200px] break-all text-[12px] text-muted" title={r.user_agent ?? undefined}>
-                      {pagePath(r.page_url) ?? '—'}
+                      {pagePath(r.page_url) ?? ','}
                     </span>
                   </td>
                   <td className={tdCls}>{fmt(r.created_at)}</td>

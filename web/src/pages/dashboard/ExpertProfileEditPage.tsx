@@ -2,9 +2,9 @@ import { useEffect, useId, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
-import { Field, Select, TextInput } from '@/components/dashboard/form'
+import { Field, PhoneInput, Select, TextInput } from '@/components/dashboard/form'
 import { SelectMenu } from '@/components/app/SelectMenu'
-import { FileIcon, LinkedinIcon, MailIcon, PhoneIcon, PlusCircleIcon, TrashIcon } from '@/components/icons'
+import { FileIcon, LinkedinIcon, MailIcon, PlusCircleIcon, TrashIcon } from '@/components/icons'
 import { Avatar, Card, Notice, PrimaryButton, SecondaryButton, VerifiedChips } from '@/components/partly/ui'
 import {
   birthMonthProblem,
@@ -22,14 +22,14 @@ import { useCandidate } from '@/lib/dashboard'
 import { clearDisplayUserCache } from '@/lib/useDisplayUser'
 import { experienceRanges } from '@/data/categories'
 import { supabase } from '@/lib/supabase'
-import { validatePhone } from '@/lib/partly'
+import { nationalFromStored, toStoredPhone, validateCountryPhone } from '@/lib/phone'
 
 type Portfolio = { label: string; url: string }
 
 const educationOptions = ['Select...', 'High School', 'Diploma', 'Bachelor Degree', 'Master Degree', 'PhD']
 const nationalityOptions = ['Select...', 'Malaysia', 'Singapore', 'Indonesia', 'Thailand', 'Vietnam', 'Philippines', 'India', 'United States', 'United Kingdom', 'Other']
 const genderOptions = ['Select...', 'Male', 'Female', 'Other']
-// Only month + year of birth is kept (never the day) — enough to confirm age.
+// Only month + year of birth is kept (never the day) ,  enough to confirm age.
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 const monthOptions = [{ value: '', label: 'Month' }, ...MONTHS.map((m, i) => ({ value: String(i + 1).padStart(2, '0'), label: m }))]
 const THIS_YEAR = new Date().getFullYear()
@@ -145,7 +145,7 @@ export function ExpertProfileEditPage() {
     setDobYear(candidate.date_of_birth?.slice(0, 4) ?? '')
     setDobMonth(candidate.date_of_birth?.slice(5, 7) ?? '')
     setGender(candidate.gender ?? '')
-    setPhone(candidate.contact_number ?? '')
+    setPhone(nationalFromStored(candidate.country_code, candidate.contact_number))
     setEducation(candidate.education ?? '')
     setCats(candidate.expertise_field ?? [])
     setLinks(Array.isArray(candidate.portfolio_links) ? candidate.portfolio_links : [])
@@ -176,10 +176,10 @@ export function ExpertProfileEditPage() {
     if (!candidate || !session) return
     // Both are required to apply to anything, so a saved profile can't be missing them.
     if (!years) return toast.error('Select your years of experience.')
-    if (!experience.trim()) return toast.error('Add your experience summary — businesses read it before choosing you.')
+    if (!experience.trim()) return toast.error('Add your experience summary ,  businesses read it before choosing you.')
     if (cats.length === 0) return toast.error('Pick at least one expert category.')
-    if (!phone.trim()) return toast.error('Add a phone number — it\u2019s shared with a business only after you unlock a lead.')
-    const phoneErr = validatePhone(phone)
+    if (!phone.trim()) return toast.error('Add a phone number ,  it\u2019s shared with a business only after you unlock a lead.')
+    const phoneErr = validateCountryPhone(candidate?.country_code, phone)
     if (phoneErr) return toast.error(phoneErr)
     const dobProblem = birthMonthProblem(dobYear, dobMonth)
     if (dobProblem) return toast.error(dobProblem)
@@ -197,7 +197,7 @@ export function ExpertProfileEditPage() {
         nationality: nationality || null,
         date_of_birth: dobYear && dobMonth ? `${dobYear}-${dobMonth}-01` : null,
         gender: gender || null,
-        contact_number: phone.trim(),
+        contact_number: toStoredPhone(candidate?.country_code, phone),
         marital_status: null,
         education: education || null,
         expertise_field: cats,
@@ -255,7 +255,7 @@ export function ExpertProfileEditPage() {
             <Link to="/dashboard/hire-me" className="text-brand underline">
               Hire-me page
             </Link>
-            . Your email and phone are never shown — they're exchanged only after a paid unlock.
+            . Your email and phone are never shown ,  they're exchanged only after a paid unlock.
           </p>
         </div>
 
@@ -380,20 +380,19 @@ export function ExpertProfileEditPage() {
           <div>
             <p className="text-sm font-medium text-ink">Contact details</p>
             <p className="text-xs text-muted">
-              Never shown on your profile — a business only sees these after you unlock their lead.
+              Never shown on your profile ,  a business only sees these after you unlock their lead.
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Phone">
-              <TextInput
-                type="tel"
-                icon={<PhoneIcon className="size-5" />}
-                placeholder="e.g. +65 9123 4567"
+              <PhoneInput
+                country={candidate?.country_code}
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={setPhone}
+                invalid={!!phone.trim() && !!validateCountryPhone(candidate?.country_code, phone)}
               />
-              {phone.trim() && validatePhone(phone) && (
-                <p className="mt-1 text-xs text-danger">{validatePhone(phone)}</p>
+              {phone.trim() && validateCountryPhone(candidate?.country_code, phone) && (
+                <p className="mt-1 text-xs text-danger">{validateCountryPhone(candidate?.country_code, phone)}</p>
               )}
             </Field>
             <Field label="Email">
@@ -433,7 +432,7 @@ export function ExpertProfileEditPage() {
         <Card className="flex flex-col gap-4">
           <div>
             <p className="text-sm font-medium text-ink">CV / Resume</p>
-            <p className="mt-0.5 text-xs text-muted">Shared with a business only after they release contact — helps them see your fit for the match.</p>
+            <p className="mt-0.5 text-xs text-muted">Shared with a business only after they release contact ,  helps them see your fit for the match.</p>
           </div>
           <ResumeList candidateId={candidate.id} resumes={resumes} onChange={() => loadResumes(candidate.id)} />
         </Card>

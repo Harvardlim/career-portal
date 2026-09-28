@@ -107,7 +107,7 @@ export function ConsentStep({
         <span>
           <span className="font-medium text-ink">Join our Referral Program</span>
           <span className="block text-muted-600">
-            Optional — opt in to earn rewards when people you refer are placed
+            Optional ,  opt in to earn rewards when people you refer are placed
             through partly.asia. You can opt out at any time.
           </span>
         </span>

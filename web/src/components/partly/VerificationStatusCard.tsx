@@ -29,11 +29,11 @@ export function VerificationStatusCard({
   const full = !!badgeUntil && new Date(badgeUntil) > new Date()
 
   const heading = loading
-    ? '—'
+    ? ', '
     : full
       ? 'Fully verified'
       : awaitingReview
-        ? 'Payment received — awaiting review'
+        ? 'Payment received ,  awaiting review'
         : basic
           ? 'Basic verified'
           : 'Not verified yet'

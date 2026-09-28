@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
   const format = ID_FORMATS[country]
   if (!format) return json({ error: 'Experts must be based in Singapore, Malaysia, Indonesia, Thailand, Vietnam or the Philippines.' }, 400)
   if (!format.pattern.test(last4)) {
-    return json({ error: `That doesn't look like a ${format.label} — enter the ${format.hint}.` }, 400)
+    return json({ error: `That doesn't look like a ${format.label} , enter the ${format.hint}.` }, 400)
   }
 
   try {

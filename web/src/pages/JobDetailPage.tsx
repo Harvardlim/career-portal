@@ -31,7 +31,7 @@ import {
 } from '@/components/icons'
 
 function formatDate(value: string | null): string {
-  if (!value) return '—'
+  if (!value) return ', '
   return new Date(value).toLocaleDateString('en-US', {
     day: 'numeric',
     month: 'long',
@@ -172,9 +172,9 @@ export function JobDetailPage() {
       value: formatDate(job.expires_at),
     },
     { Icon: DollarIcon, label: 'Rate', value: jobSalaryText(job) },
-    { Icon: MapPinIcon, label: 'Location', value: location || '—' },
-    { Icon: BriefcaseIcon, label: 'Job Type', value: jobType || '—' },
-    { Icon: CalendarIcon, label: 'Duration', value: duration || '—' },
+    { Icon: MapPinIcon, label: 'Location', value: location || ', ' },
+    { Icon: BriefcaseIcon, label: 'Job Type', value: jobType || ', ' },
+    { Icon: CalendarIcon, label: 'Duration', value: duration || ', ' },
     // Legacy job-board fields: only worth a row when the posting has them.
     ...(job.people_required ? [{ Icon: BriefcaseIcon, label: 'Experts needed', value: String(job.people_required) }] : []),
     ...(job.workplace_type ? [{ Icon: BriefcaseIcon, label: 'Workplace', value: job.workplace_type }] : []),

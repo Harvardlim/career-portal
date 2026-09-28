@@ -7,9 +7,9 @@ import { useEffect } from 'react'
 import { SITE_URL } from './site'
 
 export const SITE_NAME = 'partly.asia'
-export const DEFAULT_TITLE = 'partly.asia — Verified experts, matched to real business needs'
+export const DEFAULT_TITLE = 'partly.asia ,  Verified experts, matched to real business needs'
 export const DEFAULT_DESCRIPTION =
-  'partly.asia matches businesses with verified fractional experts across Southeast Asia — post free, pay only when a business shows real interest.'
+  'partly.asia matches businesses with verified fractional experts across Southeast Asia ,  post free, pay only when a business shows real interest.'
 export const OG_IMAGE = `${SITE_URL}/og-image.png`
 
 export type Seo = {

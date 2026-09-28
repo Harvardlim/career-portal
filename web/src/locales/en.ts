@@ -9,14 +9,14 @@ export const en = {
   'nav.how': 'How It Works',
   'nav.login': 'Log In',
   'nav.signup': 'Sign Up',
-  'nav.postFree': 'Post Your Project — It’s Free',
+  'nav.postFree': 'Post Your Project ,  It’s Free',
   'nav.dashboard': 'Dashboard',
 
   // Home / hero
-  'hero.headline': 'The right expert, fast. Solve your problems — post free, hire only when it fits.',
+  'hero.headline': 'The right expert, fast. Solve your problems ,  post free, hire only when it fits.',
   'hero.sub':
-    'partly.asia matches businesses with verified fractional experts across HR, IT, Finance, Marketing, Legal, Sales, Strategy, Operations and more — post free, pay only when a business shows real interest.',
-  'hero.ctaPrimary': 'Post Your Project — It’s Free',
+    'partly.asia matches businesses with verified fractional experts across HR, IT, Finance, Marketing, Legal, Sales, Strategy, Operations and more ,  post free, pay only when a business shows real interest.',
+  'hero.ctaPrimary': 'Post Your Project ,  It’s Free',
   'hero.ctaSecondary': 'Browse as an Expert',
   'hero.toggle.business': 'I’m a Business',
   'hero.toggle.expert': 'I’m an Expert',
@@ -33,26 +33,26 @@ export const en = {
   // For Businesses
   'biz.headline': 'Post your project. Meet your expert. Solve your problems.',
   'biz.sub':
-    'From HR to IT, Finance to Strategy — describe what you need, and we’ll match you with pre-verified experts ready to help - according to your project and budget. Posting is completely free.',
+    'From HR to IT, Finance to Strategy ,  describe what you need, and we’ll match you with pre-verified experts ready to help - according to your project and budget. Posting is completely free.',
   'biz.step1.title': 'Post your need',
-  'biz.step1.body': 'Project brief, budget, timeline, project type — it takes a few minutes.',
+  'biz.step1.body': 'Project brief, budget, timeline, project type ,  it takes a few minutes.',
   'biz.step2.title': 'Review your matches',
   'biz.step2.body': 'Up to 10 qualified experts, drawn once for your posting.',
   'biz.step3.title': 'Choose who to contact',
-  'biz.step3.body': 'Release contact — no cost, no obligation. Only matched qualified experts.',
+  'biz.step3.body': 'Release contact ,  no cost, no obligation. Only matched qualified experts.',
   'biz.step4.title': 'Connect directly',
   'biz.step4.body': 'Get their full contact details once they accept.',
   'biz.trust':
     'Every expert on partly.asia is identity-verified. Every business is registration-verified. You’re never guessing who’s on the other side.',
-  'biz.cta': 'Post Your Project — It’s Free',
-  'biz.scarcity': 'These are your only matches for this posting — choose carefully.',
+  'biz.cta': 'Post Your Project ,  It’s Free',
+  'biz.scarcity': 'These are your only matches for this posting ,  choose carefully.',
 
   // For Experts
   'exp.headline': 'Real leads. Real businesses. You choose.',
   'exp.sub':
-    'Whether you’re a consultant, trainer, HR specialist, or fractional executive — apply to projects that fit your expertise, and only pay for a warm lead when a business is genuinely interested in you.',
+    'Whether you’re a consultant, trainer, HR specialist, or fractional executive ,  apply to projects that fit your expertise, and only pay for a warm lead when a business is genuinely interested in you.',
   'exp.step1.title': 'Create your profile',
-  'exp.step1.body': 'LinkedIn-style — showcase your experience.',
+  'exp.step1.body': 'LinkedIn-style ,  showcase your experience.',
   'exp.step2.title': 'Apply to projects',
   'exp.step2.body': 'Browse open needs across all categories.',
   'exp.step3.title': 'Get notified of warm leads',
@@ -60,12 +60,12 @@ export const en = {
   'exp.step4.title': 'Pay only for real interest',
   'exp.step4.body': 'A small fixed fee unlocks contact, only after interest is shown.',
   'exp.trust':
-    'You’ll never pay for a lead you didn’t choose to pursue. If a lead goes cold, you’re notified — and you never paid a cent for it.',
+    'You’ll never pay for a lead you didn’t choose to pursue. If a lead goes cold, you’re notified ,  and you never paid a cent for it.',
   'exp.cta': 'Create Your Expert Profile',
   'exp.browse': 'Browse open needs',
 
   // Categories
-  'cat.headline': 'Every function your business needs — in one place.',
+  'cat.headline': 'Every function your business needs ,  in one place.',
   'cat.sub':
     'From day-to-day HR support to strategic financial leadership, browse the categories below to see the kind of expertise available on partly.asia.',
   'cat.entry.business': 'Looking to hire? Post a need in this category',
@@ -78,7 +78,7 @@ export const en = {
   // Pricing / How payment works
   'pay.headline': 'Simple, fair, and only when it counts.',
   'pay.sub':
-    'Businesses never pay to post or browse. Experts pay a small, fixed fee — and only after a business has personally chosen to release contact.',
+    'Businesses never pay to post or browse. Experts pay a small, fixed fee ,  and only after a business has personally chosen to release contact.',
   'pay.step1.title': 'Post or browse',
   'pay.step1.body': 'Completely free, always.',
   'pay.step2.title': 'Get matched',
@@ -92,34 +92,34 @@ export const en = {
   'pay.table.lead': 'Per released lead',
   'pay.table.badge': 'Fully verified badge / year',
   'pay.table.note':
-    'Local prices are fixed per market and charged exactly as shown. The USD figure is an alternative you can choose at checkout — forex exchange absorbed.',
+    'Local prices are fixed per market and charged exactly as shown. The USD figure is an alternative you can choose at checkout ,  forex exchange absorbed.',
   'pay.detect': 'Showing prices for {country}. Not right?',
-  'pay.badge.note': 'The Fully verified badge is optional. It adds a credential-level check and priority in match ranking — and attracts more interested leads.',
+  'pay.badge.note': 'The Fully verified badge is optional. It adds a credential-level check and priority in match ranking ,  and attracts more interested leads.',
 
   // Trust & verification
   'trust.headline': 'Verified on both sides. Every time.',
   'trust.business.title': 'How we verify businesses',
   'trust.business.body':
-    'Every business registers with a valid business registration number and starts as Basic verified. Businesses that activate the paid badge and have their registration document reviewed by hand become Fully verified — a mark that attracts better experts.',
+    'Every business registers with a valid business registration number and starts as Basic verified. Businesses that activate the paid badge and have their registration document reviewed by hand become Fully verified ,  a mark that attracts better experts.',
   'trust.business.point1': 'Registration number, validated per country',
   'trust.business.point2': 'Fully verified: registration document reviewed by our team',
   'trust.business.point3': 'Website and public footprint checked',
   'trust.expert.title': 'How we verify experts',
   'trust.expert.body':
     'Every expert verifies their identity (Basic verified) before applying to any project. Optional Fully verified credential checks are available for experts who want an extra trust signal.',
-  'trust.expert.point1': 'Local ID check — digits are encrypted and never displayed',
+  'trust.expert.point1': 'Local ID check ,  digits are encrypted and never displayed',
   'trust.expert.point2': 'Fully verified: ID document reviewed by our team',
   'trust.expert.point3': 'Optional annual Fully verified badge for credential-level checks',
   'faq.title': 'Questions we hear most',
   'faq.q1': 'What if my lead goes cold?',
   'faq.a1': 'You’re notified immediately, and you’re never charged for a lead you didn’t unlock.',
   'faq.q2': 'Can multiple experts be released the same lead?',
-  'faq.a2': 'Yes — you’ll always be told upfront if you’re one of several being considered.',
+  'faq.a2': 'Yes ,  you’ll always be told upfront if you’re one of several being considered.',
   'faq.q3': 'Is my ID information secure?',
   'faq.a3':
-    'For data security reasons , We collect only the last 4 characters of your ID, encrypt them before storing, and never display them to anyone — not to you, not to businesses, not to third parties',
+    'For data security reasons , We collect only the last 4 characters of your ID, encrypt them before storing, and never display them to anyone ,  not to you, not to businesses, not to third parties',
   'faq.q4': 'How long do I have to unlock a released contact?',
-  'faq.a4': '2 days from the moment the business releases contact. After that the lead simply goes cold — no charge.',
+  'faq.a4': '2 days from the moment the business releases contact. After that the lead simply goes cold ,  no charge.',
   'faq.q5': 'What happens if the business closes the job?',
   'faq.a5':
     'Every open payment window on that posting ends at once, so nobody pays for a position that’s already filled. Contacts already unlocked stay visible until they expire.',
@@ -137,25 +137,25 @@ export const en = {
   // Affiliate program
   'aff.headline': 'Earn by sharing what already works for you.',
   'aff.sub':
-    'Whether you’re a business, an expert, or just someone who believes in partly.asia — refer others and earn a commission every time your referral leads to a real outcome.',
+    'Whether you’re a business, an expert, or just someone who believes in partly.asia ,  refer others and earn a commission every time your referral leads to a real outcome.',
   'aff.card1.title': 'Verified Badge referrals',
-  'aff.card1.tag': 'Recurring — every year',
+  'aff.card1.tag': 'Recurring ,  every year',
   'aff.card1.body':
-    'Earn a commission every time someone you refer buys or renews a Verified Badge — and keep earning it every year they renew.',
+    'Earn a commission every time someone you refer buys or renews a Verified Badge ,  and keep earning it every year they renew.',
   'aff.card2.title': 'Successful Lead referrals',
-  'aff.card2.tag': 'One-time — per lead',
+  'aff.card2.tag': 'One-time ,  per lead',
   'aff.card2.body':
     'Earn a one-time commission every time someone you refer successfully unlocks a warm lead. Simple: they succeed, you earn.',
   'aff.how.title': 'How it works',
   'aff.how1': 'Get your unique referral link from your dashboard.',
-  'aff.how2': 'Share it yourself — WhatsApp, LinkedIn, email.',
+  'aff.how2': 'Share it yourself ,  WhatsApp, LinkedIn, email.',
   'aff.how3': 'Earn a fixed commission automatically when a referral leads to a real outcome.',
   'aff.cta': 'Get Your Referral Link',
   'aff.table.title': 'Fixed commissions by country',
   'aff.table.full': 'Full price',
   'aff.table.you': 'You earn',
   'aff.payout': 'Referrals are paid in USD, less FX and transaction fees, once your balance clears USD 50.',
-  'aff.attribution': 'Attribution is first-click and permanent — the platform never contacts a referred party on your behalf.',
+  'aff.attribution': 'Attribution is first-click and permanent ,  the platform never contacts a referred party on your behalf.',
 
   // Footer
   'footer.tagline': 'Verified experts, matched to real business needs across Southeast Asia.',

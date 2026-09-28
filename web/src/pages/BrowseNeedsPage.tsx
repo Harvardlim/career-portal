@@ -88,7 +88,7 @@ export function BrowseNeedsPage() {
       return
     }
     if (!candidate.identity_verified) {
-      toast.error('Verify your identity before applying — it takes a minute.')
+      toast.error('Verify your identity before applying ,  it takes a minute.')
       navigate('/dashboard/verification')
       return
     }
@@ -109,7 +109,7 @@ export function BrowseNeedsPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-ink">Open needs</h1>
         <p className="mt-1 text-sm text-muted">
-          Real projects from verified businesses. Apply to the ones that fit — matching is private, and you only pay
+          Real projects from verified businesses. Apply to the ones that fit ,  matching is private, and you only pay
           if a business releases contact and you choose to unlock it.
         </p>
       </div>

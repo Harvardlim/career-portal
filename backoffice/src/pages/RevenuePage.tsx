@@ -7,7 +7,7 @@ import { fetchBadges, fetchLeadPayments, fetchPricing, partlyEnabled, type Badge
 const thCls = 'px-3 py-3 font-medium first:pl-6 last:pr-6'
 const tdCls = 'px-3 py-4 align-top first:pl-6 last:pr-6'
 const fmt = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—'
+  iso ? new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : ','
 const usd = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0)
 /** Every payment is shown in both currencies: what was charged, plus the other side's figure. */
 const bothLine = (
@@ -115,7 +115,7 @@ export const RevenuePage = () => {
                     <span className="block text-[12px] text-muted">{r.candidate?.email ?? ''}</span>
                   </td>
                   <td className={tdCls}>
-                    <span className="block text-ink">{r.job?.title ?? '—'}</span>
+                    <span className="block text-ink">{r.job?.title ?? ','}</span>
                     <span className="block text-[12px] text-muted">{r.job?.company_name ?? ''}</span>
                   </td>
                   <td className={tdCls}>

@@ -245,7 +245,7 @@ export function ApplyJobPage() {
 
             {canReapply && (
               <p className="rounded-md bg-star/10 px-4 py-3 text-sm text-ink-600">
-                Your previous application was rejected — submit an updated one
+                Your previous application was rejected ,  submit an updated one
                 below.
               </p>
             )}
@@ -277,7 +277,7 @@ export function ApplyJobPage() {
                 />
               </label>
               <span className="text-xs text-muted">
-                PDF or DOCX. Not required — your expert profile is what businesses see first. Uploads are saved to your account for next time.
+                PDF or DOCX. Not required ,  your expert profile is what businesses see first. Uploads are saved to your account for next time.
               </span>
             </div>
 

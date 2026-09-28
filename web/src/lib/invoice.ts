@@ -4,7 +4,7 @@ type BillTo = { company_name?: string | null; business_email?: string | null }
 
 export type InvoiceData = {
   id: string
-  /** Line-item text, e.g. "Standard — 3 credits" or "Member — Yearly". */
+  /** Line-item text, e.g. "Standard ,  3 credits" or "Member ,  Yearly". */
   description: string
   amount_usd: number
   status: string

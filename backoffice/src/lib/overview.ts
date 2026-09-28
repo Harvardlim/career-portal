@@ -142,7 +142,7 @@ export async function fetchOverview(): Promise<Overview> {
   const applicationDates = (applicationRows.data ?? []).map((r) => r.applied_at as string)
 
   // Revenue counts only money actually collected: paid credit purchases and
-  // active (subscribed) memberships — pending checkouts are excluded.
+  // active (subscribed) memberships , pending checkouts are excluded.
   const paidPurchases = (purchaseRows.data ?? []).filter(
     (r) => (r.status as string) === 'paid',
   )

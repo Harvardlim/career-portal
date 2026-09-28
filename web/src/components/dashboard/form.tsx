@@ -4,9 +4,11 @@ import {
   CalendarIcon,
   EyeIcon,
   EyeOffIcon,
+  PhoneIcon,
   UploadIcon,
 } from '@/components/icons'
 import { SelectMenu } from '@/components/app/SelectMenu'
+import { dialPrefix, phoneExample } from '@/lib/phone'
 
 export function Field({
   label,
@@ -69,7 +71,7 @@ export function TextInput({
 }
 
 /**
- * The dashboard form's dropdown — a thin adapter over the app-wide SelectMenu
+ * The dashboard form's dropdown ,  a thin adapter over the app-wide SelectMenu
  * so every select in the product shares one look and one keyboard behaviour.
  * `options[0]` is the "unselected" label (kept as a clearable list item, same
  * as the old native-select convention this replaced).
@@ -180,5 +182,62 @@ export function SaveButton({
     >
       {children}
     </button>
+  )
+}
+
+/**
+ * Phone field for a chosen country: the dial code (+65, +60, ...) is a fixed,
+ * non-editable prefix and the user types only the national number. Pair it
+ * with validateCountryPhone / toStoredPhone from '@/lib/phone'.
+ */
+export function PhoneInput({
+  country,
+  value,
+  onChange,
+  invalid = false,
+  disabled = false,
+  required = false,
+  className = '',
+}: {
+  country: string | null | undefined
+  value: string
+  onChange: (value: string) => void
+  invalid?: boolean
+  disabled?: boolean
+  required?: boolean
+  className?: string
+}) {
+  const prefix = dialPrefix(country)
+  return (
+    <div
+      className={`flex h-12 w-full items-center overflow-hidden rounded-md border bg-surface focus-within:border-brand ${
+        invalid ? 'border-danger' : 'border-line'
+      } ${disabled ? 'bg-surface-alt' : ''} ${className}`}
+    >
+      <PhoneIcon className="ml-3 size-5 shrink-0 text-muted" />
+      {prefix && (
+        <span
+          aria-disabled="true"
+          title="Country code ,  set by the country you selected"
+          className="ml-3 flex h-full shrink-0 cursor-not-allowed select-none items-center border-x border-line bg-surface-alt px-3 text-base text-muted"
+        >
+          {prefix}
+        </span>
+      )}
+      <input
+        type="tel"
+        inputMode="tel"
+        autoComplete="tel-national"
+        required={required}
+        disabled={disabled}
+        maxLength={20}
+        placeholder={phoneExample(country) || 'Phone number'}
+        aria-label={prefix ? `Phone number (country code ${prefix})` : 'Phone number'}
+        value={value}
+        // Only phone characters can be typed; letters never reach the field.
+        onChange={(e) => onChange(e.target.value.replace(/[^0-9+\s().-]/g, ''))}
+        className="h-full min-w-0 flex-1 bg-transparent pl-3 pr-4 text-base text-ink outline-none placeholder:text-muted-400 disabled:cursor-not-allowed disabled:text-muted"
+      />
+    </div>
   )
 }

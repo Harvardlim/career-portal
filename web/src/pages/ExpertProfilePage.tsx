@@ -35,9 +35,9 @@ export function ExpertProfilePage() {
   const [loading, setLoading] = useState(true)
 
   useSeo({
-    title: profile ? `${profile.full_name} — ${profile.headline ?? profile.title ?? 'Expert on partly.asia'}` : 'Expert profile',
+    title: profile ? `${profile.full_name} ,  ${profile.headline ?? profile.title ?? 'Expert on partly.asia'}` : 'Expert profile',
     description: profile
-      ? `${profile.full_name}${profile.business_name ? ` (${profile.business_name})` : ''} — ${(profile.expertise_field ?? []).join(', ') || 'verified expert'} based in ${countryName(profile.country_code)}. Hire through partly.asia.`
+      ? `${profile.full_name}${profile.business_name ? ` (${profile.business_name})` : ''} ,  ${(profile.expertise_field ?? []).join(', ') || 'verified expert'} based in ${countryName(profile.country_code)}. Hire through partly.asia.`
       : undefined,
     type: 'profile',
     image: profile?.avatar_path ?? undefined,
@@ -130,10 +130,10 @@ export function ExpertProfilePage() {
           <p className="font-medium text-brand-800">Want to work with {profile.full_name.split(' ')[0]}?</p>
           <p className="mt-1 text-sm text-ink-600">
             Post your need free on partly.asia. If {profile.full_name.split(' ')[0]} applies and you release contact,
-            you'll be connected directly — no recruiter fees.
+            you'll be connected directly ,  no recruiter fees.
           </p>
           <Link to="/employer/post-need" className="mt-3 inline-block">
-            <PrimaryButton>Post your project — it's free</PrimaryButton>
+            <PrimaryButton>Post your project ,  it's free</PrimaryButton>
           </Link>
         </div>
 

@@ -218,7 +218,7 @@ export function useDisplayUser(): { user: DisplayUser | null; loading: boolean }
 
 /**
  * Call after a change that affects the header (e.g. the user edits their name,
- * avatar, or company logo) — drops the cached row and nudges every mounted
+ * avatar, or company logo) ,  drops the cached row and nudges every mounted
  * `useDisplayUser()` instance (the header included) to refetch right away,
  * not just on the next navigation.
  */

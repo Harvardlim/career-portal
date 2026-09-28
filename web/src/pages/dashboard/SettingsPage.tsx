@@ -47,7 +47,7 @@ export function SettingsPage() {
     try {
       const { error } = await supabase.from('candidates').delete().eq('id', profile.id)
       if (error) throw error
-      // Note: the underlying auth user is left in place — deleting it needs a
+      // Note: the underlying auth user is left in place ,  deleting it needs a
       // service-role server function, which isn't set up.
       await supabase.auth.signOut()
       navigate('/')

@@ -8,7 +8,7 @@ import { fetchReports, partlyEnabled, updateReportStatus, type ReportRow } from 
 const thCls = 'px-3 py-3 font-medium first:pl-6 last:pr-6'
 const tdCls = 'px-3 py-4 align-top first:pl-6 last:pr-6'
 const fmt = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'
+  iso ? new Date(iso).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ','
 const errMessage = (e: unknown) => (e instanceof Error ? e.message : 'Something went wrong')
 
 const KIND_LABEL: Record<ReportRow['target_kind'], string> = { job: 'Posting', employer: 'Business', candidate: 'Expert' }

@@ -48,7 +48,7 @@ export function LeadsPage() {
             Warm leads <span className="text-muted">({warm.length})</span>
           </h1>
           <p className="mt-1 text-sm text-muted">
-            A business released its contact to you. Unlock it within 2 days — you're never charged for a lead you
+            A business released its contact to you. Unlock it within 2 days ,  you're never charged for a lead you
             don't unlock.
           </p>
         </div>
@@ -68,7 +68,7 @@ export function LeadsPage() {
                   {statusPill(l)}
                 </div>
                 <p className="mt-1 text-sm text-muted">
-                  {l.job?.category ?? '—'} · {countryName(l.job?.country)} · {projectTypeLabel(l.job?.project_type)}
+                  {l.job?.category ?? ', '} · {countryName(l.job?.country)} · {projectTypeLabel(l.job?.project_type)}
                 </p>
                 {price && (
                   <p className="mt-1 text-sm font-medium text-ink">
@@ -131,7 +131,7 @@ export function LeadsPage() {
 
         {rows.some((l) => l.status === 'cold' || l.status === 'job_closed') && (
           <Notice tone="brand">
-            A lead going cold is a normal part of the process — no payment was ever taken, so there's nothing to refund.
+            A lead going cold is a normal part of the process ,  no payment was ever taken, so there's nothing to refund.
           </Notice>
         )}
       </div>

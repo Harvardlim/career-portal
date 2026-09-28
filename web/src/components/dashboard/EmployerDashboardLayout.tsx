@@ -25,7 +25,7 @@ const nav = [
 export function EmployerDashboardLayout({ children }: { children: ReactNode }) {
   const { user, loading } = useDisplayUser()
 
-  // Business-only area — send experts (or accounts with no business profile)
+  // Business-only area ,  send experts (or accounts with no business profile)
   // to their own dashboard.
   if (!loading && user && user.role !== 'employer') {
     return <Navigate to="/dashboard" replace />

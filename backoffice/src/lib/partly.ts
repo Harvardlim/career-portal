@@ -52,7 +52,7 @@ export type VerificationItem = {
   owner_kind: 'candidate' | 'employer'
   owner_id: string
   doc_type: string
-  /** Null once auto-purged 90 days after review (see partly-sweep) — the decision below still stands. */
+  /** Null once auto-purged 90 days after review (see partly-sweep) , the decision below still stands. */
   doc_path: string | null
   status: 'pending' | 'approved' | 'rejected'
   notes: string | null
@@ -73,7 +73,7 @@ type OwnerRef = { userId: string | null; email: string | null }
 /**
  * Batch "who referred this user" lookup for a set of owners. Matches the claimed
  * referral (referred_user_id) first, then a still-open HR invitation addressed to
- * the owner's email — same precedence as fetchReferredBy in registrations.ts.
+ * the owner's email , same precedence as fetchReferredBy in registrations.ts.
  */
 async function fetchReferrers(owners: OwnerRef[]): Promise<Map<string, VerificationItem['referred_by']>> {
   const sb = client()
@@ -111,7 +111,7 @@ async function fetchReferrers(owners: OwnerRef[]): Promise<Map<string, Verificat
 
   const toRef = (r: RefRow): VerificationItem['referred_by'] => ({
     name: r.affiliate ? (names.get(r.affiliate.user_id) ?? null) : null,
-    code: r.affiliate?.referral_code ?? '—',
+    code: r.affiliate?.referral_code ?? ',',
     via_invite: !r.referred_user_id,
   })
   const byUserId = new Map(userRows.map((r) => [r.referred_user_id as string, r]))
@@ -159,7 +159,7 @@ export async function fetchVerificationQueue(): Promise<VerificationItem[]> {
     ...[...cmap.values()].map((c) => ({ userId: c.user_id, email: c.email })),
     ...[...emap.values()].map((e) => ({ userId: e.user_id, email: e.business_email })),
   ]
-  // Attribution is context for the reviewer — never let it block the queue.
+  // Attribution is context for the reviewer , never let it block the queue.
   const referrers = await fetchReferrers(owners).catch(() => new Map<string, VerificationItem['referred_by']>())
 
   return docs.map((d) => {
@@ -188,7 +188,7 @@ export async function fetchVerificationQueue(): Promise<VerificationItem[]> {
   })
 }
 
-/** Count only, for the sidebar badge — avoids pulling the full queue + owner joins. */
+/** Count only, for the sidebar badge , avoids pulling the full queue + owner joins. */
 export async function fetchPendingVerificationCount(): Promise<number> {
   const { count, error } = await client()
     .from('verification_documents')
@@ -271,7 +271,7 @@ export async function adminClosePosting(jobId: string, adminId: string): Promise
   return Number(data ?? 0)
 }
 
-/** Freezes/reinstates a single posting — disappears from every public listing immediately. */
+/** Freezes/reinstates a single posting , disappears from every public listing immediately. */
 export async function setJobSuspended(jobId: string, suspended: boolean, reason: string | null, adminId: string): Promise<void> {
   const { error } = await client().rpc('admin_set_job_suspended', {
     p_job_id: jobId,

@@ -89,7 +89,7 @@ export function VerificationDocs({
       {latest?.purged_at && (
         <p className="text-xs text-muted">
           The file itself was securely deleted {formatDate(latest.purged_at)}, 90 days after
-          review — we keep only the decision, not the document.
+          review ,  we keep only the decision, not the document.
         </p>
       )}
       {latest?.status !== 'approved' && (

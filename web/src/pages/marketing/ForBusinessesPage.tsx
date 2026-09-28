@@ -35,7 +35,7 @@ export function ForBusinessesPage() {
           <div className="rounded-xl border border-line bg-cream p-6">
             <p className="text-sm font-semibold uppercase tracking-wide text-muted">Your matches</p>
             <p className="mt-2 text-navy">
-              You see up to 10 matched experts per posting — a fixed shortlist, not a rolling feed.{' '}
+              You see up to 10 matched experts per posting ,  a fixed shortlist, not a rolling feed.{' '}
               <em>{t('biz.scarcity')}</em>
             </p>
           </div>

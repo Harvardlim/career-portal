@@ -59,7 +59,7 @@ export const RatingsPage = () => {
     }
   }
 
-  const avg = rows.length ? (rows.reduce((s, r) => s + r.stars, 0) / rows.length).toFixed(2) : '—'
+  const avg = rows.length ? (rows.reduce((s, r) => s + r.stars, 0) / rows.length).toFixed(2) : ','
 
   return (
     <div className="space-y-6">
@@ -101,7 +101,7 @@ export const RatingsPage = () => {
                   </td>
                   <td className={tdCls}><Stars n={r.stars} /></td>
                   <td className={tdCls}>
-                    <span className="block max-w-[320px] text-ink-200">{r.comment ?? '—'}</span>
+                    <span className="block max-w-[320px] text-ink-200">{r.comment ?? ','}</span>
                   </td>
                   <td className={tdCls}>{fmt(r.created_at)}</td>
                   <td className={tdCls}>

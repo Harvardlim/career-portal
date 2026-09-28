@@ -19,6 +19,7 @@ import {
   type Candidate,
   type Employer,
 } from '../lib/registrations'
+import { formatStoredPhone } from '@/lib/phone'
 
 type Tab = 'candidates' | 'employers'
 
@@ -29,10 +30,10 @@ const fmtDate = (iso: string | null) =>
         month: 'short',
         day: 'numeric',
       })
-    : '—'
+    : ','
 
 const Chips = ({ items, all }: { items: string[]; all?: boolean }) => {
-  if (!items || items.length === 0) return <span className="text-muted">—</span>
+  if (!items || items.length === 0) return <span className="text-muted">,</span>
   const shown = all ? items : items.slice(0, 3)
   return (
     <span className="flex flex-wrap gap-1">
@@ -304,14 +305,14 @@ export const UsersPage = () => {
                           <td className={tdCls}>
                             <span className="block text-ink-200">{c.email}</span>
                             <span className="block text-[12px] text-muted">
-                              {c.contact_number}
+                              {formatStoredPhone(c.contact_number)}
                             </span>
                           </td>
                           <td className={tdCls}>
                             <Chips items={c.expertise_field} />
                           </td>
                           <td className={`${tdCls} text-ink-200`}>
-                            {c.years_experience || '—'}
+                            {c.years_experience || ','}
                           </td>
                           <td className={tdCls}>
                             <Chips items={c.interests} />

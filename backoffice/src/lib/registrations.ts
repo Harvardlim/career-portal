@@ -47,7 +47,7 @@ export function activeMembership(c: Candidate): MembershipLite | null {
   )
 }
 
-/** "Paid" / "Pending" / … — friendlier than the raw membership status. */
+/** "Paid" / "Pending" / … , friendlier than the raw membership status. */
 export function membershipStatusLabel(status: string): string {
   if (status === 'active') return 'Paid'
   return status.charAt(0).toUpperCase() + status.slice(1)
@@ -193,7 +193,7 @@ export async function fetchReferredBy(
   }
   return {
     affiliate_name: name,
-    affiliate_code: aff?.referral_code ?? '—',
+    affiliate_code: aff?.referral_code ?? ',',
     referred_at: row.referred_at,
     commission_status: row.commission_status,
     via_invite: !row.referred_user_id,

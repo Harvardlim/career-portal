@@ -43,7 +43,7 @@ export function SignInPage() {
   // browser; drop it so the person actually signs in from the login page.
   useEffect(() => {
     if (params.get('confirmed') !== '1') return
-    toast.success('Your email is confirmed — sign in to continue.')
+    toast.success('Your email is confirmed ,  sign in to continue.')
     void supabase.auth.getSession().then(({ data }) => {
       if (data.session) return supabase.auth.signOut()
     })

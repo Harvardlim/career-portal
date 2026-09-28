@@ -1,6 +1,6 @@
 User-agent: *
 Allow: /
-# Private, per-account screens — nothing here is useful in search results.
+# Private, per-account screens ,  nothing here is useful in search results.
 Disallow: /dashboard
 Disallow: /employer/
 Disallow: /company/

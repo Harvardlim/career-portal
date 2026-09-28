@@ -69,7 +69,7 @@ export function SavedCandidatesPage() {
                     <span className="flex flex-col">
                       <span className="font-medium text-ink">{c.full_name}</span>
                       <span className="text-sm text-muted">
-                        {c.title || c.expertise_field?.[0] || '—'}
+                        {c.title || c.expertise_field?.[0] || ', '}
                         {c.years_experience ? ` · ${c.years_experience}` : ''}
                       </span>
                     </span>

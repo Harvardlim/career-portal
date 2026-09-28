@@ -73,7 +73,7 @@ export const JobEditPage = () => {
           </h1>
           {job ? (
             <p className="text-[13px] text-muted">
-              {isPlaceholderSlug(job.slug) ? 'Draft — URL is set on save' : `/${job.slug}`}
+              {isPlaceholderSlug(job.slug) ? 'Draft , URL is set on save' : `/${job.slug}`}
               {' · '}
               <button
                 type="button"

@@ -128,7 +128,7 @@ async function sendReceipt(session: Stripe.Checkout.Session, stripe?: Stripe): P
     `<tr><td style="padding:6px 0;color:#64748b;">${escapeHtml(k)}</td><td style="padding:6px 0;text-align:right;color:#1b2a4a;font-weight:600;">${escapeHtml(v)}</td></tr>`
   const html = emailShell(
     'Payment receipt',
-    `<p>Thank you — we've received your payment.</p>
+    `<p>Thank you , we've received your payment.</p>
      <table style="width:100%;border-collapse:collapse;margin-top:12px;font-size:14px;">
        ${row('Item', item)}
        ${row('Amount paid', amount)}
@@ -144,7 +144,7 @@ async function sendReceipt(session: Stripe.Checkout.Session, stripe?: Stripe): P
     `${SITE_URL}/dashboard`,
     'Open my dashboard',
   )
-  await sendEmail(to, `Your partly.asia receipt — ${amount}`, html)
+  await sendEmail(to, `Your partly.asia receipt , ${amount}`, html)
 }
 
 // The in-app bell already tells the business (confirm_lead_unlock writes it),
@@ -174,7 +174,7 @@ async function notifyBusinessOfUnlock(admin: SupabaseClient, releaseId: string):
     : null
   await sendEmail(
     to,
-    `${expert} unlocked your contact — "${title}"`,
+    `${expert} unlocked your contact , "${title}"`,
     emailShell(
       'An expert unlocked your contact',
       `<p><b>${escapeHtml(expert)}</b> has paid to unlock your contact details for <b>${escapeHtml(title)}</b>, so you can now see theirs too.</p>

@@ -34,7 +34,7 @@ import { formatDate } from '@/lib/format'
 
 const BADGE_STATUS_LABEL: Record<string, string> = {
   pending: 'Checkout started',
-  awaiting_review: 'Paid — awaiting document review',
+  awaiting_review: 'Paid ,  awaiting document review',
   active: 'Active',
   superseded: 'Superseded',
   expired: 'Expired',
@@ -66,7 +66,7 @@ export function VerificationPage() {
   }, [candidate])
 
   const { confirming } = useCheckoutReturn({
-    successMessage: 'Payment confirmed — your badge status is on your dashboard.',
+    successMessage: 'Payment confirmed ,  your badge status is on your dashboard.',
     successAction: { label: 'View dashboard', onClick: () => navigate('/dashboard') },
     cancelledMessage: 'Badge purchase cancelled.',
     onConfirmed: async () => {
@@ -93,7 +93,7 @@ export function VerificationPage() {
       if (linkedin.trim() !== (candidate?.linkedin_url ?? '')) {
         await updateMyCandidate(session.user.id, { linkedin_url: linkedin.trim() || null })
       }
-      toast.success('Saved — you can apply to open needs right away.')
+      toast.success('Saved ,  you can apply to open needs right away.')
       setLast4('')
       await reload()
     } catch (err) {
@@ -120,7 +120,7 @@ export function VerificationPage() {
         <div>
           <h1 className="text-xl font-semibold text-ink">Verification</h1>
           <p className="mt-1 text-sm text-muted">
-            <strong>Basic verified</strong> is free and self-serve — just your ID digits, and you can apply right away.
+            <strong>Basic verified</strong> is free and self-serve ,  just your ID digits, and you can apply right away.
             <strong> Fully verified</strong> is the paid annual badge: a stricter check that needs your ID document
             too, reviewed by our team.
           </p>
@@ -129,7 +129,7 @@ export function VerificationPage() {
         {!loading && candidate && (
           <Notice tone={candidate.identity_verified ? 'success' : 'brand'}>
             <span className="flex flex-wrap items-center gap-2">
-              {candidate.identity_verified ? 'You\u2019re Basic verified — you can apply to any open need once your profile is complete.' : 'Add your ID digits below to become Basic verified and start applying.'}
+              {candidate.identity_verified ? 'You\u2019re Basic verified ,  you can apply to any open need once your profile is complete.' : 'Add your ID digits below to become Basic verified and start applying.'}
               <VerifiedChips identity={candidate.identity_verified} badge={badgeLive} />
             </span>
           </Notice>
@@ -163,11 +163,11 @@ export function VerificationPage() {
           </Field>
           <p className="text-xs text-muted">
             Collected for verification only. The digits are encrypted before they're stored and are never displayed
-            back to you, to any business, or to any third party. This is the whole free check — no document needed.
+            back to you, to any business, or to any third party. This is the whole free check ,  no document needed.
           </p>
           {candidate?.identity_verified && (
             <p className="text-sm font-semibold text-emerald-700">
-              ✓ Basic verified — your ID digits are on file. There's nothing more to do here.
+              ✓ Basic verified ,  your ID digits are on file. There's nothing more to do here.
             </p>
           )}
           {!candidate?.identity_verified && (
@@ -218,7 +218,7 @@ export function VerificationPage() {
             </Notice>
           ) : awaitingReview ? (
             <Notice tone="warning">
-              Payment received — your badge activates automatically once our team approves your identity document.
+              Payment received ,  your badge activates automatically once our team approves your identity document.
               Until then your dashboard shows “Basic verified”; it switches to “Fully verified” the moment it's approved.
             </Notice>
           ) : (

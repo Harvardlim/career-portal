@@ -131,7 +131,7 @@ function ReferralPackageCard({
               </label>
               {dupInForm(i) && (
                 <p className="text-xs text-danger">
-                  This email is already used in another row — enter a different
+                  This email is already used in another row ,  enter a different
                   address.
                 </p>
               )}
@@ -174,7 +174,7 @@ function ReferralPackageCard({
         </button>
         {disabled ? (
           <p className="mt-2 text-center text-xs text-muted">
-            Your account already has credits — see the repeat pricing below.
+            Your account already has credits ,  see the repeat pricing below.
           </p>
         ) : (
           !canBuy &&
@@ -204,7 +204,7 @@ export function PostJobPricingPage() {
 
   useEffect(() => {
     if (readCheckoutOutcome(location.search) === 'cancelled') {
-      toast('Checkout cancelled — no charge was made.')
+      toast('Checkout cancelled ,  no charge was made.')
       navigate('/employer/pricing', { replace: true })
     }
   }, [location.search, navigate])
@@ -244,7 +244,7 @@ export function PostJobPricingPage() {
           </p>
           {isMember && (
             <p className="mt-3 rounded-lg bg-brand-50 px-4 py-3 text-sm text-brand">
-              You&apos;ve already bought a package — from now on only Top Up Credit
+              You&apos;ve already bought a package ,  from now on only Top Up Credit
               ($199 / 5 credits) is available.
             </p>
           )}
@@ -259,7 +259,7 @@ export function PostJobPricingPage() {
             <div>
               <h2 className="text-lg font-medium text-ink">Top Up Credit</h2>
               <p className="mt-1 text-sm text-muted-600">
-                Your account is active — top up more credits at the member rate.
+                Your account is active ,  top up more credits at the member rate.
               </p>
             </div>
             <div className="flex items-center justify-between rounded-lg bg-surface-alt px-5 py-4">
@@ -282,7 +282,7 @@ export function PostJobPricingPage() {
             </div>
           </div>
         ) : (
-          /* First purchase only — choose Standard $999 or Referral $499. */
+          /* First purchase only ,  choose Standard $999 or Referral $499. */
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="flex flex-col rounded-xl border border-line">
               <div className="flex flex-col gap-3 border-b border-line p-6">

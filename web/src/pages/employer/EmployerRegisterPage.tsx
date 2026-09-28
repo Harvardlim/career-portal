@@ -4,12 +4,13 @@ import { toast } from 'sonner'
 import { RegWizardLayout, WizardButtons, type WizardStep } from '@/components/wizard/RegWizardLayout'
 import { ConsentStep } from '@/components/wizard/ConsentStep'
 import { CheckboxGroup } from '@/components/wizard/CheckboxGroup'
-import { Field, TextInput } from '@/components/dashboard/form'
+import { Field, PhoneInput, TextInput } from '@/components/dashboard/form'
 import { SelectMenu } from '@/components/app/SelectMenu'
 import { GoldCircle } from '@/components/marketing/blocks'
 import { supabase } from '@/lib/supabase'
 import { useCategoryNames } from '@/lib/categories'
 import { errMessage } from '@/lib/errors'
+import { toStoredPhone, validateCountryPhone } from '@/lib/phone'
 import { recordReferralAtSignup } from '@/lib/affiliate'
 import { lookupEmail, resolveAccountForRegister } from '@/lib/registerAccount'
 import { AlreadySignedInNotice, RegisteredEmailDialog } from '@/components/auth/RegisteredEmailDialog'
@@ -22,9 +23,8 @@ import {
   MIN_BUSINESS_TEXT,
   validateBusinessEmail,
   validateBusinessRegNo,
-  validatePhone,
 } from '@/lib/partly'
-import { BriefcaseIcon, BuildingIcon, CheckIcon, CircleCheckIcon, MailIcon, PhoneIcon } from '@/components/icons'
+import { BriefcaseIcon, BuildingIcon, CheckIcon, CircleCheckIcon, MailIcon } from '@/components/icons'
 
 const steps: WizardStep[] = [
   { label: 'Your business', Icon: BuildingIcon },
@@ -87,7 +87,7 @@ export function EmployerRegisterPage() {
   const regFormat = BUSINESS_REG_FORMATS[form.country]
   const regError = form.regNo ? validateBusinessRegNo(form.country, form.regNo) : null
   const emailError = form.businessEmail ? validateBusinessEmail(form.businessEmail) : null
-  const phoneError = form.phone ? validatePhone(form.phone) : null
+  const phoneError = form.phone ? validateCountryPhone(form.country, form.phone) : null
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -97,7 +97,7 @@ export function EmployerRegisterPage() {
       if (err) return setError(err)
       const emailErr = validateBusinessEmail(form.businessEmail)
       if (emailErr) return setError(emailErr)
-      const phoneErr = validatePhone(form.phone)
+      const phoneErr = validateCountryPhone(form.country, form.phone)
       if (phoneErr) return setError(phoneErr)
       if (!session && form.password !== form.confirmPassword) return setError('Passwords do not match.')
       // Catch an already-registered email here, not three steps later.
@@ -109,7 +109,7 @@ export function EmployerRegisterPage() {
     if (step === 1 && form.lookingFor.length === 0) return setError('Pick at least one area you need help in.')
     if (step === 1 && form.field.length === 0) return setError('Pick your industry / field.')
     if (step === 1 && form.businessDetails.trim().length < MIN_BUSINESS_TEXT)
-      return setError(`Tell us about your business — at least ${MIN_BUSINESS_TEXT} characters.`)
+      return setError(`Tell us about your business ,  at least ${MIN_BUSINESS_TEXT} characters.`)
 
     if (step < steps.length - 1) {
       setStep((s) => s + 1)
@@ -131,7 +131,7 @@ export function EmployerRegisterPage() {
       const { userId, needsConfirm } = await resolveAccountForRegister(form.businessEmail, form.password)
 
       const { data: existing } = await supabase.from('employers').select('id').eq('user_id', userId).maybeSingle()
-      if (existing) throw new Error('This email already has a business account — just sign in.')
+      if (existing) throw new Error('This email already has a business account ,  just sign in.')
 
       const { error: insertError } = await supabase.from('employers').insert({
         user_id: userId,
@@ -141,7 +141,7 @@ export function EmployerRegisterPage() {
         website: form.website.trim() || null,
         field: form.field,
         business_email: form.businessEmail.trim(),
-        phone: form.phone.trim(),
+        phone: toStoredPhone(form.country, form.phone),
         business_details: form.businessDetails.trim(),
         looking_for: form.lookingFor,
         referral_opt_in: referralOptIn,
@@ -154,7 +154,7 @@ export function EmployerRegisterPage() {
         setDone(true)
       } else {
         clearDisplayUserCache()
-        toast.success('Business profile created — you\u2019re Basic verified. Get Fully verified to attract better experts.')
+        toast.success('Business profile created ,  you\u2019re Basic verified. Get Fully verified to attract better experts.')
         navigate('/employer/dashboard')
       }
     } catch (err) {
@@ -185,12 +185,12 @@ export function EmployerRegisterPage() {
             <CheckIcon className="size-10" />
           </GoldCircle>
           <h1 className="text-2xl font-medium text-navy" style={{ fontFamily: 'Georgia, serif' }}>
-            Almost there — confirm your email
+            Almost there ,  confirm your email
           </h1>
           <p className="max-w-md text-muted-600">Thanks for registering {form.companyName}.</p>
           <p className="max-w-md text-sm text-muted">
             We&apos;ve sent a confirmation link to <b>{form.businessEmail}</b>. Click it and you&apos;ll land on the
-            sign-in page. Once you&apos;re in you&apos;re Basic verified and can post your first project free — upload
+            sign-in page. Once you&apos;re in you&apos;re Basic verified and can post your first project free ,  upload
             your registration document and activate the badge to become Fully verified.
           </p>
           <Link to="/sign-in" className="rounded-md bg-navy px-6 py-3 text-base font-semibold text-white">
@@ -208,7 +208,7 @@ export function EmployerRegisterPage() {
     form.regNo.trim() !== '' &&
     !regError &&
     !validateBusinessEmail(form.businessEmail) &&
-    !validatePhone(form.phone) &&
+    !validateCountryPhone(form.country, form.phone) &&
     (!!session || (form.password.length >= 6 && form.password === form.confirmPassword))
 
   return (
@@ -220,7 +220,7 @@ export function EmployerRegisterPage() {
           </h1>
           <p className="mt-1 text-sm text-ink-600">
             {step === 0
-              ? 'Post your project. Meet your expert. Solve your problems — posting is completely free.'
+              ? 'Post your project. Meet your expert. Solve your problems ,  posting is completely free.'
               : step === 1
                 ? 'This helps us route the right experts to you. You can be based anywhere in the world.'
                 : 'Your registration number gets you the Basic verified mark straight away.'}
@@ -266,7 +266,7 @@ export function EmployerRegisterPage() {
                 {emailError && <p className="mt-1 text-xs text-danger">{emailError}</p>}
               </Field>
               <Field label="Business phone">
-                <TextInput required type="tel" placeholder="+65 6123 4567" icon={<PhoneIcon className="size-5" />} value={form.phone} onChange={(e) => update('phone', e.target.value)} className={phoneError ? 'border-danger' : ''} />
+                <PhoneInput required country={form.country} value={form.phone} onChange={(v) => update('phone', v)} invalid={!!phoneError} />
                 {phoneError && <p className="mt-1 text-xs text-danger">{phoneError}</p>}
               </Field>
             </div>
@@ -308,7 +308,7 @@ export function EmployerRegisterPage() {
           <>
             <div className="flex flex-col gap-4 rounded-xl border border-gold/40 bg-gold-50 p-5 text-sm text-ink-600">
               <p>
-                Your business starts as <b>Basic verified</b> — the registration number you just gave us is enough to
+                Your business starts as <b>Basic verified</b> ,  the registration number you just gave us is enough to
                 post. To become <b>Fully verified</b>, upload a copy of your business registration after sign-in and
                 activate the annual badge: our team confirms it by hand and your profile carries the Fully verified
                 mark. Every expert you match with is identity-verified too.

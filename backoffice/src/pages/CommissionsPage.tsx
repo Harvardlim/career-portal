@@ -15,13 +15,13 @@ import {
 const thCls = 'px-3 py-3 font-medium first:pl-6 last:pr-6'
 const tdCls = 'px-3 py-4 align-top first:pl-6 last:pr-6'
 const fmt = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—'
+  iso ? new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : ','
 const usd = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0)
 const errMessage = (e: unknown) => (e instanceof Error ? e.message : 'Something went wrong')
 
 const EVENT: Record<string, string> = {
-  badge_purchase: 'Badge — purchase',
-  badge_renewal: 'Badge — renewal',
+  badge_purchase: 'Badge , purchase',
+  badge_renewal: 'Badge , renewal',
   lead_unlock: 'Lead unlock',
 }
 
@@ -193,7 +193,7 @@ export const CommissionsPage = () => {
                   <td className={tdCls}>{usd(p.amount_usd)}</td>
                   <td className={tdCls}>{fmt(p.requested_at)}</td>
                   <td className={tdCls}><Pill value={p.status} />{p.paid_at && <span className="block text-[12px] text-muted">{fmt(p.paid_at)}</span>}</td>
-                  <td className={tdCls}>{p.reference ?? '—'}{p.method ? <span className="block text-[12px] text-muted">{p.method}</span> : null}</td>
+                  <td className={tdCls}>{p.reference ?? ','}{p.method ? <span className="block text-[12px] text-muted">{p.method}</span> : null}</td>
                   <td className={tdCls}>{p.status !== 'paid' && <Button onClick={() => setPaying(p)}>Mark paid</Button>}</td>
                 </tr>
               ))

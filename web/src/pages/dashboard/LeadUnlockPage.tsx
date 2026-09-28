@@ -25,6 +25,7 @@ import {
 } from '@/lib/partly'
 import { useCheckoutReturn } from '@/lib/useCheckoutReturn'
 import { formatDateTime } from '@/lib/format'
+import { formatStoredPhone } from '@/lib/phone'
 
 export function LeadUnlockPage() {
   const { id = '' } = useParams()
@@ -55,7 +56,7 @@ export function LeadUnlockPage() {
   // Return from Stripe: confirm server-side so the contact appears immediately.
   const { confirming } = useCheckoutReturn({
     successMessage: 'Contact unlocked.',
-    cancelledMessage: 'Payment cancelled — the lead is still yours until the window closes.',
+    cancelledMessage: 'Payment cancelled ,  the lead is still yours until the window closes.',
     onConfirmed: load,
   })
 
@@ -117,7 +118,7 @@ export function LeadUnlockPage() {
           {lead.others_released > 0 && lead.status === 'awaiting_payment' && (
             <p className="mt-1 text-xs text-amber-800">
               This business also released contact to {lead.others_released} other expert
-              {lead.others_released === 1 ? '' : 's'} — you are one of {lead.cohort_size} being considered.
+              {lead.others_released === 1 ? '' : 's'} ,  you are one of {lead.cohort_size} being considered.
             </p>
           )}
         </Card>
@@ -137,7 +138,7 @@ export function LeadUnlockPage() {
                   </a>
                   {contact.phone && (
                     <span className="flex items-center gap-2 text-ink">
-                      <PhoneIcon className="size-4 text-muted" /> {contact.phone}
+                      <PhoneIcon className="size-4 text-muted" /> {formatStoredPhone(contact.phone)}
                     </span>
                   )}
                   {contact.website && (
@@ -153,7 +154,7 @@ export function LeadUnlockPage() {
                 </div>
                 <Notice tone="warning">
                   These details are visible until <strong>{formatDateTime(contact.contact_expires_at)}</strong>{' '}
-                  (5 calendar days). For security and privacy, refer to this lead only through partly.asia — we never
+                  (5 calendar days). For security and privacy, refer to this lead only through partly.asia ,  we never
                   email contact details out.
                 </Notice>
                 <div className="mt-4">
@@ -222,7 +223,7 @@ export function LeadUnlockPage() {
               {busy ? 'Redirecting to payment…' : 'Pay to Unlock Contact'}
             </PrimaryButton>
             <p className="text-center text-xs text-muted">
-              Secure checkout by Stripe. If you don't pay within the window the lead simply goes cold — no charge.
+              Secure checkout by Stripe. If you don't pay within the window the lead simply goes cold ,  no charge.
             </p>
           </Card>
         )}
@@ -233,8 +234,8 @@ export function LeadUnlockPage() {
           </Notice>
         )}
         {(lead.status === 'cold' || lead.status === 'job_closed') && (
-          <Notice tone="brand" title={lead.status === 'job_closed' ? 'Lead went cold — job closed' : 'Lead went cold'}>
-            {lead.ended_reason ?? 'The window closed before payment.'} You were not charged — this is a normal part of
+          <Notice tone="brand" title={lead.status === 'job_closed' ? 'Lead went cold ,  job closed' : 'Lead went cold'}>
+            {lead.ended_reason ?? 'The window closed before payment.'} You were not charged ,  this is a normal part of
             the process.
           </Notice>
         )}

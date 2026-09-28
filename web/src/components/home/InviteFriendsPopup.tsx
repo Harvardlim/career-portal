@@ -5,14 +5,14 @@ import { MailIcon, ShareIcon, XCircleIcon } from '@/components/icons'
 import { GoldCircle } from '@/components/marketing/blocks'
 import { SITE_URL } from '@/lib/site'
 
-const MESSAGE = `I found partly.asia — warm leads matched to real business needs across Southeast Asia. Have a look: ${SITE_URL}`
+const MESSAGE = `I found partly.asia ,  warm leads matched to real business needs across Southeast Asia. Have a look: ${SITE_URL}`
 const WHATSAPP_HREF = `https://wa.me/?text=${encodeURIComponent(MESSAGE)}`
 const EMAIL_HREF = `mailto:?subject=${encodeURIComponent('Have a look at partly.asia')}&body=${encodeURIComponent(MESSAGE)}`
 
 /**
  * The "invite your friends" pop-out a visitor sees on arriving at the home
  * page. Everything is shared by the visitor themself through their own
- * channel — partly.asia never contacts anyone on their behalf.
+ * channel ,  partly.asia never contacts anyone on their behalf.
  */
 export function InviteFriendsPopup() {
   const [open, setOpen] = useState(false)
@@ -37,7 +37,7 @@ export function InviteFriendsPopup() {
   async function copyMessage() {
     try {
       await navigator.clipboard.writeText(MESSAGE)
-      toast.success('Invite message copied — paste it anywhere.')
+      toast.success('Invite message copied ,  paste it anywhere.')
     } catch {
       toast.error('Could not copy the invite. Please share the link by hand: ' + SITE_URL)
     }
@@ -77,7 +77,7 @@ export function InviteFriendsPopup() {
           Know someone who&apos;d love partly.asia?
         </h2>
         <p className="mt-3 text-sm leading-6 text-ink-600">
-          Invite your friends to visit — businesses find verified experts, and experts find real projects. Once you
+          Invite your friends to visit ,  businesses find verified experts, and experts find real projects. Once you
           have an account, your referral link also earns you a commission every time an invite pays off.
         </p>
 

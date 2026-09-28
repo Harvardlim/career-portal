@@ -24,7 +24,7 @@ import {
 import { useT } from '@/lib/i18n'
 import { useDisplayUser } from '@/lib/useDisplayUser'
 
-// Mirrors the 8 live DB categories — Training rolled into HR, Design rolled into Marketing.
+// Mirrors the 8 live DB categories ,  Training rolled into HR, Design rolled into Marketing.
 const VERTICALS = [
   { Icon: UsersIcon, label: 'HR' },
   { Icon: CodeIcon, label: 'IT' },

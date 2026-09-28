@@ -114,13 +114,13 @@ export function PostNeedPage() {
           <h1 className="text-xl font-semibold text-ink">Post your need</h1>
           <p className="mt-1 text-sm text-muted">
             Posting is free. Describe what you need and we'll match you with up to 10 verified
-            experts — you only ever choose who to contact.
+            experts ,  you only ever choose who to contact.
           </p>
         </div>
 
         {!loading && employer && !employer.basic_verified && (
           <Notice tone="warning" title="Add your registration number">
-            A business registration number is what makes you Basic verified — and lets you post.{' '}
+            A business registration number is what makes you Basic verified ,  and lets you post.{' '}
             <Link to="/employer/verification" className="font-medium underline">
               Add it now
             </Link>
@@ -166,7 +166,7 @@ export function PostNeedPage() {
             One main category and at least one sub-category.
             {restricted && (
               <>
-                {' '}Showing what you're looking to hire for —{' '}
+                {' '}Showing what you're looking to hire for , {' '}
                 <Link to="/company/register" className="font-medium underline">
                   change in your Business profile
                 </Link>
@@ -287,10 +287,10 @@ export function PostNeedPage() {
 
         <div className="flex items-center justify-between gap-4">
           <p className="text-xs text-muted">
-            You'll see up to 10 matched experts for this posting — a fixed shortlist, not a rolling list.
+            You'll see up to 10 matched experts for this posting ,  a fixed shortlist, not a rolling list.
           </p>
           <PrimaryButton type="submit" disabled={submitting || loading}>
-            {submitting ? 'Posting…' : 'Post — it’s free'}
+            {submitting ? 'Posting…' : 'Post ,  it’s free'}
           </PrimaryButton>
         </div>
       </form>

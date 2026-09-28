@@ -11,7 +11,7 @@ import { useDisplayUser } from '@/lib/useDisplayUser'
 import { useSession } from '@/lib/useSession'
 
 /**
- * "Become an Affiliate" — a standing earnings program, distinct from the
+ * "Become an Affiliate" ,  a standing earnings program, distinct from the
  * one-off Hire-me badge and Invite-a-friend modules.
  */
 export function AffiliatePage() {
@@ -36,7 +36,7 @@ export function AffiliatePage() {
     setJoining(true)
     try {
       setAffiliate(await joinAffiliate(userId))
-      toast.success("You're now an affiliate — share your referral link below.")
+      toast.success("You're now an affiliate ,  share your referral link below.")
     } catch (err) {
       toast.error(errMessage(err))
     } finally {
@@ -50,7 +50,7 @@ export function AffiliatePage() {
       await navigator.clipboard.writeText(referralLink(affiliate.referral_code))
       toast.success('Referral link copied')
     } catch {
-      toast.error('Could not copy — select and copy the link manually.')
+      toast.error('Could not copy ,  select and copy the link manually.')
     }
   }
 

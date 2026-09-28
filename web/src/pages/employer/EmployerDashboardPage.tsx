@@ -77,7 +77,7 @@ export function EmployerDashboardPage() {
               className={`flex items-center justify-between rounded-lg p-6 transition-shadow hover:shadow-md ${bg}`}
             >
               <div>
-                <p className="text-3xl font-medium text-ink">{loading ? '—' : value}</p>
+                <p className="text-3xl font-medium text-ink">{loading ? ', ' : value}</p>
                 <p className="mt-1 text-sm text-ink-600">{label}</p>
               </div>
               <span className={`grid size-12 place-items-center rounded-lg bg-surface ${fg}`}>
@@ -164,7 +164,7 @@ export function EmployerDashboardPage() {
               {loading ? 'Loading…' : 'No postings yet.'}{' '}
               {!loading && (
                 <Link to="/employer/post-need" className="font-medium text-brand">
-                  Post your first need — it&apos;s free
+                  Post your first need ,  it&apos;s free
                 </Link>
               )}
             </p>

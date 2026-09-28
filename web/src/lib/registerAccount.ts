@@ -66,12 +66,12 @@ export async function resolveAccountForRegister(
     return { userId: data.user.id, needsConfirm: !data.session }
   }
 
-  // The login exists but has no profile yet — sign in to finish the registration.
+  // The login exists but has no profile yet ,  sign in to finish the registration.
   const { data: signIn, error: signInError } =
     await supabase.auth.signInWithPassword({ email, password })
   if (signInError || !signIn.user) {
     throw new Error(
-      'This email is already registered. Sign in instead — one email can only hold one account.',
+      'This email is already registered. Sign in instead ,  one email can only hold one account.',
     )
   }
   return { userId: signIn.user.id, needsConfirm: false }

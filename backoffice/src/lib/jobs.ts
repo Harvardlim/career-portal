@@ -143,7 +143,7 @@ export async function createDraftJob(adminId: string | null): Promise<string> {
   const { data, error } = await client()
     .from('jobs')
     .insert({
-      // title / company_name are NOT NULL — empty strings show as blank / "Select…".
+      // title / company_name are NOT NULL , empty strings show as blank / "Select…".
       title: '',
       company_name: '',
       slug: `untitled-${Date.now().toString(36)}`,

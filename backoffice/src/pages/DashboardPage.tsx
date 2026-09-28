@@ -67,28 +67,28 @@ export const DashboardPage = () => {
             <StatCard
               icon={<IconUsers width={16} height={16} />}
               label="Candidates"
-              value={loading ? '—' : num(data!.totals.candidates)}
+              value={loading ? ',' : num(data!.totals.candidates)}
               delta={dstr(data?.deltas.candidates)}
               dir={ddir(data?.deltas.candidates)}
             />
             <StatCard
               icon={<IconBriefcase width={16} height={16} />}
               label="Employers"
-              value={loading ? '—' : num(data!.totals.employers)}
+              value={loading ? ',' : num(data!.totals.employers)}
               delta={dstr(data?.deltas.employers)}
               dir={ddir(data?.deltas.employers)}
             />
             <StatCard
               icon={<IconBriefcase width={16} height={16} />}
               label="Jobs"
-              value={loading ? '—' : num(data!.totals.jobs)}
+              value={loading ? ',' : num(data!.totals.jobs)}
               delta={dstr(data?.deltas.jobs)}
               dir={ddir(data?.deltas.jobs)}
             />
             <StatCard
               icon={<IconDollar width={16} height={16} />}
               label="Revenue"
-              value={loading ? '—' : money(data!.totals.revenueUsd)}
+              value={loading ? ',' : money(data!.totals.revenueUsd)}
             />
           </div>
 
@@ -99,13 +99,13 @@ export const DashboardPage = () => {
               seriesB={data?.membershipRevenue}
               labelA="Employer credits"
               labelB="Memberships"
-              total={data ? money(data.totals.revenueUsd) : '—'}
+              total={data ? money(data.totals.revenueUsd) : ','}
               delta={null}
             />
             <div className="space-y-5">
               <ProfitChart
                 title="Applications"
-                value={loading ? '—' : num(data!.totals.applications)}
+                value={loading ? ',' : num(data!.totals.applications)}
                 delta={
                   dstr(data?.deltas.applications)
                     ? { value: dstr(data!.deltas.applications)!, dir: data!.deltas.applications.dir }
@@ -117,7 +117,7 @@ export const DashboardPage = () => {
                 title="New sign-ups"
                 value={
                   loading
-                    ? '—'
+                    ? ','
                     : num((data?.signups ?? []).reduce((s, x) => s + x, 0))
                 }
                 delta={undefined}

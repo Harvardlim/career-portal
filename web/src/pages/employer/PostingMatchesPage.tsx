@@ -36,6 +36,7 @@ import {
   type PostingRow,
 } from '@/lib/partly'
 import { formatDate } from '@/lib/format'
+import { formatStoredPhone } from '@/lib/phone'
 
 export function PostingMatchesPage() {
   const { id = '' } = useParams()
@@ -130,7 +131,7 @@ export function PostingMatchesPage() {
       title: 'Close this posting?',
       message:
         pending.length > 0
-          ? `${pending.length} expert${pending.length === 1 ? '' : 's'} still have an open payment window — closing ends all of them immediately and nobody is charged.`
+          ? `${pending.length} expert${pending.length === 1 ? '' : 's'} still have an open payment window ,  closing ends all of them immediately and nobody is charged.`
           : 'This stops any further matches from being surfaced.',
       confirmLabel: 'Close posting',
       tone: 'danger',
@@ -235,7 +236,7 @@ export function PostingMatchesPage() {
                           <MailIcon className="size-4 text-muted" /> {c.email}
                         </a>
                         <span className="flex items-center gap-2 text-ink">
-                          <PhoneIcon className="size-4 text-muted" /> {c.contact_number}
+                          <PhoneIcon className="size-4 text-muted" /> {formatStoredPhone(c.contact_number)}
                         </span>
                         {c.linkedin_url && (
                           <a href={c.linkedin_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-ink hover:text-brand">
@@ -244,7 +245,7 @@ export function PostingMatchesPage() {
                         )}
                       </div>
                       <p className="mt-2 text-xs text-muted">
-                        Visible until {formatDate(c.contact_expires_at)} — keep this conversation on partly.asia.
+                        Visible until {formatDate(c.contact_expires_at)} ,  keep this conversation on partly.asia.
                       </p>
                       <div className="mt-3">
                         <RatingWidget releaseId={c.release_id} raterKind="employer" raterLabel="this expert" />
@@ -283,7 +284,7 @@ export function PostingMatchesPage() {
             </Card>
             <Card>
               <h2 className="text-sm font-semibold text-ink">Unlocked ({unlocked.length})</h2>
-              <p className="mb-3 text-xs text-muted">Paid leads — contact is exchanged both ways.</p>
+              <p className="mb-3 text-xs text-muted">Paid leads ,  contact is exchanged both ways.</p>
               {unlocked.length === 0 ? (
                 <p className="text-sm text-muted">Nobody has unlocked yet.</p>
               ) : (
@@ -302,7 +303,7 @@ export function PostingMatchesPage() {
             </Card>
             <Card>
               <h2 className="text-sm font-semibold text-ink">Gone cold ({cold.length})</h2>
-              <p className="mb-3 text-xs text-muted">The window ran out or the posting closed — never charged.</p>
+              <p className="mb-3 text-xs text-muted">The window ran out or the posting closed ,  never charged.</p>
               {cold.length === 0 ? (
                 <p className="text-sm text-muted">Nothing has gone cold.</p>
               ) : (
@@ -346,7 +347,7 @@ export function PostingMatchesPage() {
 
           {matches.length > 0 && !isClosed && (
             <Notice tone="warning">
-              <strong>Your shortlist holds at most 10 experts — choose carefully.</strong> Experts already on it keep
+              <strong>Your shortlist holds at most 10 experts ,  choose carefully.</strong> Experts already on it keep
               their place; while there are free slots, new applicants are added below them. Passing on all of them
               means no further candidates will be surfaced.
             </Notice>

@@ -119,13 +119,13 @@ async function checkoutCredits(
 
   if (pkg.firstTime && hasActiveTerm) {
     return json(
-      { error: 'This account already has credits — use the repeat purchase tiers.' },
+      { error: 'This account already has credits , use the repeat purchase tiers.' },
       409,
     )
   }
   if (!pkg.firstTime && !hasActiveTerm) {
     return json(
-      { error: 'Repeat pricing needs an active membership — buy a starter package first.' },
+      { error: 'Repeat pricing needs an active membership , buy a starter package first.' },
       409,
     )
   }
@@ -153,7 +153,7 @@ async function checkoutCredits(
           currency: 'usd',
           unit_amount: pkg.amount,
           product_data: {
-            name: `${pkg.label} — ${pkg.credits} job credits`,
+            name: `${pkg.label} , ${pkg.credits} job credits`,
             description: 'Career Portal job-posting credits',
           },
         },
@@ -221,7 +221,7 @@ async function checkoutMembership(
           unit_amount: plan.amount,
           product_data: {
             name: plan.label,
-            description: `Career Portal membership — ${plan.days} days`,
+            description: `Career Portal membership , ${plan.days} days`,
           },
         },
       },
@@ -292,7 +292,7 @@ async function checkoutLeadUnlock(
   }
   if (release.status === 'paid') return json({ error: 'You have already unlocked this contact' }, 409)
   if (release.status !== 'awaiting_payment' || new Date(release.window_expires_at) <= new Date()) {
-    return json({ error: 'This lead has gone cold — the 2-day window has closed.' }, 409)
+    return json({ error: 'This lead has gone cold , the 2-day window has closed.' }, 409)
   }
 
   const price = await loadPricing(admin, expert.country_code)
@@ -337,8 +337,8 @@ async function checkoutLeadUnlock(
           currency: line.currency,
           unit_amount: line.unit_amount,
           product_data: {
-            name: `Unlock contact — ${job?.title ?? 'released lead'}`,
-            description: `partly.asia released-lead fee — ${bothCurrencies(price, line.amount_local, line.amount_usd)}${
+            name: `Unlock contact , ${job?.title ?? 'released lead'}`,
+            description: `partly.asia released-lead fee , ${bothCurrencies(price, line.amount_local, line.amount_usd)}${
               pay === 'usd' ? ' (paid in USD, forex absorbed)' : ` (paid in ${price.currency}, fixed ${price.name} price)`
             }`,
           },
@@ -361,7 +361,7 @@ async function checkoutLeadUnlock(
     // records; its link goes into the partly.asia receipt email.
     invoice_creation: {
       enabled: true,
-      invoice_data: { description: 'Released-lead contact unlock — partly.asia', footer: 'partly.asia · Thank you for your payment.' },
+      invoice_data: { description: 'Released-lead contact unlock , partly.asia', footer: 'partly.asia · Thank you for your payment.' },
     },
     metadata: {
       kind: 'lead_unlock',
@@ -467,8 +467,8 @@ async function checkoutVerifiedBadge(
           currency: line.currency,
           unit_amount: line.unit_amount,
           product_data: {
-            name: current ? 'Fully verified badge — annual renewal' : 'Fully verified badge — 1 year',
-            description: `partly.asia Fully verified credential badge — ${bothCurrencies(price, line.amount_local, line.amount_usd)}${
+            name: current ? 'Fully verified badge , annual renewal' : 'Fully verified badge , 1 year',
+            description: `partly.asia Fully verified credential badge , ${bothCurrencies(price, line.amount_local, line.amount_usd)}${
               pay === 'usd' ? ' (paid in USD, forex absorbed)' : ` (paid in ${price.currency}, fixed ${price.name} price)`
             }`,
           },
@@ -481,7 +481,7 @@ async function checkoutVerifiedBadge(
     // records; its link goes into the partly.asia receipt email.
     invoice_creation: {
       enabled: true,
-      invoice_data: { description: 'Fully verified badge (1 year) — partly.asia', footer: 'partly.asia · Thank you for your payment.' },
+      invoice_data: { description: 'Fully verified badge (1 year) , partly.asia', footer: 'partly.asia · Thank you for your payment.' },
     },
     metadata: {
       kind: 'verified_badge',
@@ -592,8 +592,8 @@ async function checkoutEmployerVerifiedBadge(
           currency: line.currency,
           unit_amount: line.unit_amount,
           product_data: {
-            name: current ? 'Fully verified business badge — annual renewal' : 'Fully verified business badge — 1 year',
-            description: `partly.asia Fully verified business badge — ${bothCurrencies(price, line.amount_local, line.amount_usd)}${
+            name: current ? 'Fully verified business badge , annual renewal' : 'Fully verified business badge , 1 year',
+            description: `partly.asia Fully verified business badge , ${bothCurrencies(price, line.amount_local, line.amount_usd)}${
               pay === 'usd' ? ' (paid in USD, forex absorbed)' : ` (paid in ${price.currency}, fixed ${price.name} price)`
             }`,
           },
@@ -606,7 +606,7 @@ async function checkoutEmployerVerifiedBadge(
     // records; its link goes into the partly.asia receipt email.
     invoice_creation: {
       enabled: true,
-      invoice_data: { description: 'Fully verified business badge (1 year) — partly.asia', footer: 'partly.asia · Thank you for your payment.' },
+      invoice_data: { description: 'Fully verified business badge (1 year) , partly.asia', footer: 'partly.asia · Thank you for your payment.' },
     },
     metadata: {
       kind: 'employer_verified_badge',

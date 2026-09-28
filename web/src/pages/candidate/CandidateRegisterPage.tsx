@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { RegWizardLayout, WizardButtons, type WizardStep } from '@/components/wizard/RegWizardLayout'
 import { ConsentStep } from '@/components/wizard/ConsentStep'
-import { Field, Select, TextInput } from '@/components/dashboard/form'
+import { Field, PhoneInput, Select, TextInput } from '@/components/dashboard/form'
 import { SelectMenu } from '@/components/app/SelectMenu'
 import { GoldCircle } from '@/components/marketing/blocks'
 import { experienceRanges } from '@/data/categories'
@@ -16,6 +16,7 @@ import { FullyVerifiedBubble } from '@/components/partly/ui'
 import { useSession } from '@/lib/useSession'
 import { clearDisplayUserCache, useDisplayUser } from '@/lib/useDisplayUser'
 import { useCategories } from '@/lib/categories'
+import { toStoredPhone, validateCountryPhone } from '@/lib/phone'
 import {
   EXPERT_COUNTRIES,
   ID_TYPE_BY_COUNTRY,
@@ -24,7 +25,6 @@ import {
   idLast4Problem,
   ID_LAST4_FORMAT,
   validateEmail,
-  validatePhone,
   type ExpertCountry,
 } from '@/lib/partly'
 import {
@@ -33,7 +33,6 @@ import {
   CircleCheckIcon,
   LinkedinIcon,
   MailIcon,
-  PhoneIcon,
   UploadIcon,
   UserIcon,
 } from '@/components/icons'
@@ -95,7 +94,7 @@ function CvUpload({ file, onChange }: { file: File | null; onChange: (file: File
           </>
         )}
       </p>
-      <p className="text-xs text-muted">PDF or DOCX, max 10 MB. Optional — your profile is what businesses see.</p>
+      <p className="text-xs text-muted">PDF or DOCX, max 10 MB. Optional ,  your profile is what businesses see.</p>
       <input id={id} type="file" accept=".pdf,.doc,.docx" className="sr-only" onChange={(e) => onChange(e.target.files?.[0] ?? null)} />
     </label>
   )
@@ -155,7 +154,7 @@ export function CandidateRegisterPage() {
     if (step === 0) {
       const emailErr = validateEmail(form.email)
       if (emailErr) return toast.error(emailErr)
-      const phoneErr = validatePhone(form.contactNumber)
+      const phoneErr = validateCountryPhone(form.country, form.contactNumber)
       if (phoneErr) return toast.error(phoneErr)
       if (!session && form.password !== form.confirmPassword) return toast.error('Passwords do not match.')
       // Catch an already-registered email on the first step, not at the end.
@@ -165,8 +164,8 @@ export function CandidateRegisterPage() {
       if (check.role) return setDupRole(check.role)
     }
     if (step === 1 && form.categories.length === 0) return toast.error('Pick at least one area of expertise.')
-    if (step === 1 && !form.yearsExperience) return toast.error('Select your years of experience — you can\u2019t apply without it.')
-    if (step === 1 && !form.pastExperience.trim()) return toast.error('Add a short experience summary — businesses read it before choosing you.')
+    if (step === 1 && !form.yearsExperience) return toast.error('Select your years of experience ,  you can\u2019t apply without it.')
+    if (step === 1 && !form.pastExperience.trim()) return toast.error('Add a short experience summary ,  businesses read it before choosing you.')
 
     if (step < steps.length - 1) {
       setStep((s) => s + 1)
@@ -197,7 +196,7 @@ export function CandidateRegisterPage() {
       const { userId, needsConfirm } = await resolveAccountForRegister(form.email, form.password)
 
       const { data: existing } = await supabase.from('candidates').select('id').eq('user_id', userId).maybeSingle()
-      if (existing) throw new Error('This email already has an expert account — just sign in.')
+      if (existing) throw new Error('This email already has an expert account ,  just sign in.')
 
       let resumePath: string | null = null
       if (resumeFile) {
@@ -220,7 +219,7 @@ export function CandidateRegisterPage() {
           past_experience: form.pastExperience.trim(),
           years_experience: form.yearsExperience || null,
           expertise_field: form.categories,
-          contact_number: form.contactNumber,
+          contact_number: toStoredPhone(form.country, form.contactNumber),
           email: form.email,
           interests: [],
           referral_opt_in: referralOptIn,
@@ -247,7 +246,7 @@ export function CandidateRegisterPage() {
       if (!needsConfirm) {
         clearDisplayUserCache()
         if (idSaved) {
-          toast.success('Expert profile created — you\u2019re Basic verified. Get Fully verified to attract more interested leads.')
+          toast.success('Expert profile created ,  you\u2019re Basic verified. Get Fully verified to attract more interested leads.')
           navigate('/dashboard')
         } else {
           toast.error('Profile created, but your ID digits could not be saved. Please enter them once more to finish Basic verification.')
@@ -290,14 +289,14 @@ export function CandidateRegisterPage() {
             <CheckIcon className="size-10" />
           </GoldCircle>
           <h1 className="text-2xl font-medium text-navy" style={{ fontFamily: 'Georgia, serif' }}>
-            Almost there — confirm your email
+            Almost there ,  confirm your email
           </h1>
           <p className="max-w-md text-muted-600">Thanks, {form.fullName.split(' ')[0] || 'there'}.</p>
           <p className="max-w-md text-sm text-muted">
             We&apos;ve sent a confirmation link to <b>{form.email}</b>. Click it and you&apos;ll land on the sign-in
             page.{' '}
             {identityDeferred
-              ? 'Your ID digits could not be saved just now — after signing in, enter them once on the Verification page so you can start applying.'
+              ? 'Your ID digits could not be saved just now ,  after signing in, enter them once on the Verification page so you can start applying.'
               : 'You’re already Basic verified, so you can start applying as soon as you sign in.'}
           </p>
           <Link to="/sign-in" className="rounded-md bg-navy px-6 py-3 text-base font-semibold text-white">
@@ -312,7 +311,7 @@ export function CandidateRegisterPage() {
   const isLastStep = step === steps.length - 1
   const isStep0Filled =
     form.fullName.trim() !== '' &&
-    !validatePhone(form.contactNumber) &&
+    !validateCountryPhone(form.country, form.contactNumber) &&
     !validateEmail(form.email) &&
     (!!session || (form.password.length >= 6 && form.password === form.confirmPassword))
 
@@ -327,10 +326,10 @@ export function CandidateRegisterPage() {
           </h1>
           <p className="mt-1 text-sm text-ink-600">
             {step === 0
-              ? 'Real leads. Real businesses. You choose — and you only pay when a business shows real interest.'
+              ? 'Real leads. Real businesses. You choose ,  and you only pay when a business shows real interest.'
               : step === 1
                 ? 'Businesses see this on your match card. Pick the categories and sub-categories you serve.'
-                : 'The free Basic verified check is just these digits — you can apply right away. The paid Fully verified badge later adds a document review on top.'}
+                : 'The free Basic verified check is just these digits ,  you can apply right away. The paid Fully verified badge later adds a document review on top.'}
           </p>
         </div>
 
@@ -356,9 +355,9 @@ export function CandidateRegisterPage() {
               </Field>
             </div>
             <Field label="Contact number">
-              <TextInput required type="tel" placeholder="e.g. +65 9123 4567" icon={<PhoneIcon className="size-5" />} value={form.contactNumber} onChange={(e) => update('contactNumber', e.target.value)} />
-              {form.contactNumber.trim() && validatePhone(form.contactNumber) && (
-                <p className="mt-1 text-xs text-danger">{validatePhone(form.contactNumber)}</p>
+              <PhoneInput required country={form.country} value={form.contactNumber} onChange={(v) => update('contactNumber', v)} invalid={!!form.contactNumber.trim() && !!validateCountryPhone(form.country, form.contactNumber)} />
+              {form.contactNumber.trim() && validateCountryPhone(form.country, form.contactNumber) && (
+                <p className="mt-1 text-xs text-danger">{validateCountryPhone(form.country, form.contactNumber)}</p>
               )}
             </Field>
             <Field label="Business name (optional)">
@@ -408,7 +407,7 @@ export function CandidateRegisterPage() {
             </div>
             {pickedCategories.map((c) => (
               <div key={c.id}>
-                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">{c.name} — what you serve</p>
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">{c.name} ,  what you serve</p>
                 <div className="flex flex-wrap gap-2">
                   {c.subcategories.map((s) => (
                     <button
@@ -463,8 +462,8 @@ export function CandidateRegisterPage() {
                 />
               </Field>
               <p className="mt-2 text-xs text-ink-600">
-                Encrypted before it is stored and never displayed back — not to you, not to any business, not to any
-                third party. This makes you <b>Basic verified</b> — you can apply the moment you sign in.
+                Encrypted before it is stored and never displayed back ,  not to you, not to any business, not to any
+                third party. This makes you <b>Basic verified</b> ,  you can apply the moment you sign in.
               </p>
               <div className="mt-4">
                 <FullyVerifiedBubble audience="expert" />

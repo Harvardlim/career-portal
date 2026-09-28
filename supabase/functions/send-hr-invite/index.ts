@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
       .maybeSingle()
     if (dup) {
       return json(
-        { error: 'This email was already invited — use a different address.' },
+        { error: 'This email was already invited , use a different address.' },
         409,
       )
     }
@@ -146,7 +146,7 @@ Deno.serve(async (req) => {
       .maybeSingle()
     if (dupRef) {
       return json(
-        { error: 'This email was already invited — use a different address.' },
+        { error: 'This email was already invited , use a different address.' },
         409,
       )
     }
@@ -166,7 +166,7 @@ Deno.serve(async (req) => {
     })
     if (insErr && insErr.code === '23505') {
       return json(
-        { error: 'This email was already invited — use a different address.' },
+        { error: 'This email was already invited , use a different address.' },
         409,
       )
     }

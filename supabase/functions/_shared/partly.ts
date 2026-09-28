@@ -84,7 +84,7 @@ export function renewalRefusal(
   awaitingReview: boolean,
 ): string | null {
   if (awaitingReview) {
-    return 'Your payment is already received and waiting on document review — there is nothing to renew yet.'
+    return 'Your payment is already received and waiting on document review , there is nothing to renew yet.'
   }
   if (!current) return null
   const opens = new Date(current.expires_at).getTime() - RENEWAL_WINDOW_DAYS * 24 * 60 * 60 * 1000

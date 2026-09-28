@@ -1,7 +1,7 @@
 export type Job = {
   id: string
   slug?: string
-  /** DB uuid (jobs.id) — present for jobs loaded from Supabase, enables bookmarking. */
+  /** DB uuid (jobs.id) ,  present for jobs loaded from Supabase, enables bookmarking. */
   jobId?: string
   title: string
   company: string

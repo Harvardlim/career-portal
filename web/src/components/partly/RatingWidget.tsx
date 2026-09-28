@@ -7,7 +7,7 @@ import { fetchMyRating, submitRating, type RatingKind } from '@/lib/partly'
 /**
  * 1-5 star picker + optional comment for rating the counterpart on an
  * unlocked release. Submits via submit_rating(), which only accepts a rating
- * once the underlying lead was actually paid for — this widget assumes the
+ * once the underlying lead was actually paid for ,  this widget assumes the
  * caller only renders it in that state (see LeadUnlockPage / PostingMatchesPage).
  */
 export function RatingWidget({
@@ -18,7 +18,7 @@ export function RatingWidget({
   releaseId: string
   /** Which side the current viewer is (so we know whose past rating to load). */
   raterKind: RatingKind
-  /** e.g. "this business" / "this expert" — used in the prompt copy. */
+  /** e.g. "this business" / "this expert" ,  used in the prompt copy. */
   raterLabel: string
 }) {
   const [stars, setStars] = useState(0)

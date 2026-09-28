@@ -6,7 +6,7 @@ export function useNavItems() {
   const t = useT()
   const { user } = useDisplayUser()
   return [
-    // Signed in, "Home" is the dashboard — the marketing page is for visitors.
+    // Signed in, "Home" is the dashboard ,  the marketing page is for visitors.
     user ? { label: t('nav.dashboard'), to: user.dashboardPath } : { label: t('nav.home'), to: '/' },
     { label: t('nav.businesses'), to: '/for-businesses' },
     { label: t('nav.experts'), to: '/for-experts' },

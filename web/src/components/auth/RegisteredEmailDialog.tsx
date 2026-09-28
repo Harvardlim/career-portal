@@ -75,7 +75,7 @@ export function AlreadySignedInNotice({
         You already have an account
       </h1>
       <p className="text-sm text-muted-600">
-        You&apos;re signed in as <b>{email}</b>, which is {label} account. One email can only hold one account — to
+        You&apos;re signed in as <b>{email}</b>, which is {label} account. One email can only hold one account ,  to
         register a different profile, sign out and use another email address.
       </p>
       <div className="flex flex-wrap justify-center gap-3">

@@ -1,13 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import { EmployerDashboardLayout } from '@/components/dashboard/EmployerDashboardLayout'
-import { Field, TextInput } from '@/components/dashboard/form'
+import { Field, PhoneInput, TextInput } from '@/components/dashboard/form'
 import { SelectMenu, type Option } from '@/components/app/SelectMenu'
 import { CheckboxGroup } from '@/components/wizard/CheckboxGroup'
 import { RichTextEditor } from '@/components/editor/RichTextEditor'
-import { LinkIcon, MailIcon, PhoneIcon } from '@/components/icons'
+import { LinkIcon, MailIcon } from '@/components/icons'
 import { errMessage } from '@/lib/errors'
-import { COUNTRY_NAMES, MIN_BUSINESS_TEXT, plainTextLength, validateBusinessRegNo, validatePhone } from '@/lib/partly'
+import { nationalFromStored, toStoredPhone, validateCountryPhone } from '@/lib/phone'
+import { COUNTRY_NAMES, MIN_BUSINESS_TEXT, plainTextLength, validateBusinessRegNo } from '@/lib/partly'
 import { useCategoryNames } from '@/lib/categories'
 import { clearDisplayUserCache } from '@/lib/useDisplayUser'
 import {
@@ -89,7 +90,7 @@ export function EmployerProfilePage() {
       size: employer.size ?? '',
       location: employer.location ?? '',
       website: employer.website ?? '',
-      phone: employer.phone ?? '',
+      phone: nationalFromStored(employer.country_code, employer.phone),
       founded: employer.founded ?? '',
       logo_url: employer.logo_url ?? '',
       field: employer.field ?? [],
@@ -116,7 +117,7 @@ export function EmployerProfilePage() {
     try {
       const url = await uploadEmployerLogo(session.user.id, file)
       set('logo_url', url)
-      toast.success('Logo uploaded — remember to Save Changes')
+      toast.success('Logo uploaded ,  remember to Save Changes')
     } catch (err) {
       toast.error(errMessage(err))
     } finally {
@@ -139,7 +140,7 @@ export function EmployerProfilePage() {
 
   const problems: string[] = []
   if (form.phone.trim()) {
-    const phoneErr = validatePhone(form.phone)
+    const phoneErr = validateCountryPhone(employer?.country_code, form.phone)
     if (phoneErr) problems.push(phoneErr)
   }
   if (
@@ -166,7 +167,7 @@ export function EmployerProfilePage() {
         size: form.size || null,
         location: form.location || null,
         website: form.website || null,
-        phone: form.phone.trim(),
+        phone: toStoredPhone(employer.country_code, form.phone),
         founded: form.founded || null,
         logo_url: form.logo_url || null,
         field: form.field,
@@ -257,14 +258,14 @@ export function EmployerProfilePage() {
             />
           </Field>
           <Field label="Phone *">
-            <TextInput
-              placeholder="+1 202 555 0178"
-              icon={<PhoneIcon className="size-5" />}
+            <PhoneInput
+              country={employer?.country_code}
               value={form.phone}
-              onChange={(e) => set('phone', e.target.value)}
+              onChange={(v) => set('phone', v)}
+              invalid={!!form.phone.trim() && !!validateCountryPhone(employer?.country_code, form.phone)}
             />
-            {form.phone && validatePhone(form.phone) && (
-              <p className="mt-1 text-xs text-danger">{validatePhone(form.phone)}</p>
+            {form.phone.trim() && validateCountryPhone(employer?.country_code, form.phone) && (
+              <p className="mt-1 text-xs text-danger">{validateCountryPhone(employer?.country_code, form.phone)}</p>
             )}
           </Field>
           <Field label="Founded">

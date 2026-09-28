@@ -31,7 +31,7 @@ export function ReportButton({
     setSubmitting(true)
     try {
       await fileReport({ targetKind, targetId, reason, details: details.trim() || undefined })
-      toast.success('Thanks — our team will review this.')
+      toast.success('Thanks ,  our team will review this.')
       setOpen(false)
       setDetails('')
     } catch (err) {

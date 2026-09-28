@@ -14,7 +14,7 @@ export function PaymentConfirmingOverlay({
         <span className="size-10 animate-spin rounded-full border-4 border-line border-t-brand" />
         <div>
           <p className="text-base font-medium text-ink">{message}</p>
-          <p className="mt-1 text-sm text-muted">This only takes a moment — don't close this tab.</p>
+          <p className="mt-1 text-sm text-muted">This only takes a moment ,  don't close this tab.</p>
         </div>
       </div>
     </div>

@@ -83,7 +83,7 @@ export function EmployerJobRow({
     } catch (err) {
       toast.error(
         err instanceof NoCreditError
-          ? 'You have no credits left — buy credits first.'
+          ? 'You have no credits left ,  buy credits first.'
           : errMessage(err),
       )
     } finally {
@@ -95,7 +95,7 @@ export function EmployerJobRow({
     publish: {
       title: 'Publish this job?',
       body: job.credit_charged
-        ? `"${job.title}" will go live again. No credit is used — it was already paid for.`
+        ? `"${job.title}" will go live again. No credit is used ,  it was already paid for.`
         : `1 credit will be deducted and "${job.title}" goes live for 30 days.`,
       cta: 'Yes, publish now',
     },
@@ -119,7 +119,7 @@ export function EmployerJobRow({
           {job.title}
         </Link>
         <span className="text-sm text-muted">
-          {job.job_type ?? '—'} <span className="px-1">•</span> {subLine}
+          {job.job_type ?? ', '} <span className="px-1">•</span> {subLine}
         </span>
       </div>
       <span

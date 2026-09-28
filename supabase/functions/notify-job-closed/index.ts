@@ -60,10 +60,10 @@ Deno.serve(async (req) => {
     if (!email) continue
     const ok = await sendEmail(
       email,
-      `This posting has closed — "${job.title}"`,
+      `This posting has closed , "${job.title}"`,
       emailShell(
         'This posting has closed',
-        `<p><b>"${job.title}"</b> is now closed. You weren't selected this time — no fee was ever charged for it.</p>
+        `<p><b>"${job.title}"</b> is now closed. You weren't selected this time , no fee was ever charged for it.</p>
          <p>Keep an eye on your dashboard for new open needs that fit your expertise.</p>`,
       ),
     )

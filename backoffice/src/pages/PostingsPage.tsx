@@ -17,7 +17,7 @@ import {
 const thCls = 'px-3 py-3 font-medium first:pl-6 last:pr-6'
 const tdCls = 'px-3 py-4 align-top first:pl-6 last:pr-6'
 const fmt = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'
+  iso ? new Date(iso).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ','
 const errMessage = (e: unknown) => (e instanceof Error ? e.message : 'Something went wrong')
 
 const MATCHING: Record<string, { label: string; cls: string }> = {
@@ -40,7 +40,7 @@ const Pill = ({ map, value }: { map: Record<string, { label: string; cls: string
   return <span className={`inline-flex rounded-md px-2 py-1 text-[12px] font-medium ${m.cls}`}>{m.label}</span>
 }
 
-/** Postings (needs) and every contact release — the matching flow monitor. */
+/** Postings (needs) and every contact release , the matching flow monitor. */
 export const PostingsPage = () => {
   const session = useAdminSession()
   const [postings, setPostings] = useState<PostingRow[]>([])
@@ -155,7 +155,7 @@ export const PostingsPage = () => {
                     <span className="block text-[12px] text-muted">{r.company_name}</span>
                   </td>
                   <td className={tdCls}>
-                    {r.category ?? '—'} · {r.country ?? '—'}
+                    {r.category ?? ','} · {r.country ?? ','}
                     <span className="block text-[12px] text-muted">{r.project_type ?? ''}</span>
                   </td>
                   <td className={tdCls}>
@@ -220,7 +220,7 @@ export const PostingsPage = () => {
                     <span className="block text-[12px] text-muted">{r.candidate?.email ?? ''}{r.candidate?.country_code ? ` · ${r.candidate.country_code}` : ''}</span>
                   </td>
                   <td className={tdCls}>
-                    <span className="block text-ink">{r.job?.title ?? '—'}</span>
+                    <span className="block text-ink">{r.job?.title ?? ','}</span>
                     <span className="block text-[12px] text-muted">{r.job?.company_name ?? ''}</span>
                   </td>
                   <td className={tdCls}>{fmt(r.released_at)}</td>
@@ -246,7 +246,7 @@ export const PostingsPage = () => {
         title="Close posting"
         message={
           closing
-            ? `Close "${closing.title}" on the business's behalf? Every open payment window ends immediately and those experts are told the lead went cold — nobody is charged.`
+            ? `Close "${closing.title}" on the business's behalf? Every open payment window ends immediately and those experts are told the lead went cold , nobody is charged.`
             : ''
         }
         confirmLabel="Close posting"

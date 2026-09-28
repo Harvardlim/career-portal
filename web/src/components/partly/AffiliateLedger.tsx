@@ -13,9 +13,9 @@ import { supabase } from '@/lib/supabase'
 import { formatDate } from '@/lib/format'
 
 const EVENT_LABEL: Record<CommissionRow['event_type'], string> = {
-  badge_purchase: 'Verified badge — first purchase',
-  badge_renewal: 'Verified badge — annual renewal',
-  lead_unlock: 'Released lead — unlocked',
+  badge_purchase: 'Verified badge ,  first purchase',
+  badge_renewal: 'Verified badge ,  annual renewal',
+  lead_unlock: 'Released lead ,  unlocked',
 }
 
 type Payout = { id: string; amount_usd: number; status: string; requested_at: string; paid_at: string | null }
@@ -89,8 +89,8 @@ export function AffiliateLedger({ affiliateId, userId }: { affiliateId: string; 
           </div>
           <p className="mt-2 text-xs text-muted">
             {nextPayout
-              ? `Next payout: USD ${nextPayout.amount_usd.toLocaleString()} — ${nextPayout.status}`
-              : `Next payout cycle: ${nextCycle.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} — in USD, less FX and transaction fees.`}
+              ? `Next payout: USD ${nextPayout.amount_usd.toLocaleString()} ,  ${nextPayout.status}`
+              : `Next payout cycle: ${nextCycle.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} ,  in USD, less FX and transaction fees.`}
           </p>
         </div>
       </InfoCard>

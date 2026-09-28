@@ -27,7 +27,7 @@ export function emailShell(title: string, bodyHtml: string, ctaHref?: string, ct
       }
       <hr style="margin-top: 28px; border: none; border-top: 1px solid #e2e8f0;" />
       <p style="margin-top: 16px; font-size: 12px; color: #94a3b8;">
-        <a href="${SITE_URL}" style="color: #d4a12a; text-decoration: none;">partly.asia</a> — keep every conversation on-platform until contact is unlocked.
+        <a href="${SITE_URL}" style="color: #d4a12a; text-decoration: none;">partly.asia</a> , keep every conversation on-platform until contact is unlocked.
       </p>
     </div>
   `

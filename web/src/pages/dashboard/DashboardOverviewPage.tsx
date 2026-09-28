@@ -69,7 +69,7 @@ export function DashboardOverviewPage() {
               </span>
               <span className="block text-sm text-ink-600">
                 {warmLeads === 1 ? 'A business is' : 'Businesses are'} interested in you. Pay the fixed unlock fee within 2 days to
-                exchange contact — if you don&apos;t, you&apos;re not charged.
+                exchange contact ,  if you don&apos;t, you&apos;re not charged.
               </span>
             </span>
             <span className="flex shrink-0 items-center gap-2 text-sm font-semibold text-navy">
@@ -82,7 +82,7 @@ export function DashboardOverviewPage() {
           {stats.map(({ value, label, Icon, bg, fg }) => (
             <div key={label} className={`flex items-center justify-between rounded-lg p-6 ${bg}`}>
               <div>
-                <p className="text-3xl font-medium text-ink">{loading ? '—' : value}</p>
+                <p className="text-3xl font-medium text-ink">{loading ? ', ' : value}</p>
                 <p className="mt-1 text-sm text-ink-600">{label}</p>
               </div>
               <span className={`grid size-12 place-items-center rounded-lg bg-surface ${fg}`}>

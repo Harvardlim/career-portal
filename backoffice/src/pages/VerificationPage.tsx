@@ -15,7 +15,7 @@ const thCls = 'px-3 py-3 font-medium first:pl-6 last:pr-6'
 const tdCls = 'px-3 py-4 align-top first:pl-6 last:pr-6'
 
 const fmtDate = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—'
+  iso ? new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : ','
 
 const errMessage = (e: unknown) => (e instanceof Error ? e.message : 'Something went wrong')
 
@@ -149,7 +149,7 @@ export const VerificationPage = () => {
                   <td className={tdCls}>
                     <span className="block font-semibold text-ink">{r.owner_name ?? 'Unknown'}</span>
                     <span className="block text-[12px] text-muted">
-                      {r.owner_kind === 'employer' ? 'Business' : 'Expert'} · {r.owner_email ?? '—'}
+                      {r.owner_kind === 'employer' ? 'Business' : 'Expert'} · {r.owner_email ?? ','}
                       {r.owner_country ? ` · ${r.owner_country}` : ''}
                       {r.owner_reg_no ? ` · Reg ${r.owner_reg_no}` : ''}
                     </span>

@@ -35,7 +35,7 @@ export function InviteFriendPanel({ audience }: { audience: 'business' | 'expert
       await navigator.clipboard.writeText(link)
       toast.success('Invite link copied.')
     } catch {
-      toast.error('Could not copy — select and copy it manually.')
+      toast.error('Could not copy ,  select and copy it manually.')
     }
   }
 
@@ -55,7 +55,7 @@ export function InviteFriendPanel({ audience }: { audience: 'business' | 'expert
           <Link to={affiliatePath} className="font-medium text-brand underline">
             Get your referral link
           </Link>{' '}
-          to invite people — you'll earn a commission when they succeed.
+          to invite people ,  you'll earn a commission when they succeed.
         </p>
       ) : (
         <>

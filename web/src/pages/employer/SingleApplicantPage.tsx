@@ -251,7 +251,7 @@ export function SingleApplicantPage() {
       <ConfirmDialog
         open={confirmInterest}
         title={`Tell ${c?.full_name ?? 'this expert'} you're interested?`}
-        message="Your contact is released to them. They have 2 days to pay a small fixed fee to unlock it — once they do, contact is exchanged both ways. If they don't, the lead goes cold and nobody is charged."
+        message="Your contact is released to them. They have 2 days to pay a small fixed fee to unlock it ,  once they do, contact is exchanged both ways. If they don't, the lead goes cold and nobody is charged."
         confirmLabel="I'm interested"
         busy={busy}
         onConfirm={interested}
@@ -284,7 +284,7 @@ function Detail({
       <Icon className="mt-0.5 size-5 shrink-0 text-brand" />
       <div className="flex flex-col">
         <span className="text-xs uppercase tracking-wide text-muted-400">{label}</span>
-        <span className="text-sm font-medium text-ink">{value || '—'}</span>
+        <span className="text-sm font-medium text-ink">{value || ', '}</span>
       </div>
     </div>
   )

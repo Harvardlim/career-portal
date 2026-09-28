@@ -3,7 +3,7 @@
 // notifications and affiliate commissions. Everything that changes state goes
 // through the SECURITY DEFINER functions in supabase/migrations/20260920*.
 import { useCallback, useEffect, useState } from 'react'
-import { supabase } from './supabase'
+import { apiViaProxy, supabase } from './supabase'
 import { SITE_URL } from './site'
 import { useSession } from './useSession'
 
@@ -39,7 +39,7 @@ export const ID_TYPE_BY_COUNTRY: Record<ExpertCountry, string> = {
   PH: 'PhilSys National ID',
 }
 
-/** Same formats the expert-identity edge function enforces — keep in sync. */
+/** Same formats the expert-identity edge function enforces ,  keep in sync. */
 export const ID_LAST4_FORMAT: Record<ExpertCountry, { pattern: RegExp; hint: string; example: string }> = {
   SG: { pattern: /^[0-9]{3}[A-Z]$/, hint: '3 digits + the checksum letter', example: '567D' },
   MY: { pattern: /^[0-9]{4}$/, hint: 'last 4 digits', example: '1234' },
@@ -53,7 +53,7 @@ export const ID_LAST4_FORMAT: Record<ExpertCountry, { pattern: RegExp; hint: str
 export function idLast4Problem(country: ExpertCountry, last4: string): string | null {
   const f = ID_LAST4_FORMAT[country]
   if (f.pattern.test(last4)) return null
-  return `Enter the last 4 characters of your ${ID_TYPE_BY_COUNTRY[country]} — ${f.hint}, e.g. ${f.example}.`
+  return `Enter the last 4 characters of your ${ID_TYPE_BY_COUNTRY[country]} ,  ${f.hint}, e.g. ${f.example}.`
 }
 
 export async function fetchPricing(): Promise<PricingCountry[]> {
@@ -160,14 +160,14 @@ export function validatePostingInput(
   if (!input.main_category_id) return 'Pick a main category.'
   if (opts.requireSubcategory && input.subcategory_ids.length === 0) return 'Pick at least one sub-category.'
   if (input.description.trim().length < 30) {
-    return 'Describe the project in the brief — the problem and the outcome you want (at least 30 characters).'
+    return 'Describe the project in the brief ,  the problem and the outcome you want (at least 30 characters).'
   }
   if (!input.country) return 'Pick the country where the work sits.'
   if (!input.project_type) return 'Pick a project type.'
   if (!input.project_duration?.trim()) return 'Add a duration or timeline.'
   if (input.skill_requirements.length === 0) return 'List at least one skill or requirement.'
   if (!Number.isFinite(input.people_required) || input.people_required < 1) return 'People required must be at least 1.'
-  if (input.budget_min == null || input.budget_max == null) return 'Enter a budget range — both From and To.'
+  if (input.budget_min == null || input.budget_max == null) return 'Enter a budget range ,  both From and To.'
   if (input.budget_min <= 0 || input.budget_max <= 0) return 'Budget must be greater than zero.'
   if (input.budget_min > input.budget_max) return 'Budget "From" can\'t be higher than "To".'
   return null
@@ -395,7 +395,7 @@ export async function applyToNeed(jobId: string, candidateId: string, userId: st
     if (error.code === '23505') return
     throw error
   }
-  // Automation: emails the business a new applicant. Best-effort — a failed
+  // Automation: emails the business a new applicant. Best-effort ,  a failed
   // send never blocks the application, which is already recorded.
   supabase.functions.invoke('notify-application', { body: { application_id: data.id } }).catch(() => {})
 }
@@ -586,7 +586,7 @@ export async function fetchMyLeads(candidateId: string): Promise<LeadRow[]> {
   return (data ?? []) as unknown as LeadRow[]
 }
 
-/** Leads still inside their 2-day unlock window — what the "warm leads" badge counts. */
+/** Leads still inside their 2-day unlock window ,  what the "warm leads" badge counts. */
 export async function fetchWarmLeadCount(candidateId: string): Promise<number> {
   const { count, error } = await supabase
     .from('contact_release_details')
@@ -743,7 +743,7 @@ export async function uploadVerificationDoc(args: {
 
 /**
  * The FREE basic identity check: last 4 characters of the local ID. Self-serve
- * — this sets identity_verified immediately, so a free account can apply
+ * ,  this sets identity_verified immediately, so a free account can apply
  * right away. The digits are encrypted server-side and never come back down.
  */
 export async function saveIdentityDigits(countryCode: string, last4: string, signupUserId?: string): Promise<void> {
@@ -790,7 +790,7 @@ export async function fetchMyBadges(candidateId: string): Promise<BadgeRow[]> {
 
 /**
  * What an Expert must fill in before applying to anything. Returns the missing
- * items ([] when the profile is complete) — mirrored by a database trigger.
+ * items ([] when the profile is complete) ,  mirrored by a database trigger.
  */
 export function missingApplyProfile(c: {
   years_experience?: string | null
@@ -815,7 +815,7 @@ export function renewalOpensOn(until: string | null | undefined, now = new Date(
   return opens > now ? opens : null
 }
 
-/** Any identity document uploaded for this expert — the badge requires one, but not approval. */
+/** Any identity document uploaded for this expert ,  the badge requires one, but not approval. */
 export async function hasUploadedIdentityDoc(candidateId: string): Promise<boolean> {
   const { data, error } = await supabase
     .from('verification_documents')
@@ -830,7 +830,7 @@ export async function hasUploadedIdentityDoc(candidateId: string): Promise<boole
 
 /* ---------- Business Verified badge ---------- */
 
-/** Any registration document uploaded for this business — the badge requires one, but not approval. */
+/** Any registration document uploaded for this business ,  the badge requires one, but not approval. */
 export async function hasUploadedRegistrationDoc(employerId: string): Promise<boolean> {
   const { data, error } = await supabase
     .from('verification_documents')
@@ -1052,6 +1052,17 @@ export function useNotifications() {
   useEffect(() => {
     void reload()
     if (!session) return
+    if (apiViaProxy) {
+      // The site-origin proxy can't carry WebSockets, so poll instead of
+      // subscribing to realtime.
+      const timer = setInterval(() => void reload(), 30_000)
+      const onFocus = () => void reload()
+      window.addEventListener('focus', onFocus)
+      return () => {
+        clearInterval(timer)
+        window.removeEventListener('focus', onFocus)
+      }
+    }
     // Topic must be unique per hook instance: supabase-js returns the existing
     // channel for a repeated topic, and calling .on() on an already-subscribed
     // channel throws. The layout badge and the notifications page both mount
@@ -1139,7 +1150,7 @@ export function budgetLabel(p: {
 }
 
 export function projectTypeLabel(t: ProjectType | null | undefined, legacyJobType?: string | null): string {
-  return PROJECT_TYPES.find((p) => p.value === t)?.label ?? legacyJobType ?? '—'
+  return PROJECT_TYPES.find((p) => p.value === t)?.label ?? legacyJobType ?? ', '
 }
 
 /** True once a need's expiry date has passed (no expiry = still live). */
@@ -1150,7 +1161,7 @@ export function isExpired(expiresAt: string | null | undefined): boolean {
 /** Country name for a posting: the new ISO code, else the legacy free-text location. */
 export function postingCountry(p: { country: string | null; location?: string | null }): string {
   if (p.country) return countryName(p.country)
-  return p.location ?? '—'
+  return p.location ?? ', '
 }
 
 export const COUNTRY_NAMES: Record<string, string> = {
@@ -1176,7 +1187,7 @@ export const COUNTRY_NAMES: Record<string, string> = {
 }
 
 export function countryName(code: string | null | undefined): string {
-  if (!code) return '—'
+  if (!code) return ', '
   return COUNTRY_NAMES[code] ?? code
 }
 
@@ -1191,7 +1202,7 @@ export function useCountdown(until: string | null | undefined): {
     const t = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(t)
   }, [])
-  if (!until) return { label: '—', expired: true, secondsLeft: 0 }
+  if (!until) return { label: ', ', expired: true, secondsLeft: 0 }
   const secondsLeft = Math.max(0, Math.floor((new Date(until).getTime() - now) / 1000))
   const d = Math.floor(secondsLeft / 86400)
   const h = Math.floor((secondsLeft % 86400) / 3600)
@@ -1216,7 +1227,7 @@ export function validateBusinessRegNo(country: string, value: string): string | 
   const f = BUSINESS_REG_FORMATS[country]
   const v = value.trim()
   if (!v) return 'Enter your business registration number.'
-  if (f && !f.pattern.test(v)) return `That doesn't look like a ${f.label} — ${f.hint}.`
+  if (f && !f.pattern.test(v)) return `That doesn't look like a ${f.label} ,  ${f.hint}.`
   if (!f && v.length < 4) return 'Enter your full registration number.'
   return null
 }
@@ -1266,7 +1277,7 @@ export function validateBusinessEmail(email: string): string | null {
   const formatErr = validateEmail(v)
   if (formatErr) return formatErr
   if (isFreeEmailDomain(v)) {
-    return 'Please use your business email on your company domain (e.g. you@yourcompany.com) — Gmail, Yahoo, Outlook and other free mailboxes aren’t accepted.'
+    return 'Please use your business email on your company domain (e.g. you@yourcompany.com) ,  Gmail, Yahoo, Outlook and other free mailboxes aren’t accepted.'
   }
   return null
 }

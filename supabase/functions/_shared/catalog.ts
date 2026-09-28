@@ -44,14 +44,14 @@ export type MembershipPlan = {
 export const MEMBERSHIP_PLANS: Record<MembershipPlanKey, MembershipPlan> = {
   candidate_monthly: {
     key: 'candidate_monthly',
-    label: 'Member — Monthly',
+    label: 'Member , Monthly',
     amount: 9900,
     period: 'month',
     days: 30,
   },
   candidate_yearly: {
     key: 'candidate_yearly',
-    label: 'Member — Yearly',
+    label: 'Member , Yearly',
     amount: 19900,
     period: 'year',
     days: 365,

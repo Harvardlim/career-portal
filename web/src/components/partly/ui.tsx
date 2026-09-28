@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { CheckIcon, CircleCheckIcon, ClockIcon, StarIcon } from '@/components/icons'
 import { useCountdown } from '@/lib/partly'
 
-/** Read-only star display — avg out of 5, with an optional review count. */
+/** Read-only star display ,  avg out of 5, with an optional review count. */
 export function StarRating({
   value,
   count,
