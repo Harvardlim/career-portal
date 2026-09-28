@@ -63,7 +63,7 @@ export function ResultsToolbar({ view = 'list' }: { view?: 'grid' | 'list' }) {
           <FilterIcon className="size-5" />
           Filter
         </button>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
           <SelectPill label="Latest" />
           <SelectPill label="12 per page" />
           <div className="flex items-center gap-2 rounded-md border border-line p-2">

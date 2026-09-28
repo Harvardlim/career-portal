@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import type { Job } from '@/data/jobs'
+import { budgetLabel, postingCountry, projectTypeLabel, type ProjectType } from './partly'
 
 export type JobRow = {
   id: string
@@ -45,6 +46,16 @@ export type JobRow = {
   status: string
   posted_at: string
   expires_at: string | null
+  // partly.asia fields -- what a business fills in on "Post a need". The
+  // legacy columns above stay as the fallback for older rows.
+  country: string | null
+  project_type: ProjectType | null
+  project_duration: string | null
+  budget_min: number | null
+  budget_max: number | null
+  budget_currency: string | null
+  people_required: number | null
+  skill_requirements: string[] | null
   /** Live company profile, joined on the detail view. */
   employer: {
     company_name: string | null
@@ -64,7 +75,10 @@ export type JobRow = {
 }
 
 const LIST_COLS =
-  'id, slug, title, company_name, logo_bg, light_logo, company_logo_url, location, workplace_type, job_type, category, role, salary_label, salary_min, salary_max, salary_type, education, experience, job_level, tags, featured, posted_at'
+  'id, slug, title, company_name, logo_bg, light_logo, company_logo_url, location, workplace_type, job_type, category, role, salary_label, salary_min, salary_max, salary_type, education, experience, job_level, tags, featured, posted_at, expires_at, country, project_type, project_duration, budget_min, budget_max, budget_currency'
+
+/** PostgREST filter that drops needs whose expiry has passed (no expiry = still live). */
+const NOT_EXPIRED = () => `expires_at.is.null,expires_at.gt.${new Date().toISOString()}`
 
 export async function fetchJobs(): Promise<JobRow[]> {
   const { data, error } = await supabase
@@ -72,6 +86,7 @@ export async function fetchJobs(): Promise<JobRow[]> {
     .select(LIST_COLS)
     .eq('status', 'active')
     .eq('suspended', false)
+    .or(NOT_EXPIRED())
     .order('posted_at', { ascending: false })
   if (error) throw error
   return (data ?? []) as JobRow[]
@@ -115,6 +130,7 @@ export async function fetchRelatedJobs(
     .select(LIST_COLS)
     .eq('status', 'active')
     .eq('suspended', false)
+    .or(NOT_EXPIRED())
     .neq('slug', excludeSlug)
     .order('posted_at', { ascending: false })
     .limit(limit)
@@ -192,13 +208,41 @@ export async function createJob(
   return slug
 }
 
-export function jobSalaryText(j: Pick<JobRow, 'salary_label' | 'salary_min' | 'salary_max' | 'salary_type'>): string {
+type RateFields = Pick<JobRow, 'salary_label' | 'salary_min' | 'salary_max' | 'salary_type'> &
+  Partial<Pick<JobRow, 'budget_min' | 'budget_max' | 'budget_currency' | 'project_type'>>
+
+/**
+ * The rate / budget a need pays. A partly need stores a budget range in its
+ * own currency (budget_*); rows from the old job board only have the legacy
+ * salary columns, so those are the fallback.
+ */
+export function jobSalaryText(j: RateFields): string {
+  if (j.budget_min != null || j.budget_max != null) {
+    return budgetLabel({
+      budget_min: j.budget_min ?? null,
+      budget_max: j.budget_max ?? null,
+      budget_currency: j.budget_currency ?? null,
+      project_type: j.project_type ?? null,
+    })
+  }
   if (j.salary_label) return j.salary_label
   if (j.salary_min != null && j.salary_max != null) {
     const per = j.salary_type ? `/${j.salary_type.toLowerCase()}` : ''
     return `$${j.salary_min.toLocaleString()}-$${j.salary_max.toLocaleString()}${per}`
   }
   return 'Negotiable'
+}
+
+/** Country of a need, else the legacy free-text location; null when neither is set. */
+export function jobLocationText(j: Pick<JobRow, 'country' | 'location'>): string | null {
+  const v = postingCountry(j)
+  return v === '—' ? null : v
+}
+
+/** Project type of a need ("Hourly", "Project-based"...), else the legacy job type. */
+export function jobTypeText(j: Pick<JobRow, 'project_type' | 'job_type'>): string | null {
+  const v = projectTypeLabel(j.project_type, j.job_type)
+  return v === '—' ? null : v
 }
 
 /** Adapt a DB row to the fixture `Job` shape so <JobCard> can render it. */
@@ -211,8 +255,8 @@ export function toCardJob(j: JobRow): Job {
     company: j.company_name,
     logoBg: j.logo_bg ?? '#2563eb',
     lightLogo: j.light_logo,
-    location: j.location ?? '',
-    type: j.job_type ?? j.workplace_type ?? 'Full Time',
+    location: jobLocationText(j) ?? '',
+    type: jobTypeText(j) ?? j.workplace_type ?? 'Full Time',
     salary: jobSalaryText(j),
     featured: j.featured,
   }

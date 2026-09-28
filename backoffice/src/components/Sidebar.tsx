@@ -9,7 +9,7 @@ import {
   IconUsers,
 } from './Icons'
 import { signOut, useAdminSession } from '../lib/admin'
-import { fetchPendingVerificationCount, partlyEnabled } from '../lib/partly'
+import { fetchOpenIssueCount, fetchPendingVerificationCount, partlyEnabled } from '../lib/partly'
 
 const PENDING_POLL_MS = 60_000
 
@@ -92,11 +92,15 @@ export const Sidebar = () => {
   const session = useAdminSession()
   const navigate = useNavigate()
   const [pendingVerifications, setPendingVerifications] = useState(0)
+  const [openIssues, setOpenIssues] = useState(0)
 
   useEffect(() => {
     if (!partlyEnabled) return
     let alive = true
-    const poll = () => fetchPendingVerificationCount().then((n) => alive && setPendingVerifications(n)).catch(() => {})
+    const poll = () => {
+      fetchPendingVerificationCount().then((n) => alive && setPendingVerifications(n)).catch(() => {})
+      fetchOpenIssueCount().then((n) => alive && setOpenIssues(n)).catch(() => {})
+    }
     poll()
     const id = setInterval(poll, PENDING_POLL_MS)
     return () => {
@@ -117,6 +121,7 @@ export const Sidebar = () => {
       <nav className="flex-1 space-y-1 overflow-y-auto">
         <Group icon={<IconGrid width={19} height={19} />} label="Dashboard" open>
           <Leaf label="Reports" to="/" />
+          <Leaf label="Issue reports" to="/issues" badge={openIssues} />
           <Leaf label="Postings & leads" to="/postings" />
           <Leaf label="Jobs" to="/jobs" />
           <Leaf label="Categories" to="/categories" />

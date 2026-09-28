@@ -6,6 +6,7 @@ import { InviteFriendPanel } from '@/components/partly/InviteFriendPanel'
 import { RatingWidget } from '@/components/partly/RatingWidget'
 import { GlobeIcon, MailIcon, MapPinIcon, PhoneIcon } from '@/components/icons'
 import { Card, Countdown, EmptyState, Notice, Pill, PrimaryButton, StarRating } from '@/components/partly/ui'
+import { RichTextContent } from '@/components/editor/RichTextContent'
 import { PaymentConfirmingOverlay } from '@/components/app/PaymentConfirmingOverlay'
 import { useCandidate } from '@/lib/dashboard'
 import {
@@ -103,6 +104,16 @@ export function LeadUnlockPage() {
             <Pill>{countryName(job?.country)}</Pill>
             <Pill>{projectTypeLabel(job?.project_type)}</Pill>
           </div>
+          {job?.description && (
+            <div className="mt-2 border-t border-line pt-3">
+              <RichTextContent html={job.description} />
+            </div>
+          )}
+          {job?.slug && (
+            <Link to={`/job/${job.slug}`} className="mt-1 w-fit text-sm font-medium text-brand hover:underline">
+              View the full job posting
+            </Link>
+          )}
           {lead.others_released > 0 && lead.status === 'awaiting_payment' && (
             <p className="mt-1 text-xs text-amber-800">
               This business also released contact to {lead.others_released} other expert

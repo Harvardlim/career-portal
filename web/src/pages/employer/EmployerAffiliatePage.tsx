@@ -143,8 +143,9 @@ export function EmployerAffiliatePage() {
           <InfoCard title="Enrol in the Affiliate Program">
             <p className="text-sm text-muted-600">
               Earn a commission when a company or candidate you refer makes a
-              qualifying purchase. You get a personal referral link, and every HR
-              invitation you send counts as a referral.
+              qualifying purchase. You get a personal referral link, and every
+              invitation you email to a colleague or HR contact counts as a
+              referral.
             </p>
             <ul className="mt-4 flex flex-col gap-2 text-sm text-ink-600">
               {[

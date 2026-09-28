@@ -147,6 +147,44 @@ async function sendReceipt(session: Stripe.Checkout.Session, stripe?: Stripe): P
   await sendEmail(to, `Your partly.asia receipt — ${amount}`, html)
 }
 
+// The in-app bell already tells the business (confirm_lead_unlock writes it),
+// but that only helps if they are signed in -- so they get an email as well
+// the moment the expert pays. It names the expert but leaves the contact
+// details on the platform, in line with the on-platform-only rule.
+async function notifyBusinessOfUnlock(admin: SupabaseClient, releaseId: string): Promise<void> {
+  const { data: release } = await admin
+    .from('contact_releases')
+    .select('job_id, contact_expires_at, employers(business_email, company_name), candidates(full_name), jobs(title)')
+    .eq('id', releaseId)
+    .maybeSingle()
+  if (!release) return
+  const row = release as unknown as {
+    job_id: string
+    contact_expires_at: string | null
+    employers: { business_email: string | null; company_name: string | null } | null
+    candidates: { full_name: string | null } | null
+    jobs: { title: string | null } | null
+  }
+  const to = row.employers?.business_email
+  if (!to) return
+  const expert = row.candidates?.full_name?.trim() || 'An expert'
+  const title = row.jobs?.title ?? 'your posting'
+  const until = row.contact_expires_at
+    ? new Date(row.contact_expires_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    : null
+  await sendEmail(
+    to,
+    `${expert} unlocked your contact — "${title}"`,
+    emailShell(
+      'An expert unlocked your contact',
+      `<p><b>${escapeHtml(expert)}</b> has paid to unlock your contact details for <b>${escapeHtml(title)}</b>, so you can now see theirs too.</p>
+       <p>Both sides can see each other's contact details${until ? ` until <b>${escapeHtml(until)}</b>` : ' for 5 days'}. Reach out while it's live and keep the conversation on partly.asia.</p>`,
+      `${SITE_URL}/employer/postings/${row.job_id}/matches`,
+      'View their contact details',
+    ),
+  )
+}
+
 export async function fulfilCheckoutSession(
   admin: SupabaseClient,
   session: Stripe.Checkout.Session,
@@ -158,6 +196,13 @@ export async function fulfilCheckoutSession(
       await sendReceipt(session, stripe)
     } catch (err) {
       console.error('receipt email failed', err)
+    }
+    if (session.metadata?.kind === 'lead_unlock' && session.metadata.release_id) {
+      try {
+        await notifyBusinessOfUnlock(admin, session.metadata.release_id)
+      } catch (err) {
+        console.error('business unlock email failed', err)
+      }
     }
   }
   return result

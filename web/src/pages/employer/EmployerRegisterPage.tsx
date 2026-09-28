@@ -16,8 +16,15 @@ import { AlreadySignedInNotice, RegisteredEmailDialog } from '@/components/auth/
 import { FullyVerifiedBubble } from '@/components/partly/ui'
 import { useSession } from '@/lib/useSession'
 import { clearDisplayUserCache, useDisplayUser } from '@/lib/useDisplayUser'
-import { BUSINESS_REG_FORMATS, COUNTRY_NAMES, validateBusinessRegNo } from '@/lib/partly'
-import { BriefcaseIcon, BuildingIcon, CheckIcon, CircleCheckIcon, MailIcon } from '@/components/icons'
+import {
+  BUSINESS_REG_FORMATS,
+  COUNTRY_NAMES,
+  MIN_BUSINESS_TEXT,
+  validateBusinessEmail,
+  validateBusinessRegNo,
+  validatePhone,
+} from '@/lib/partly'
+import { BriefcaseIcon, BuildingIcon, CheckIcon, CircleCheckIcon, MailIcon, PhoneIcon } from '@/components/icons'
 
 const steps: WizardStep[] = [
   { label: 'Your business', Icon: BuildingIcon },
@@ -31,6 +38,7 @@ type FormState = {
   regNo: string
   website: string
   businessEmail: string
+  phone: string
   password: string
   confirmPassword: string
   field: string[]
@@ -44,6 +52,7 @@ const initialState: FormState = {
   regNo: '',
   website: '',
   businessEmail: '',
+  phone: '',
   password: '',
   confirmPassword: '',
   field: [],
@@ -77,6 +86,8 @@ export function EmployerRegisterPage() {
 
   const regFormat = BUSINESS_REG_FORMATS[form.country]
   const regError = form.regNo ? validateBusinessRegNo(form.country, form.regNo) : null
+  const emailError = form.businessEmail ? validateBusinessEmail(form.businessEmail) : null
+  const phoneError = form.phone ? validatePhone(form.phone) : null
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -84,6 +95,10 @@ export function EmployerRegisterPage() {
     if (step === 0) {
       const err = validateBusinessRegNo(form.country, form.regNo)
       if (err) return setError(err)
+      const emailErr = validateBusinessEmail(form.businessEmail)
+      if (emailErr) return setError(emailErr)
+      const phoneErr = validatePhone(form.phone)
+      if (phoneErr) return setError(phoneErr)
       if (!session && form.password !== form.confirmPassword) return setError('Passwords do not match.')
       // Catch an already-registered email here, not three steps later.
       setSubmitting(true)
@@ -93,6 +108,8 @@ export function EmployerRegisterPage() {
     }
     if (step === 1 && form.lookingFor.length === 0) return setError('Pick at least one area you need help in.')
     if (step === 1 && form.field.length === 0) return setError('Pick your industry / field.')
+    if (step === 1 && form.businessDetails.trim().length < MIN_BUSINESS_TEXT)
+      return setError(`Tell us about your business — at least ${MIN_BUSINESS_TEXT} characters.`)
 
     if (step < steps.length - 1) {
       setStep((s) => s + 1)
@@ -118,13 +135,14 @@ export function EmployerRegisterPage() {
 
       const { error: insertError } = await supabase.from('employers').insert({
         user_id: userId,
-        company_name: form.companyName,
+        company_name: form.companyName.trim(),
         country_code: form.country,
         reg_no: form.regNo.trim(),
         website: form.website.trim() || null,
         field: form.field,
-        business_email: form.businessEmail,
-        business_details: form.businessDetails,
+        business_email: form.businessEmail.trim(),
+        phone: form.phone.trim(),
+        business_details: form.businessDetails.trim(),
         looking_for: form.lookingFor,
         referral_opt_in: referralOptIn,
       })
@@ -189,7 +207,8 @@ export function EmployerRegisterPage() {
     form.companyName.trim() !== '' &&
     form.regNo.trim() !== '' &&
     !regError &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.businessEmail) &&
+    !validateBusinessEmail(form.businessEmail) &&
+    !validatePhone(form.phone) &&
     (!!session || (form.password.length >= 6 && form.password === form.confirmPassword))
 
   return (
@@ -243,12 +262,17 @@ export function EmployerRegisterPage() {
             </p>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Business email">
-                <TextInput required type="email" placeholder="you@company.com" icon={<MailIcon className="size-5" />} value={form.businessEmail} readOnly={!!session} onChange={(e) => update('businessEmail', e.target.value)} />
+                <TextInput required type="email" placeholder="you@company.com" icon={<MailIcon className="size-5" />} value={form.businessEmail} readOnly={!!session} onChange={(e) => update('businessEmail', e.target.value)} className={emailError ? 'border-danger' : ''} />
+                {emailError && <p className="mt-1 text-xs text-danger">{emailError}</p>}
               </Field>
-              <Field label="Website (optional)">
-                <TextInput placeholder="https://" value={form.website} onChange={(e) => update('website', e.target.value)} />
+              <Field label="Business phone">
+                <TextInput required type="tel" placeholder="+65 6123 4567" icon={<PhoneIcon className="size-5" />} value={form.phone} onChange={(e) => update('phone', e.target.value)} className={phoneError ? 'border-danger' : ''} />
+                {phoneError && <p className="mt-1 text-xs text-danger">{phoneError}</p>}
               </Field>
             </div>
+            <Field label="Website (optional)">
+              <TextInput placeholder="https://" value={form.website} onChange={(e) => update('website', e.target.value)} />
+            </Field>
             {!session && (
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Password">
@@ -268,6 +292,7 @@ export function EmployerRegisterPage() {
             <Field label="About your business">
               <textarea
                 required
+                minLength={MIN_BUSINESS_TEXT}
                 rows={5}
                 placeholder="What you do, your size, and the kind of problems you’re looking to solve…"
                 className="w-full resize-none rounded-md border border-line bg-surface p-4 text-base text-ink outline-none focus:border-brand placeholder:text-muted-400"

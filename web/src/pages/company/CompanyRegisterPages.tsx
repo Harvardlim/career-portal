@@ -7,7 +7,7 @@ import { CheckboxGroup } from '@/components/wizard/CheckboxGroup'
 import { RichTextEditor } from '@/components/editor/RichTextEditor'
 import { LinkIcon, MailIcon, PhoneIcon } from '@/components/icons'
 import { errMessage } from '@/lib/errors'
-import { COUNTRY_NAMES, validateBusinessRegNo } from '@/lib/partly'
+import { COUNTRY_NAMES, MIN_BUSINESS_TEXT, plainTextLength, validateBusinessRegNo, validatePhone } from '@/lib/partly'
 import { useCategoryNames } from '@/lib/categories'
 import { clearDisplayUserCache } from '@/lib/useDisplayUser'
 import {
@@ -135,11 +135,23 @@ export function EmployerProfilePage() {
     if (!form.location) missing.push('location')
     if (form.field.length === 0) missing.push('business field')
     if (form.looking_for.length === 0) missing.push('what you’re looking to hire')
+    if (!form.phone.trim()) missing.push('phone')
+    if (!form.business_details.trim()) missing.push('business details')
+    if (plainTextLength(form.about) === 0) missing.push('about us')
     if (missing.length > 0) {
       toast.error(`Please fill in: ${missing.join(', ')}.`)
       return
     }
-    const regErr = employer.country_code ? validateBusinessRegNo(employer.country_code, form.reg_no.trim()) : null
+    const phoneErr = validatePhone(form.phone)
+    if (phoneErr) {
+      toast.error(phoneErr)
+      return
+    }
+    if (form.business_details.trim().length < MIN_BUSINESS_TEXT || plainTextLength(form.about) < MIN_BUSINESS_TEXT) {
+      toast.error(`Business details and About us each need at least ${MIN_BUSINESS_TEXT} characters.`)
+      return
+    }
+    const regErr = validateBusinessRegNo(employer.country_code ?? '', form.reg_no.trim())
     if (regErr) {
       toast.error(regErr)
       return
@@ -153,13 +165,13 @@ export function EmployerProfilePage() {
         size: form.size || null,
         location: form.location || null,
         website: form.website || null,
-        phone: form.phone || null,
+        phone: form.phone.trim(),
         founded: form.founded || null,
         logo_url: form.logo_url || null,
         field: form.field,
         looking_for: form.looking_for,
-        business_details: form.business_details || null,
-        about: form.about || null,
+        business_details: form.business_details.trim(),
+        about: form.about,
       })
       toast.success('Company profile saved')
       clearDisplayUserCache()
@@ -243,13 +255,16 @@ export function EmployerProfilePage() {
               onChange={(e) => set('website', e.target.value)}
             />
           </Field>
-          <Field label="Phone">
+          <Field label="Phone *">
             <TextInput
               placeholder="+1 202 555 0178"
               icon={<PhoneIcon className="size-5" />}
               value={form.phone}
               onChange={(e) => set('phone', e.target.value)}
             />
+            {form.phone && validatePhone(form.phone) && (
+              <p className="mt-1 text-xs text-danger">{validatePhone(form.phone)}</p>
+            )}
           </Field>
           <Field label="Founded">
             <TextInput
@@ -309,7 +324,7 @@ export function EmployerProfilePage() {
           onToggle={(v) => toggle('looking_for', v)}
         />
 
-        <Field label="Business Details">
+        <Field label="Business Details *">
           <textarea
             rows={4}
             placeholder="Short summary of the company for the registration record…"
@@ -319,7 +334,7 @@ export function EmployerProfilePage() {
           />
         </Field>
 
-        <Field label="About us">
+        <Field label="About us *">
           {employer ? (
             <RichTextEditor
               key={employer.id}

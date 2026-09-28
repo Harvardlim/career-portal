@@ -4,6 +4,7 @@ import { NotificationBell } from '@/components/app/NotificationBell'
 import { useSession } from '@/lib/useSession'
 import { LanguageSwitcher } from '@/components/app/LanguageSwitcher'
 import { SiteNav } from '@/components/app/SiteNav'
+import { MobileMenu } from '@/components/app/MobileMenu'
 import { useT } from '@/lib/i18n'
 import { initialsFromName } from '@/lib/name'
 import { useDisplayUser } from '@/lib/useDisplayUser'
@@ -30,12 +31,12 @@ export function SiteHeader() {
 
       {/* Main navigation */}
       <div className="border-b border-line bg-surface">
-        <div className="mx-auto flex h-[90px] w-full max-w-[1320px] items-center justify-between gap-8 px-6 lg:px-10">
+        <div className="mx-auto flex h-[72px] w-full max-w-[1320px] items-center justify-between gap-3 px-4 sm:h-[90px] sm:gap-8 sm:px-6 lg:px-10">
           <Logo className="shrink-0" />
 
           <SiteNav />
 
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             {user ? (
               <>
                 {user.role === 'employer' ? (
@@ -77,18 +78,19 @@ export function SiteHeader() {
               <>
                 <NavLink
                   to="/sign-in"
-                  className="rounded-[3px] border border-brand-100 px-6 py-3 text-base font-semibold text-brand transition-colors hover:bg-brand-50"
+                  className="hidden rounded-[3px] border border-brand-100 px-5 py-2.5 text-sm font-semibold text-brand transition-colors hover:bg-brand-50 sm:block lg:px-6 lg:py-3 lg:text-base"
                 >
                   {t('nav.login')}
                 </NavLink>
                 <NavLink
                   to="/create-account"
-                  className="rounded-[3px] bg-brand px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-brand-600"
+                  className="hidden rounded-[3px] bg-brand px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-600 sm:block lg:px-6 lg:py-3 lg:text-base"
                 >
                   {t('nav.signup')}
                 </NavLink>
               </>
             )}
+            <MobileMenu />
           </div>
         </div>
       </div>

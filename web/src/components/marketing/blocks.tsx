@@ -36,7 +36,7 @@ export function GoldCircle({ children, size = 48 }: { children: ReactNode; size?
 
 export function Eyebrow({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-block rounded-md bg-gold px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-white">
+    <span className="inline-block w-fit rounded-md bg-gold px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-white">
       {children}
     </span>
   )

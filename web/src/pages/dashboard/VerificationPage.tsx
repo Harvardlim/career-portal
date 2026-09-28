@@ -17,6 +17,7 @@ import {
   formatBoth,
   formatLocal,
   formatPaid,
+  renewalOpensOn,
   formatUsd,
   hasUploadedIdentityDoc,
   saveIdentityDigits,
@@ -77,6 +78,8 @@ export function VerificationPage() {
   const price = pricing.find((p) => p.code === (candidate?.country_code ?? country))
   const badgeLive = !!candidate?.verified_badge_until && new Date(candidate.verified_badge_until) > new Date()
   const awaitingReview = badges.some((b) => b.status === 'awaiting_review')
+  // Renewing opens 30 days before expiry -- never straight after paying.
+  const renewalOpens = badgeLive ? renewalOpensOn(candidate?.verified_badge_until) : null
 
   async function saveIdentity() {
     if (!session) return
@@ -257,9 +260,14 @@ export function VerificationPage() {
           )}
           <div className="flex items-center gap-3">
             {badgeLive ? (
-              <SecondaryButton onClick={buyBadge} disabled={buying || !price || !hasDoc}>
-                {buying ? 'Redirecting…' : 'Renew for another year'}
-              </SecondaryButton>
+              <>
+                <SecondaryButton onClick={buyBadge} disabled={buying || !price || !hasDoc || !!renewalOpens || awaitingReview}>
+                  {buying ? 'Redirecting…' : 'Renew for another year'}
+                </SecondaryButton>
+                {renewalOpens && (
+                  <span className="text-xs text-muted">Renewal opens {formatDate(renewalOpens.toISOString())}, 30 days before your badge expires.</span>
+                )}
+              </>
             ) : (
               <PrimaryButton onClick={buyBadge} disabled={buying || !price || !hasDoc || awaitingReview}>
                 {buying ? 'Redirecting…' : awaitingReview ? 'Payment received' : 'Get Fully verified'}

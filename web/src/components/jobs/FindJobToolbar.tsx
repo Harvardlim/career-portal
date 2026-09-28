@@ -26,8 +26,8 @@ export function FindJobToolbar({
       {/* Advance filter */}
       <div className="bg-surface-alt">
         <div className="mx-auto w-full max-w-[1320px] px-6 pb-8 lg:px-10">
-          <div className="flex flex-col gap-3 rounded-lg border border-line-soft bg-surface p-3 shadow-[0px_12px_40px_rgba(0,44,109,0.04)] lg:flex-row lg:items-center">
-            <div className="flex flex-1 flex-col divide-y divide-line lg:flex-row lg:items-center lg:divide-x lg:divide-y-0">
+          <div className="flex flex-col gap-3 rounded-lg border border-line-soft bg-surface p-3 shadow-[0px_12px_40px_rgba(0,44,109,0.04)] xl:flex-row xl:items-center">
+            <div className="flex flex-1 flex-col divide-y divide-line xl:flex-row xl:items-center xl:divide-x xl:divide-y-0">
               <label className="flex h-14 flex-1 items-center gap-3 px-4">
                 <SearchIcon className="size-6 shrink-0 text-brand" />
                 <input
@@ -89,7 +89,7 @@ export function FindJobToolbar({
               </span>
             ))}
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             <SelectPill label="Latest" />
             <SelectPill label="12 per page" />
             <div className="flex items-center gap-2 rounded-md border border-line p-2">

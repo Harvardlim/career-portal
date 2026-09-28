@@ -87,6 +87,11 @@ export function LeadsPage() {
                 <Link to={`/dashboard/leads/${l.id}`}>
                   <PrimaryButton className="h-10">Pay to unlock contact</PrimaryButton>
                 </Link>
+                {l.job?.slug && (
+                  <Link to={`/job/${l.job.slug}`} className="text-sm font-medium text-brand hover:underline">
+                    View job posting
+                  </Link>
+                )}
               </div>
             </div>
           </Card>
@@ -105,6 +110,11 @@ export function LeadsPage() {
                       </Link>
                       {statusPill(l)}
                     </div>
+                    {l.job?.slug && (
+                      <Link to={`/job/${l.job.slug}`} className="text-xs font-medium text-brand hover:underline">
+                        View job posting
+                      </Link>
+                    )}
                     <p className="text-xs text-muted">
                       Released {formatDate(l.released_at)}
                       {l.ended_reason ? ` · ${l.ended_reason}` : ''}

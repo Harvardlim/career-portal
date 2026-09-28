@@ -9,13 +9,15 @@ import { SaveJobButton } from '@/components/jobs/SaveJobButton'
 import { RichTextContent } from '@/components/editor/RichTextContent'
 import { ReportButton } from '@/components/partly/ReportButton'
 import { errMessage } from '@/lib/errors'
-import { maskCompanyName } from '@/lib/partly'
+import { isExpired, maskCompanyName } from '@/lib/partly'
 import { VerifiedChips } from '@/components/partly/ui'
 import {
   fetchJobBySlug,
   fetchNewestJob,
   fetchRelatedJobs,
+  jobLocationText,
   jobSalaryText,
+  jobTypeText,
   toCardJob,
   type JobRow,
 } from '@/lib/jobs'
@@ -91,6 +93,13 @@ function RichTextSection({
 }
 
 function ApplyButton({ job }: { job: JobRow }) {
+  if (isExpired(job.expires_at)) {
+    return (
+      <span className="flex cursor-not-allowed items-center gap-3 rounded-[4px] bg-surface-alt px-8 py-4 text-base font-semibold text-muted">
+        Expired
+      </span>
+    )
+  }
   // Applications are on-platform only.
   return (
     <Link
@@ -151,15 +160,25 @@ export function JobDetailPage() {
     )
   }
 
+  const expired = isExpired(job.expires_at)
+  const location = jobLocationText(job)
+  const jobType = jobTypeText(job)
+  const duration = job.project_duration || job.duration
   const overview = [
     { Icon: CalendarIcon, label: 'Job Posted', value: formatDate(job.posted_at) },
-    { Icon: ClockIcon, label: 'Job Expires', value: formatDate(job.expires_at) },
+    {
+      Icon: ClockIcon,
+      label: expired ? 'Job Expired' : 'Job Expires',
+      value: formatDate(job.expires_at),
+    },
     { Icon: DollarIcon, label: 'Rate', value: jobSalaryText(job) },
-    { Icon: MapPinIcon, label: 'Location', value: job.location || '—' },
-    { Icon: BriefcaseIcon, label: 'Job Type', value: job.job_type || '—' },
-    { Icon: BriefcaseIcon, label: 'Workplace', value: job.workplace_type || '—' },
-    { Icon: ClockIcon, label: 'Hours', value: job.hours || '—' },
-    { Icon: CalendarIcon, label: 'Duration', value: job.duration || '—' },
+    { Icon: MapPinIcon, label: 'Location', value: location || '—' },
+    { Icon: BriefcaseIcon, label: 'Job Type', value: jobType || '—' },
+    { Icon: CalendarIcon, label: 'Duration', value: duration || '—' },
+    // Legacy job-board fields: only worth a row when the posting has them.
+    ...(job.people_required ? [{ Icon: BriefcaseIcon, label: 'Experts needed', value: String(job.people_required) }] : []),
+    ...(job.workplace_type ? [{ Icon: BriefcaseIcon, label: 'Workplace', value: job.workplace_type }] : []),
+    ...(job.hours ? [{ Icon: ClockIcon, label: 'Hours', value: job.hours }] : []),
   ]
 
   const company = companyInfo(job)
@@ -193,9 +212,14 @@ export function JobDetailPage() {
                     {job.workplace_type}
                   </span>
                 )}
-                {job.job_type && (
+                {jobType && (
                   <span className="rounded-full bg-surface-alt px-3 py-0.5 text-sm text-ink-600">
-                    {job.job_type}
+                    {jobType}
+                  </span>
+                )}
+                {location && (
+                  <span className="rounded-full bg-surface-alt px-3 py-0.5 text-sm text-ink-600">
+                    {location}
                   </span>
                 )}
               </div>
@@ -225,7 +249,7 @@ export function JobDetailPage() {
             </div>
             {job.expires_at && (
               <p className="text-sm text-muted">
-                Job expires:{' '}
+                {expired ? 'Job expired:' : 'Job expires:'}{' '}
                 <span className="font-medium text-danger">
                   {formatDate(job.expires_at)}
                 </span>
@@ -243,6 +267,18 @@ export function JobDetailPage() {
             </p>
           )}
           <RichTextSection title="Job Description" text={job.description} />
+          {job.skill_requirements && job.skill_requirements.length > 0 && (
+            <section className="flex flex-col gap-4">
+              <h2 className="text-xl font-medium text-ink">Skills &amp; requirements</h2>
+              <ul className="flex flex-wrap gap-2">
+                {job.skill_requirements.map((skill) => (
+                  <li key={skill} className="rounded-full bg-surface-alt px-3 py-1 text-sm text-ink-600">
+                    {skill}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           <RichTextSection title="Responsibilities" text={job.responsibilities} />
           <RichTextSection title="Requirements" text={job.requirements} />
           <RichTextSection title="Benefits" text={job.benefits} />

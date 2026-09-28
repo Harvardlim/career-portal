@@ -1,19 +1,11 @@
 import { NavLink } from 'react-router-dom'
-import { useT } from '@/lib/i18n'
+import { useNavItems } from '@/components/app/useNavItems'
 import { useDisplayUser } from '@/lib/useDisplayUser'
 
 /** The primary site navigation, rendered by the shared SiteHeader on every page. */
 export function SiteNav() {
-  const t = useT()
   const { user } = useDisplayUser()
-  const items = [
-    // Signed in, "Home" is the dashboard — the marketing page is for visitors.
-    user ? { label: t('nav.dashboard'), to: user.dashboardPath } : { label: t('nav.home'), to: '/' },
-    { label: t('nav.businesses'), to: '/for-businesses' },
-    { label: t('nav.experts'), to: '/for-experts' },
-    { label: t('nav.categories'), to: '/categories' },
-    { label: t('nav.how'), to: '/how-it-works' },
-  ]
+  const items = useNavItems()
   return (
     <nav className="hidden flex-1 items-center justify-center gap-8 lg:flex">
       {items.map((item) => (

@@ -68,7 +68,7 @@ export const VerificationPage = () => {
 
   const visible = filter === 'pending' ? rows.filter((r) => r.status === 'pending') : rows
   const view = useTableView(visible, (r, q) =>
-    [r.owner_name, r.owner_email, r.owner_reg_no, r.doc_type, r.owner_kind, r.status].some((v) => lc(v).includes(q)),
+    [r.owner_name, r.owner_email, r.owner_reg_no, r.referred_by?.name, r.referred_by?.code, r.doc_type, r.owner_kind, r.status].some((v) => lc(v).includes(q)),
   )
 
   async function openDoc(item: VerificationItem) {
@@ -152,6 +152,18 @@ export const VerificationPage = () => {
                       {r.owner_kind === 'employer' ? 'Business' : 'Expert'} · {r.owner_email ?? '—'}
                       {r.owner_country ? ` · ${r.owner_country}` : ''}
                       {r.owner_reg_no ? ` · Reg ${r.owner_reg_no}` : ''}
+                    </span>
+                    <span className="block text-[12px] text-muted">
+                      Referred by:{' '}
+                      {r.referred_by ? (
+                        <span className="text-ink">
+                          {r.referred_by.name ?? 'Affiliate'}{' '}
+                          <span className="font-mono text-muted">({r.referred_by.code})</span>
+                          <span className="text-muted"> · via {r.referred_by.via_invite ? 'HR invitation' : 'referral link'}</span>
+                        </span>
+                      ) : (
+                        'Direct sign-up'
+                      )}
                     </span>
                     {r.owner_verified && <span className="text-[11px] text-success">{r.owner_kind === 'employer' ? 'Registration currently verified' : 'Basic check already complete (self-serve)'}</span>}
                   </td>

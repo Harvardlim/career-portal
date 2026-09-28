@@ -64,6 +64,65 @@ export type VerificationItem = {
   owner_country: string | null
   owner_reg_no: string | null
   owner_verified: boolean
+  /** The affiliate who referred this owner (link or HR invitation), or null for a direct sign-up. */
+  referred_by: { name: string | null; code: string; via_invite: boolean } | null
+}
+
+type OwnerRef = { userId: string | null; email: string | null }
+
+/**
+ * Batch "who referred this user" lookup for a set of owners. Matches the claimed
+ * referral (referred_user_id) first, then a still-open HR invitation addressed to
+ * the owner's email — same precedence as fetchReferredBy in registrations.ts.
+ */
+async function fetchReferrers(owners: OwnerRef[]): Promise<Map<string, VerificationItem['referred_by']>> {
+  const sb = client()
+  const userIds = [...new Set(owners.map((o) => o.userId).filter((v): v is string => !!v))]
+  const emails = [...new Set(owners.map((o) => o.email?.toLowerCase()).filter((v): v is string => !!v))]
+  type RefRow = {
+    referred_user_id: string | null
+    invited_email: string | null
+    affiliate: { referral_code: string; user_id: string } | null
+  }
+  const sel = 'referred_user_id, invited_email, affiliate:affiliates ( referral_code, user_id )'
+  const [byUser, byEmail] = await Promise.all([
+    userIds.length ? sb.from('affiliate_referrals').select(sel).in('referred_user_id', userIds) : { data: [], error: null },
+    emails.length
+      ? sb.from('affiliate_referrals').select(sel).is('referred_user_id', null).in('invited_email', emails)
+      : { data: [], error: null },
+  ])
+  if (byUser.error) throw byUser.error
+  if (byEmail.error) throw byEmail.error
+  const userRows = (byUser.data ?? []) as unknown as RefRow[]
+  const emailRows = (byEmail.data ?? []) as unknown as RefRow[]
+
+  const affUserIds = [
+    ...new Set([...userRows, ...emailRows].map((r) => r.affiliate?.user_id).filter((v): v is string => !!v)),
+  ]
+  const names = new Map<string, string>()
+  if (affUserIds.length) {
+    const [c, e] = await Promise.all([
+      sb.from('candidates').select('user_id, full_name').in('user_id', affUserIds),
+      sb.from('employers').select('user_id, company_name').in('user_id', affUserIds),
+    ])
+    for (const r of (e.data ?? []) as { user_id: string; company_name: string }[]) names.set(r.user_id, r.company_name)
+    for (const r of (c.data ?? []) as { user_id: string; full_name: string }[]) names.set(r.user_id, r.full_name)
+  }
+
+  const toRef = (r: RefRow): VerificationItem['referred_by'] => ({
+    name: r.affiliate ? (names.get(r.affiliate.user_id) ?? null) : null,
+    code: r.affiliate?.referral_code ?? '—',
+    via_invite: !r.referred_user_id,
+  })
+  const byUserId = new Map(userRows.map((r) => [r.referred_user_id as string, r]))
+  const byInvite = new Map(emailRows.map((r) => [(r.invited_email ?? '').toLowerCase(), r]))
+
+  const out = new Map<string, VerificationItem['referred_by']>()
+  for (const o of owners) {
+    const r = (o.userId && byUserId.get(o.userId)) || (o.email && byInvite.get(o.email.toLowerCase())) || null
+    if (o.userId) out.set(o.userId, r ? toRef(r) : null)
+  }
+  return out
 }
 
 export async function fetchVerificationQueue(): Promise<VerificationItem[]> {
@@ -74,24 +133,34 @@ export async function fetchVerificationQueue(): Promise<VerificationItem[]> {
     .order('created_at', { ascending: false })
     .limit(500)
   if (error) throw error
-  const docs = (data ?? []) as Omit<VerificationItem, 'owner_name' | 'owner_email' | 'owner_country' | 'owner_reg_no' | 'owner_verified'>[]
+  const docs = (data ?? []) as Omit<
+    VerificationItem,
+    'owner_name' | 'owner_email' | 'owner_country' | 'owner_reg_no' | 'owner_verified' | 'referred_by'
+  >[]
 
   const candIds = docs.filter((d) => d.owner_kind === 'candidate').map((d) => d.owner_id)
   const empIds = docs.filter((d) => d.owner_kind === 'employer').map((d) => d.owner_id)
   const [cands, emps] = await Promise.all([
     candIds.length
-      ? sb.from('candidates').select('id, full_name, email, country_code, identity_verified').in('id', candIds)
+      ? sb.from('candidates').select('id, user_id, full_name, email, country_code, identity_verified').in('id', candIds)
       : Promise.resolve({ data: [] as unknown[] }),
     empIds.length
-      ? sb.from('employers').select('id, company_name, business_email, country_code, reg_no, registration_verified').in('id', empIds)
+      ? sb.from('employers').select('id, user_id, company_name, business_email, country_code, reg_no, registration_verified').in('id', empIds)
       : Promise.resolve({ data: [] as unknown[] }),
   ])
   const cmap = new Map(
-    ((cands.data ?? []) as { id: string; full_name: string; email: string; country_code: string | null; identity_verified: boolean }[]).map((c) => [c.id, c]),
+    ((cands.data ?? []) as { id: string; user_id: string | null; full_name: string; email: string; country_code: string | null; identity_verified: boolean }[]).map((c) => [c.id, c]),
   )
   const emap = new Map(
-    ((emps.data ?? []) as { id: string; company_name: string; business_email: string; country_code: string | null; reg_no: string; registration_verified: boolean }[]).map((e) => [e.id, e]),
+    ((emps.data ?? []) as { id: string; user_id: string | null; company_name: string; business_email: string; country_code: string | null; reg_no: string; registration_verified: boolean }[]).map((e) => [e.id, e]),
   )
+
+  const owners: OwnerRef[] = [
+    ...[...cmap.values()].map((c) => ({ userId: c.user_id, email: c.email })),
+    ...[...emap.values()].map((e) => ({ userId: e.user_id, email: e.business_email })),
+  ]
+  // Attribution is context for the reviewer — never let it block the queue.
+  const referrers = await fetchReferrers(owners).catch(() => new Map<string, VerificationItem['referred_by']>())
 
   return docs.map((d) => {
     if (d.owner_kind === 'candidate') {
@@ -103,6 +172,7 @@ export async function fetchVerificationQueue(): Promise<VerificationItem[]> {
         owner_country: c?.country_code ?? null,
         owner_reg_no: null,
         owner_verified: c?.identity_verified ?? false,
+        referred_by: (c?.user_id && referrers.get(c.user_id)) || null,
       }
     }
     const e = emap.get(d.owner_id)
@@ -113,6 +183,7 @@ export async function fetchVerificationQueue(): Promise<VerificationItem[]> {
       owner_country: e?.country_code ?? null,
       owner_reg_no: e?.reg_no ?? null,
       owner_verified: e?.registration_verified ?? false,
+      referred_by: (e?.user_id && referrers.get(e.user_id)) || null,
     }
   })
 }
@@ -489,6 +560,56 @@ export async function updateReportStatus(id: string, status: ReportRow['status']
   const { error } = await client()
     .from('reports')
     .update({ status, reviewed_by: adminId, reviewed_at: new Date().toISOString() })
+    .eq('id', id)
+  if (error) throw error
+}
+
+/* ---------- Issue reports (product feedback from signed-in users) ---------- */
+
+export type IssueRow = {
+  id: string
+  user_id: string
+  user_email: string | null
+  user_role: 'expert' | 'business' | null
+  category: 'bug' | 'payment' | 'account' | 'suggestion' | 'other'
+  message: string
+  page_url: string | null
+  user_agent: string | null
+  status: 'open' | 'in_progress' | 'resolved'
+  staff_note: string | null
+  resolved_by: string | null
+  resolved_at: string | null
+  created_at: string
+}
+
+export async function fetchIssueReports(): Promise<IssueRow[]> {
+  const { data, error } = await client()
+    .from('issue_reports')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(500)
+  if (error) throw error
+  return (data ?? []) as IssueRow[]
+}
+
+export async function fetchOpenIssueCount(): Promise<number> {
+  const { count, error } = await client()
+    .from('issue_reports')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'open')
+  if (error) throw error
+  return count ?? 0
+}
+
+export async function updateIssueStatus(id: string, status: IssueRow['status'], adminId: string): Promise<void> {
+  const resolved = status === 'resolved'
+  const { error } = await client()
+    .from('issue_reports')
+    .update({
+      status,
+      resolved_by: resolved ? adminId : null,
+      resolved_at: resolved ? new Date().toISOString() : null,
+    })
     .eq('id', id)
   if (error) throw error
 }

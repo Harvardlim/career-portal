@@ -7,7 +7,7 @@ export function Logo({ className = '' }: { className?: string }) {
   const { user } = useDisplayUser()
   return (
     <Link to={user?.dashboardPath ?? '/'} className={`inline-flex items-center ${className}`} aria-label="partly.asia home">
-      <img src="/logo.png" alt="partly.asia" width={1362} height={291} className="h-10 w-auto sm:h-11" />
+      <img src="/logo.png" alt="partly.asia" width={1362} height={291} className="h-8 w-auto sm:h-11" />
     </Link>
   )
 }

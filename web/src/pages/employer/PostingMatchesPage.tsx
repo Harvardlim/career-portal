@@ -27,6 +27,7 @@ import {
   fetchMatches,
   fetchPosting,
   generateMatches,
+  isExpired,
   markNoFurtherMatches,
   projectTypeLabel,
   releaseContact,
@@ -83,6 +84,7 @@ export function PostingMatchesPage() {
   const pending = released.filter((m) => m.release_status === 'awaiting_payment')
   const unlocked = released.filter((m) => m.release_status === 'paid')
   const cold = released.filter((m) => m.release_status === 'cold' || m.release_status === 'job_closed')
+  const expired = isExpired(posting?.expires_at)
 
   function toggle(cid: string) {
     setSelected((s) => (s.includes(cid) ? s.filter((x) => x !== cid) : [...s, cid]))
@@ -181,6 +183,17 @@ export function PostingMatchesPage() {
               {posting.category ?? 'Uncategorised'} · {postingCountry(posting)} · {projectTypeLabel(posting.project_type, posting.job_type)} ·{' '}
               {budgetLabel(posting)}
             </p>
+            <p className="mt-1 text-xs text-muted">
+              Posted {formatDate(posting.posted_at)}
+              {posting.expires_at && (
+                <>
+                  {' · '}
+                  <span className={expired ? 'font-medium text-danger' : ''}>
+                    {expired ? 'Expired' : 'Expires'} {formatDate(posting.expires_at)}
+                  </span>
+                </>
+              )}
+            </p>
           </div>
           {!isClosed && (
             <SecondaryButton className="text-danger" onClick={handleClose} disabled={busy}>
@@ -248,7 +261,7 @@ export function PostingMatchesPage() {
 
         {/* Released vs pending */}
         {released.length > 0 && (
-          <section className="grid gap-4 md:grid-cols-2">
+          <section className="grid gap-4 md:grid-cols-3">
             <Card>
               <h2 className="text-sm font-semibold text-ink">Awaiting unlock ({pending.length})</h2>
               <p className="mb-3 text-xs text-muted">You released contact; they have 2 days to pay to unlock it.</p>
@@ -269,23 +282,38 @@ export function PostingMatchesPage() {
               )}
             </Card>
             <Card>
-              <h2 className="text-sm font-semibold text-ink">Unlocked / gone cold ({unlocked.length + cold.length})</h2>
-              <p className="mb-3 text-xs text-muted">Paid leads exchange contact both ways; cold leads were never charged.</p>
-              {unlocked.length + cold.length === 0 ? (
-                <p className="text-sm text-muted">Nothing here yet.</p>
+              <h2 className="text-sm font-semibold text-ink">Unlocked ({unlocked.length})</h2>
+              <p className="mb-3 text-xs text-muted">Paid leads — contact is exchanged both ways.</p>
+              {unlocked.length === 0 ? (
+                <p className="text-sm text-muted">Nobody has unlocked yet.</p>
               ) : (
                 <ul className="flex flex-col divide-y divide-line">
-                  {[...unlocked, ...cold].map((m) => (
+                  {unlocked.map((m) => (
                     <li key={m.match_id} className="flex items-center justify-between gap-3 py-2">
                       <span className="flex items-center gap-2">
                         <Avatar name={m.full_name} src={m.avatar_path} size={32} />
                         <span className="text-sm text-ink">{m.full_name}</span>
                       </span>
-                      {m.release_status === 'paid' ? (
-                        <Pill tone="success">Unlocked</Pill>
-                      ) : (
-                        <Pill tone="neutral">{m.release_status === 'job_closed' ? 'Closed' : 'Went cold'}</Pill>
-                      )}
+                      <Pill tone="success">Unlocked</Pill>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+            <Card>
+              <h2 className="text-sm font-semibold text-ink">Gone cold ({cold.length})</h2>
+              <p className="mb-3 text-xs text-muted">The window ran out or the posting closed — never charged.</p>
+              {cold.length === 0 ? (
+                <p className="text-sm text-muted">Nothing has gone cold.</p>
+              ) : (
+                <ul className="flex flex-col divide-y divide-line">
+                  {cold.map((m) => (
+                    <li key={m.match_id} className="flex items-center justify-between gap-3 py-2">
+                      <span className="flex items-center gap-2">
+                        <Avatar name={m.full_name} src={m.avatar_path} size={32} />
+                        <span className="text-sm text-ink">{m.full_name}</span>
+                      </span>
+                      <Pill tone="neutral">{m.release_status === 'job_closed' ? 'Closed' : 'Went cold'}</Pill>
                     </li>
                   ))}
                 </ul>

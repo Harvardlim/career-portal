@@ -5,11 +5,13 @@ import { EmployerDashboardLayout } from '@/components/dashboard/EmployerDashboar
 import { EmptyState, Pill, PrimaryButton, SecondaryButton } from '@/components/partly/ui'
 import { ConfirmDialog } from '@/components/app/ConfirmDialog'
 import { useEmployer } from '@/lib/employers'
+import { formatDate } from '@/lib/format'
 import {
   budgetLabel,
   closePosting,
   postingCountry,
   fetchMyPostings,
+  isExpired,
   projectTypeLabel,
   repostPosting,
   type MatchingStatus,
@@ -109,6 +111,7 @@ export function MyPostingsPage() {
                         {row.title}
                       </Link>
                       <Pill tone={st.tone}>{st.label}</Pill>
+                      {isExpired(row.expires_at) && !isClosed && <Pill tone="danger">Expired</Pill>}
                       {row.suspended && <Pill tone="danger">Suspended by partly.asia staff</Pill>}
                     </div>
                     {row.suspended && row.suspended_reason && (
@@ -117,6 +120,10 @@ export function MyPostingsPage() {
                     <p className="mt-1 text-sm text-muted">
                       {row.category ?? 'Uncategorised'} · {postingCountry(row)} · {projectTypeLabel(row.project_type, row.job_type)} ·{' '}
                       {budgetLabel(row)}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted">
+                      Posted {formatDate(row.posted_at)}
+                      {row.expires_at ? ` · ${isExpired(row.expires_at) ? 'Expired' : 'Expires'} ${formatDate(row.expires_at)}` : ''}
                     </p>
                   </div>
                   <div className="grid grid-cols-3 gap-4 text-center text-sm md:w-[280px]">

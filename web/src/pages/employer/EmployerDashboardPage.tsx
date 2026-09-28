@@ -50,9 +50,9 @@ export function EmployerDashboardPage() {
   }, [employer, employerLoading, load])
 
   const cards = [
-    { value: stats.openJobs, label: 'Open needs', Icon: BriefcaseIcon, bg: 'bg-brand-50', fg: 'text-brand' },
-    { value: stats.applications, label: 'Applicants', Icon: UsersIcon, bg: 'bg-[#e7f6ec]', fg: 'text-[#0ba02c]' },
-    { value: stats.savedCandidates, label: 'Saved experts', Icon: UserCircleIcon, bg: 'bg-[#fff6e6]', fg: 'text-[#ffaa00]' },
+    { value: stats.openJobs, label: 'Open needs', to: '/employer/postings', Icon: BriefcaseIcon, bg: 'bg-brand-50', fg: 'text-brand' },
+    { value: stats.applications, label: 'Applicants', to: '/employer/applications', Icon: UsersIcon, bg: 'bg-[#e7f6ec]', fg: 'text-[#0ba02c]' },
+    { value: stats.savedCandidates, label: 'Saved experts', to: '/employer/saved-candidates', Icon: UserCircleIcon, bg: 'bg-[#fff6e6]', fg: 'text-[#ffaa00]' },
   ]
   const badgeLive = !!employer?.verified_badge_until && new Date(employer.verified_badge_until) > new Date()
 
@@ -70,8 +70,12 @@ export function EmployerDashboardPage() {
         </div>
 
         <div className="grid gap-6 sm:grid-cols-3">
-          {cards.map(({ value, label, Icon, bg, fg }) => (
-            <div key={label} className={`flex items-center justify-between rounded-lg p-6 ${bg}`}>
+          {cards.map(({ value, label, to, Icon, bg, fg }) => (
+            <Link
+              key={label}
+              to={to}
+              className={`flex items-center justify-between rounded-lg p-6 transition-shadow hover:shadow-md ${bg}`}
+            >
               <div>
                 <p className="text-3xl font-medium text-ink">{loading ? '—' : value}</p>
                 <p className="mt-1 text-sm text-ink-600">{label}</p>
@@ -79,7 +83,7 @@ export function EmployerDashboardPage() {
               <span className={`grid size-12 place-items-center rounded-lg bg-surface ${fg}`}>
                 <Icon className="size-6" />
               </span>
-            </div>
+            </Link>
           ))}
         </div>
 

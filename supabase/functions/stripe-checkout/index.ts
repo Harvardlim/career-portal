@@ -30,7 +30,7 @@ import {
   isCreditPackageKey,
   isMembershipPlanKey,
 } from '../_shared/catalog.ts'
-import { bothCurrencies, isPayCurrency, loadPricing, stripeLineAmount } from '../_shared/partly.ts'
+import { bothCurrencies, isPayCurrency, loadPricing, renewalRefusal, stripeLineAmount } from '../_shared/partly.ts'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { httpClient: Stripe.createFetchHttpClient() })
 
@@ -326,6 +326,10 @@ async function checkoutLeadUnlock(
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     customer_email: email,
+    // Charge in exactly the currency we priced in. Adaptive Pricing would
+    // otherwise re-present the amount in the buyer's IP-location currency
+    // (a Thai expert browsing from Singapore saw SGD).
+    adaptive_pricing: { enabled: false },
     line_items: [
       {
         quantity: 1,
@@ -422,6 +426,16 @@ async function checkoutVerifiedBadge(
     .limit(1)
     .maybeSingle()
 
+  const { data: awaiting } = await admin
+    .from('verified_badges')
+    .select('id')
+    .eq('candidate_id', expert.id)
+    .eq('status', 'awaiting_review')
+    .limit(1)
+    .maybeSingle()
+  const refusal = renewalRefusal(current, !!awaiting)
+  if (refusal) return json({ error: refusal }, 409)
+
   const { data: badge, error: insErr } = await admin
     .from('verified_badges')
     .insert({
@@ -442,6 +456,10 @@ async function checkoutVerifiedBadge(
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     customer_email: email,
+    // Charge in exactly the currency we priced in. Adaptive Pricing would
+    // otherwise re-present the amount in the buyer's IP-location currency
+    // (a Thai expert browsing from Singapore saw SGD).
+    adaptive_pricing: { enabled: false },
     line_items: [
       {
         quantity: 1,
@@ -533,6 +551,16 @@ async function checkoutEmployerVerifiedBadge(
     .limit(1)
     .maybeSingle()
 
+  const { data: awaiting } = await admin
+    .from('employer_verified_badges')
+    .select('id')
+    .eq('employer_id', employer.id)
+    .eq('status', 'awaiting_review')
+    .limit(1)
+    .maybeSingle()
+  const refusal = renewalRefusal(current, !!awaiting)
+  if (refusal) return json({ error: refusal }, 409)
+
   const { data: badge, error: insErr } = await admin
     .from('employer_verified_badges')
     .insert({
@@ -553,6 +581,10 @@ async function checkoutEmployerVerifiedBadge(
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     customer_email: email,
+    // Charge in exactly the currency we priced in. Adaptive Pricing would
+    // otherwise re-present the amount in the buyer's IP-location currency
+    // (a Thai expert browsing from Singapore saw SGD).
+    adaptive_pricing: { enabled: false },
     line_items: [
       {
         quantity: 1,

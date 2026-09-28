@@ -14,6 +14,7 @@ import {
   formatBoth,
   formatLocal,
   formatPaid,
+  renewalOpensOn,
   formatUsd,
   hasUploadedRegistrationDoc,
   startEmployerBadgeCheckout,
@@ -57,7 +58,7 @@ export function EmployerVerificationPage() {
   })
 
   async function save() {
-    if (!employer || !regNo.trim()) return
+    if (!employer) return
     const regError = validateBusinessRegNo(country, regNo)
     if (regError) return toast.error(regError)
     setSaving(true)
@@ -85,6 +86,8 @@ export function EmployerVerificationPage() {
   const price = pricing.find((p) => p.code === (employer?.country_code ?? country))
   const badgeLive = !!employer?.verified_badge_until && new Date(employer.verified_badge_until) > new Date()
   const awaitingReview = badges.some((b) => b.status === 'awaiting_review')
+  // Renewing opens 30 days before expiry -- never straight after paying.
+  const renewalOpens = badgeLive ? renewalOpensOn(employer?.verified_badge_until) : null
 
   return (
     <EmployerDashboardLayout>
@@ -208,9 +211,14 @@ export function EmployerVerificationPage() {
           )}
           <div className="flex items-center gap-3">
             {badgeLive ? (
-              <SecondaryButton onClick={buyBadge} disabled={buying || !price || !hasDoc}>
-                {buying ? 'Redirecting…' : 'Renew for another year'}
-              </SecondaryButton>
+              <>
+                <SecondaryButton onClick={buyBadge} disabled={buying || !price || !hasDoc || !!renewalOpens || awaitingReview}>
+                  {buying ? 'Redirecting…' : 'Renew for another year'}
+                </SecondaryButton>
+                {renewalOpens && (
+                  <span className="text-xs text-muted">Renewal opens {formatDate(renewalOpens.toISOString())}, 30 days before your badge expires.</span>
+                )}
+              </>
             ) : (
               <PrimaryButton onClick={buyBadge} disabled={buying || !price || !hasDoc || awaitingReview}>
                 {buying ? 'Redirecting…' : awaitingReview ? 'Payment received' : 'Get Fully verified'}

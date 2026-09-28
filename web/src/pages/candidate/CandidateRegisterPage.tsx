@@ -163,6 +163,7 @@ export function CandidateRegisterPage() {
     }
     if (step === 1 && form.categories.length === 0) return toast.error('Pick at least one area of expertise.')
     if (step === 1 && !form.yearsExperience) return toast.error('Select your years of experience — you can\u2019t apply without it.')
+    if (step === 1 && !form.pastExperience.trim()) return toast.error('Add a short experience summary — businesses read it before choosing you.')
 
     if (step < steps.length - 1) {
       setStep((s) => s + 1)
@@ -213,7 +214,7 @@ export function CandidateRegisterPage() {
           headline: form.headline || null,
           business_name: form.businessName.trim() || null,
           linkedin_url: form.linkedin.trim() || null,
-          past_experience: form.pastExperience || null,
+          past_experience: form.pastExperience.trim(),
           years_experience: form.yearsExperience || null,
           expertise_field: form.categories,
           contact_number: form.contactNumber,
@@ -424,7 +425,7 @@ export function CandidateRegisterPage() {
                 <TextInput placeholder="https://www.linkedin.com/in/…" icon={<LinkedinIcon className="size-5" />} value={form.linkedin} onChange={(e) => update('linkedin', e.target.value)} />
               </Field>
             </div>
-            <Field label="Experience summary">
+            <Field label="Experience summary (required to apply)">
               <textarea
                 rows={4}
                 placeholder="Roles, outcomes, the kind of problems you solve…"

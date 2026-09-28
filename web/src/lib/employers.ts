@@ -265,7 +265,8 @@ export async function fetchEmployerStats(employerId: string): Promise<{
       .from('jobs')
       .select('id', { count: 'exact', head: true })
       .eq('employer_id', employerId)
-      .eq('status', 'active'),
+      .eq('status', 'active')
+      .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`),
     jobIds.length
       ? supabase
           .from('job_applications')

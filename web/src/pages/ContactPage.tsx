@@ -69,7 +69,7 @@ export function ContactPage() {
             onSubmit={(e) => e.preventDefault()}
             className="flex w-full max-w-md gap-3"
           >
-            <span className="flex h-12 flex-1 items-center gap-2 rounded-md bg-white/10 px-3">
+            <span className="flex h-12 min-w-0 flex-1 items-center gap-2 rounded-md bg-white/10 px-3">
               <MailIcon className="size-5 text-white/70" />
               <input
                 placeholder="Email address"
@@ -78,12 +78,12 @@ export function ContactPage() {
             </span>
             <button
               type="submit"
-              className="rounded-[4px] bg-brand px-6 py-3 text-sm font-semibold text-white"
+              className="shrink-0 rounded-[4px] bg-brand px-6 py-3 text-sm font-semibold text-white"
             >
               Subscribe
             </button>
           </form>
-          <div className="flex gap-10">
+          <div className="flex gap-6 sm:gap-10">
             {[
               ['1,75,324', 'Live Job'],
               ['97,354', 'Companies'],

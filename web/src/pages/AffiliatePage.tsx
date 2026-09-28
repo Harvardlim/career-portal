@@ -106,13 +106,14 @@ export function AffiliatePage() {
             { title: t('aff.card1.title'), tag: t('aff.card1.tag'), body: t('aff.card1.body'), key: 'badge' as const },
             { title: t('aff.card2.title'), tag: t('aff.card2.tag'), body: t('aff.card2.body'), key: 'lead' as const },
           ].map((c) => (
-            <div key={c.title} className="rounded-2xl border border-line bg-cream p-8">
-              <div className="flex items-center justify-between gap-3">
+            <div key={c.title} className="min-w-0 rounded-2xl border border-line bg-cream p-5 sm:p-8">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-xl font-semibold text-navy">{c.title}</h2>
                 <span className="rounded-full bg-gold px-3 py-1 text-xs font-semibold text-white">{c.tag}</span>
               </div>
               <p className="mt-3 text-ink-600">{c.body}</p>
-              <table className="mt-5 w-full text-sm">
+              <div className="mt-5 overflow-x-auto">
+              <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-xs uppercase tracking-wide text-muted">
                     <th className="py-1 font-medium">{t('pay.table.country')}</th>
@@ -141,6 +142,7 @@ export function AffiliatePage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           ))}
         </div>

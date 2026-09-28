@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 import { RouteSeo } from './components/app/RouteSeo'
+import { IssueReportButton } from './components/partly/IssueReportButton'
 import { SiteLayout } from './layouts/SiteLayout'
 import { HomePage } from './pages/HomePage'
 import { CreateAccountPage } from './pages/auth/CreateAccountPage'
@@ -73,6 +74,7 @@ function Root() {
     <>
       <RouteSeo />
       <Outlet />
+      <IssueReportButton />
     </>
   )
 }

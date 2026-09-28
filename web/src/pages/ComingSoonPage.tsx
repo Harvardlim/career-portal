@@ -22,7 +22,7 @@ export function ComingSoonPage() {
       </header>
 
       <main className="mx-auto grid w-full max-w-[1320px] flex-1 items-center gap-12 px-6 py-12 lg:grid-cols-2 lg:px-10">
-        <div className="flex flex-col gap-6">
+        <div className="flex min-w-0 flex-col gap-6">
           <h1 className="text-4xl font-medium leading-tight text-ink lg:text-5xl">
             Our website is under construction
           </h1>
@@ -31,7 +31,7 @@ export function ComingSoonPage() {
             interdum. Curabitur luctus sapien .
           </p>
           <form onSubmit={(e) => e.preventDefault()} className="flex max-w-md gap-3">
-            <span className="flex h-12 flex-1 items-center gap-2 rounded-md border border-line px-3">
+            <span className="flex h-12 min-w-0 flex-1 items-center gap-2 rounded-md border border-line px-3">
               <MailIcon className="size-5 text-muted" />
               <input
                 placeholder="Email Address"
@@ -40,7 +40,7 @@ export function ComingSoonPage() {
             </span>
             <button
               type="submit"
-              className="flex items-center gap-2 rounded-[4px] bg-brand px-6 py-3 text-sm font-semibold text-white"
+              className="flex shrink-0 items-center gap-2 rounded-[4px] bg-brand px-6 py-3 text-sm font-semibold text-white"
             >
               Subscribe
               <ArrowRightIcon className="size-4" />

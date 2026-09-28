@@ -7,8 +7,10 @@ import { SelectMenu } from '@/components/app/SelectMenu'
 import { FileIcon, LinkedinIcon, MailIcon, PhoneIcon, PlusCircleIcon, TrashIcon } from '@/components/icons'
 import { Avatar, Card, Notice, PrimaryButton, SecondaryButton, VerifiedChips } from '@/components/partly/ui'
 import {
+  birthMonthProblem,
   deleteResume,
   fetchMyResumes,
+  MIN_EXPERT_AGE,
   formatFileSize,
   updateMyCandidate,
   uploadCandidateAvatar,
@@ -32,7 +34,7 @@ const monthOptions = [{ value: '', label: 'Month' }, ...MONTHS.map((m, i) => ({ 
 const THIS_YEAR = new Date().getFullYear()
 const yearOptions = [
   { value: '', label: 'Year' },
-  ...Array.from({ length: 70 }, (_, i) => String(THIS_YEAR - 16 - i)).map((y) => ({ value: y, label: y })),
+  ...Array.from({ length: 60 }, (_, i) => String(THIS_YEAR - MIN_EXPERT_AGE - i)).map((y) => ({ value: y, label: y })),
 ]
 
 function ResumeList({ candidateId, resumes, onChange }: { candidateId: string; resumes: ResumeRow[]; onChange: () => void }) {
@@ -107,6 +109,7 @@ export function ExpertProfileEditPage() {
   const [businessName, setBusinessName] = useState('')
   const [years, setYears] = useState('')
   const [bio, setBio] = useState('')
+  const [experience, setExperience] = useState('')
   const [linkedin, setLinkedin] = useState('')
   const [nationality, setNationality] = useState('')
   const [dobMonth, setDobMonth] = useState('')
@@ -135,6 +138,7 @@ export function ExpertProfileEditPage() {
     setBusinessName(candidate.business_name ?? '')
     setYears(candidate.years_experience ?? '')
     setBio(candidate.biography ?? '')
+    setExperience(candidate.past_experience ?? '')
     setLinkedin(candidate.linkedin_url ?? '')
     setNationality(candidate.nationality ?? '')
     setDobYear(candidate.date_of_birth?.slice(0, 4) ?? '')
@@ -171,8 +175,11 @@ export function ExpertProfileEditPage() {
     if (!candidate || !session) return
     // Both are required to apply to anything, so a saved profile can't be missing them.
     if (!years) return toast.error('Select your years of experience.')
+    if (!experience.trim()) return toast.error('Add your experience summary — businesses read it before choosing you.')
     if (cats.length === 0) return toast.error('Pick at least one expert category.')
     if (!phone.trim()) return toast.error('Add a phone number — it\u2019s shared with a business only after you unlock a lead.')
+    const dobProblem = birthMonthProblem(dobYear, dobMonth)
+    if (dobProblem) return toast.error(dobProblem)
     setSaving(true)
     try {
       await updateMyCandidate(session.user.id, {
@@ -182,6 +189,7 @@ export function ExpertProfileEditPage() {
         business_name: businessName.trim() || null,
         years_experience: years || null,
         biography: bio.trim() || null,
+        past_experience: experience.trim(),
         linkedin_url: linkedin.trim() || null,
         nationality: nationality || null,
         date_of_birth: dobYear && dobMonth ? `${dobYear}-${dobMonth}-01` : null,
@@ -283,12 +291,21 @@ export function ExpertProfileEditPage() {
           <Field label="Business name (optional)">
             <TextInput value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="If you work through your own company, e.g. Lim Advisory Pte Ltd" />
           </Field>
+          <Field label="Experience summary (required)">
+            <textarea
+              rows={5}
+              value={experience}
+              onChange={(e) => setExperience(e.target.value)}
+              placeholder="Roles, outcomes, the kind of problems you solve…"
+              className="w-full resize-none rounded-md border border-line bg-surface p-4 text-base text-ink outline-none focus:border-brand placeholder:text-muted-400"
+            />
+          </Field>
           <Field label="About you">
             <textarea
               rows={5}
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              placeholder="Roles, outcomes, the kind of problems you solve…"
+              placeholder="A little about you and how you like to work…"
               className="w-full resize-none rounded-md border border-line bg-surface p-4 text-base text-ink outline-none focus:border-brand placeholder:text-muted-400"
             />
           </Field>
@@ -392,7 +409,7 @@ export function ExpertProfileEditPage() {
             <Field label="Nationality">
               <Select value={nationality} onChange={setNationality} options={nationalityOptions} />
             </Field>
-            <Field label="Month & year of birth">
+            <Field label={`Month & year of birth (${MIN_EXPERT_AGE}+)`}>
               <div className="grid grid-cols-2 gap-2">
                 <SelectMenu value={dobMonth} onChange={setDobMonth} options={monthOptions} />
                 <SelectMenu value={dobYear} onChange={setDobYear} options={yearOptions} />

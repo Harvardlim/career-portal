@@ -1,0 +1,120 @@
+import { useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
+import { useSession } from '@/lib/useSession'
+import { fileIssueReport, ISSUE_CATEGORIES, type IssueCategory } from '@/lib/partly'
+
+const MAX = 4000
+
+/**
+ * Floating "Report an issue" button, docked to the right edge for every
+ * signed-in user. Submissions go to public.issue_reports and are triaged in
+ * the backoffice.
+ */
+export function IssueReportButton() {
+  const { session } = useSession()
+  const [open, setOpen] = useState(false)
+  const [category, setCategory] = useState<IssueCategory>('bug')
+  const [message, setMessage] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const textRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    textRef.current?.focus()
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
+  if (!session) return null
+
+  async function submit() {
+    setSubmitting(true)
+    try {
+      await fileIssueReport({ category, message })
+      toast.success('Thanks — we received your report and will look into it.')
+      setOpen(false)
+      setMessage('')
+      setCategory('bug')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not send your report')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label="Report an issue"
+        className="fixed right-0 top-1/2 z-40 flex -translate-y-1/2 items-center gap-2 rounded-l-lg bg-brand px-3 py-3 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-brand-600 print:hidden"
+      >
+        <svg viewBox="0 0 24 24" className="size-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M4 22V4M4 4h13l-2 4 2 4H4" />
+        </svg>
+        <span className="hidden sm:inline">Report an issue</span>
+      </button>
+
+      {open && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4"
+          onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}
+        >
+          <div role="dialog" aria-modal="true" aria-label="Report an issue" className="w-full max-w-[460px] rounded-xl bg-surface p-6 shadow-2xl">
+            <h2 className="text-lg font-medium text-ink">Report an issue</h2>
+            <p className="mt-1 text-sm text-muted-600">Tell us what went wrong — our team reads every report.</p>
+
+            <label className="mt-4 block text-sm font-medium text-ink" htmlFor="issue-category">
+              What is it about?
+            </label>
+            <select
+              id="issue-category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value as IssueCategory)}
+              className="mt-1 h-10 w-full rounded-md border border-line bg-surface px-3 text-sm text-ink outline-none focus:border-brand"
+            >
+              {ISSUE_CATEGORIES.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+
+            <label className="mt-4 block text-sm font-medium text-ink" htmlFor="issue-message">
+              What happened?
+            </label>
+            <textarea
+              id="issue-message"
+              ref={textRef}
+              value={message}
+              maxLength={MAX}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={5}
+              placeholder="Describe the problem and what you expected to happen"
+              className="mt-1 w-full resize-none rounded-md border border-line bg-surface p-3 text-sm text-ink outline-none focus:border-brand placeholder:text-muted-400"
+            />
+            <p className="mt-1 text-xs text-muted">
+              We&apos;ll attach your account email and the page you&apos;re on.
+            </p>
+
+            <div className="mt-5 flex justify-end gap-3">
+              <button type="button" onClick={() => setOpen(false)} className="rounded-md border border-line px-4 py-2 text-sm font-medium text-ink-600 hover:text-ink">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={submit}
+                disabled={submitting || message.trim().length < 5}
+                className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+              >
+                {submitting ? 'Sending…' : 'Send report'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}

@@ -216,7 +216,7 @@ const CandidateBody = ({ c }: { c: Candidate }) => {
         <DField label="Experience">{c.years_experience || '—'}</DField>
         <DField label="Past experience">{c.past_experience || '—'}</DField>
         <DField label="Interests">{c.interests.length ? <Chips items={c.interests} /> : '—'}</DField>
-        <DField label="Referral opt-in">
+        <DField label="Joined referral program at sign-up">
           <YesNo value={c.referral_opt_in} />
         </DField>
         <DField label="Referred by">
@@ -266,7 +266,7 @@ const EmployerBody = ({ e }: { e: Employer }) => (
     </DField>
     <DField label="Details">{e.business_details || '—'}</DField>
     <DField label="Looking for">{e.looking_for.length ? <Chips items={e.looking_for} /> : '—'}</DField>
-    <DField label="Referral opt-in">
+    <DField label="Joined referral program at sign-up">
       <YesNo value={e.referral_opt_in} />
     </DField>
     <DField label="Referred by">

@@ -16,6 +16,8 @@ export type CandidateProfileRow = {
   gender: string | null
   marital_status: string | null
   biography: string | null
+  /** The "Experience summary" a business reads on the applicant profile. Required to apply. */
+  past_experience: string | null
   map_location: string | null
   contact_number: string | null
   email: string | null
@@ -46,7 +48,7 @@ export type ResumeRow = {
 }
 
 const PROFILE_COLUMNS =
-  'id, full_name, avatar_path, title, personal_website, education, years_experience, nationality, date_of_birth, gender, marital_status, biography, map_location, contact_number, email, social_links, preferred_category, preferred_subcategory, country_code, id_type, identity_verified, identity_verified_at, linkedin_url, headline, portfolio_links, public_slug, verified_badge_until, expertise_field, business_name'
+  'id, full_name, avatar_path, title, personal_website, education, years_experience, nationality, date_of_birth, gender, marital_status, biography, past_experience, map_location, contact_number, email, social_links, preferred_category, preferred_subcategory, country_code, id_type, identity_verified, identity_verified_at, linkedin_url, headline, portfolio_links, public_slug, verified_badge_until, expertise_field, business_name'
 
 /** Uploads a candidate profile photo to the public `avatars` bucket, returns its URL. */
 export async function uploadCandidateAvatar(
@@ -141,4 +143,19 @@ export function formatFileSize(bytes: number | null): string {
   const mb = bytes / (1024 * 1024)
   if (mb >= 1) return `${mb.toFixed(1)} MB`
   return `${Math.max(1, Math.round(bytes / 1024))} KB`
+}
+
+export const MIN_EXPERT_AGE = 18
+
+/**
+ * Only month + year of birth is stored, so the day is unknown: an expert counts
+ * as 18 only once the whole month of their 18th birthday has passed, which
+ * guarantees they really are. Mirrored by a database trigger.
+ */
+export function birthMonthProblem(year: string, month: string, now = new Date()): string | null {
+  if (!year && !month) return null
+  if (!year || !month) return 'Select both the month and the year of birth.'
+  const monthsOld = (now.getFullYear() - Number(year)) * 12 + (now.getMonth() + 1 - Number(month))
+  if (monthsOld <= MIN_EXPERT_AGE * 12) return `You must be ${MIN_EXPERT_AGE} or older to be an expert on partly.asia.`
+  return null
 }

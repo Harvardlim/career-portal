@@ -173,6 +173,9 @@ export function validatePostingInput(
   return null
 }
 
+/** How long a need stays open for applications. */
+export const NEED_LIVE_DAYS = 30
+
 export async function createPosting(
   employerId: string,
   companyName: string,
@@ -200,6 +203,7 @@ export async function createPosting(
       matching_status: 'open',
       apply_method: 'on_platform',
       posted_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + NEED_LIVE_DAYS * 86_400_000).toISOString(),
     })
     .select('id')
     .single()
@@ -234,6 +238,7 @@ export type PostingRow = {
   matches_generated_at: string | null
   closed_at: string | null
   posted_at: string
+  expires_at: string | null
   description: string | null
   // Legacy job-board columns, used when the partly fields are empty.
   job_type: string | null
@@ -245,7 +250,7 @@ export type PostingRow = {
 }
 
 const POSTING_COLUMNS =
-  'id,slug,title,company_name,country,project_type,project_duration,budget_min,budget_max,budget_currency,people_required,skill_requirements,category,main_category_id,status,matching_status,matches_generated_at,closed_at,posted_at,description,job_type,location,salary_label,tags,suspended,suspended_reason'
+  'id,slug,title,company_name,country,project_type,project_duration,budget_min,budget_max,budget_currency,people_required,skill_requirements,category,main_category_id,status,matching_status,matches_generated_at,closed_at,posted_at,expires_at,description,job_type,location,salary_label,tags,suspended,suspended_reason'
 
 export type MyPostingRow = PostingRow & {
   applications: number
@@ -330,6 +335,7 @@ export async function fetchOpenNeeds(filters: NeedFilters, candidateId?: string)
     .eq('status', 'active')
     .eq('suspended', false)
     .not('employer_id', 'is', null)
+    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
     .in('matching_status', ['open', 'matched', 'released'])
     .order('posted_at', { ascending: false })
     .limit(100)
@@ -555,6 +561,7 @@ export type LeadRow = {
   contact_visible: boolean
   job: {
     id: string
+    slug: string
     title: string
     category: string | null
     country: string | null
@@ -567,7 +574,7 @@ export type LeadRow = {
   } | null
 }
 
-const LEAD_JOB = 'job:jobs(id,title,category,country,project_type,project_duration,budget_min,budget_max,budget_currency,description)'
+const LEAD_JOB = 'job:jobs(id,slug,title,category,country,project_type,project_duration,budget_min,budget_max,budget_currency,description)'
 
 export async function fetchMyLeads(candidateId: string): Promise<LeadRow[]> {
   const { data, error } = await supabase
@@ -787,13 +794,25 @@ export async function fetchMyBadges(candidateId: string): Promise<BadgeRow[]> {
  */
 export function missingApplyProfile(c: {
   years_experience?: string | null
+  past_experience?: string | null
   expertise_field?: string[] | null
 }): string[] {
   const missing: string[] = []
   const years = (c.years_experience ?? '').trim()
   if (!years || years === 'Select...') missing.push('years of experience')
+  if (!(c.past_experience ?? '').trim()) missing.push('experience summary')
   if ((c.expertise_field ?? []).length === 0) missing.push('expert categories')
   return missing
+}
+
+/** A Verified badge can only be renewed in the last 30 days of its term (mirrors the checkout function). */
+export const RENEWAL_WINDOW_DAYS = 30
+
+/** The date renewing opens for a badge that runs until `until`, or null once it is already open. */
+export function renewalOpensOn(until: string | null | undefined, now = new Date()): Date | null {
+  if (!until) return null
+  const opens = new Date(new Date(until).getTime() - RENEWAL_WINDOW_DAYS * 24 * 60 * 60 * 1000)
+  return opens > now ? opens : null
 }
 
 /** Any identity document uploaded for this expert — the badge requires one, but not approval. */
@@ -857,6 +876,43 @@ export async function fileReport(args: {
     target_id: args.targetId,
     reason: args.reason,
     details: args.details ?? null,
+  })
+  if (error) throw error
+}
+
+/* ---------- Issue reports (product feedback) ---------- */
+
+export const ISSUE_CATEGORIES = [
+  { value: 'bug', label: 'Something isn\u2019t working' },
+  { value: 'payment', label: 'Payment or billing' },
+  { value: 'account', label: 'Account or verification' },
+  { value: 'suggestion', label: 'Suggestion' },
+  { value: 'other', label: 'Something else' },
+] as const
+
+export type IssueCategory = (typeof ISSUE_CATEGORIES)[number]['value']
+
+/** Files a product issue as the signed-in user; staff see it in the backoffice. */
+export async function fileIssueReport(args: { category: IssueCategory; message: string }): Promise<void> {
+  const message = args.message.trim()
+  if (message.length < 5) throw new Error('Please describe the issue (at least 5 characters).')
+  const { data } = await supabase.auth.getUser()
+  const user = data.user
+  if (!user) throw new Error('Sign in to report an issue.')
+
+  const [{ data: cand }, { data: emp }] = await Promise.all([
+    supabase.from('candidates').select('id').eq('user_id', user.id).maybeSingle(),
+    supabase.from('employers').select('id').eq('user_id', user.id).maybeSingle(),
+  ])
+
+  const { error } = await supabase.from('issue_reports').insert({
+    user_id: user.id,
+    user_email: user.email ?? null,
+    user_role: emp ? 'business' : cand ? 'expert' : null,
+    category: args.category,
+    message,
+    page_url: window.location.href,
+    user_agent: navigator.userAgent,
   })
   if (error) throw error
 }
@@ -1069,18 +1125,26 @@ export function budgetLabel(p: {
   budget_max: number | null
   budget_currency: string | null
   salary_label?: string | null
+  project_type?: ProjectType | null
 }): string {
   const cur = p.budget_currency ?? 'USD'
   const fmt = (n: number) => n.toLocaleString('en-US')
-  if (p.budget_min != null && p.budget_max != null) return `${cur} ${fmt(p.budget_min)} – ${fmt(p.budget_max)}`
-  if (p.budget_min != null) return `From ${cur} ${fmt(p.budget_min)}`
-  if (p.budget_max != null) return `Up to ${cur} ${fmt(p.budget_max)}`
+  // An hourly need's budget is a rate, not a total.
+  const per = p.project_type === 'hourly' ? ' / hour' : ''
+  if (p.budget_min != null && p.budget_max != null) return `${cur} ${fmt(p.budget_min)} – ${fmt(p.budget_max)}${per}`
+  if (p.budget_min != null) return `From ${cur} ${fmt(p.budget_min)}${per}`
+  if (p.budget_max != null) return `Up to ${cur} ${fmt(p.budget_max)}${per}`
   if (p.salary_label) return p.salary_label
   return 'Budget on request'
 }
 
 export function projectTypeLabel(t: ProjectType | null | undefined, legacyJobType?: string | null): string {
   return PROJECT_TYPES.find((p) => p.value === t)?.label ?? legacyJobType ?? '—'
+}
+
+/** True once a need's expiry date has passed (no expiry = still live). */
+export function isExpired(expiresAt: string | null | undefined): boolean {
+  return !!expiresAt && new Date(expiresAt).getTime() <= Date.now()
 }
 
 /** Country name for a posting: the new ISO code, else the legacy free-text location. */
@@ -1155,6 +1219,55 @@ export function validateBusinessRegNo(country: string, value: string): string | 
   if (f && !f.pattern.test(v)) return `That doesn't look like a ${f.label} — ${f.hint}.`
   if (!f && v.length < 4) return 'Enter your full registration number.'
   return null
+}
+
+// Consumer mailbox providers. A business must sign up with an address on its
+// own domain, so these are refused. Keep in sync with public.is_free_email_domain()
+// (supabase/migrations/20260928120000_business_profile_required.sql).
+const FREE_EMAIL_DOMAINS = new Set([
+  'gmail.com', 'googlemail.com', 'icloud.com', 'me.com', 'mac.com', 'msn.com', 'live.com',
+  'aol.com', 'proton.me', 'protonmail.com', 'pm.me', 'mail.com', 'zohomail.com', 'yandex.com',
+  'yandex.ru', 'mail.ru', 'qq.com', '163.com', '126.com', 'sina.com', 'naver.com', 'daum.net',
+  'hanmail.net', 'inbox.com', 'tutanota.com', 'tuta.io', 'rediffmail.com', 'ymail.com',
+  'rocketmail.com', 'gmx.com', 'gmx.net', 'gmx.de',
+])
+// Providers that run under many country domains (yahoo.com.sg, hotmail.co.th, ...).
+const FREE_EMAIL_LABELS = new Set(['yahoo', 'hotmail', 'outlook', 'live', 'gmx'])
+
+export function isFreeEmailDomain(email: string): boolean {
+  const domain = email.trim().toLowerCase().split('@')[1] ?? ''
+  return FREE_EMAIL_DOMAINS.has(domain) || FREE_EMAIL_LABELS.has(domain.split('.')[0])
+}
+
+export function validateBusinessEmail(email: string): string | null {
+  const v = email.trim()
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'Enter a valid email address.'
+  if (isFreeEmailDomain(v)) {
+    return 'Please use your business email on your company domain (e.g. you@yourcompany.com) — Gmail, Yahoo, Outlook and other free mailboxes aren’t accepted.'
+  }
+  return null
+}
+
+/** Digits with an optional leading + and common separators; 8–15 digits (E.164 max). */
+export function validatePhone(value: string): string | null {
+  const v = value.trim()
+  if (!v) return 'Enter a phone number.'
+  const digits = v.replace(/\D/g, '')
+  const shapeOk = /^\+?[0-9(][0-9\s().-]*$/.test(v) && !/[\s.-]{2,}/.test(v) && !/[\s.-]$/.test(v)
+  if (!shapeOk || digits.length < 8 || digits.length > 15) {
+    return 'Enter a valid phone number with country code, e.g. +65 6123 4567 (8–15 digits; "+" only at the start).'
+  }
+  return null
+}
+
+/** Business profile free text (rich-text safe) must carry real content, not just tags or a stray letter. */
+export const MIN_BUSINESS_TEXT = 20
+export function plainTextLength(html: string): number {
+  return html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim().length
 }
 
 /**

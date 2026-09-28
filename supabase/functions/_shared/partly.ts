@@ -69,3 +69,25 @@ export function formatLocal(price: PricingCountry, amount: number): string {
 export function bothCurrencies(price: PricingCountry, amountLocal: number, amountUsd: number): string {
   return `${formatLocal(price, amountLocal)} · USD ${amountUsd.toLocaleString('en-US')}`
 }
+
+/**
+ * A Verified badge can be renewed only in the last RENEWAL_WINDOW_DAYS of its
+ * term (the same point the first expiry reminder goes out) -- never straight
+ * after buying it. Returns the message to refuse with, or null if renewing is
+ * fine. `current` is the live active term, `awaitingReview` a paid term still
+ * waiting on its document check.
+ */
+export const RENEWAL_WINDOW_DAYS = 30
+
+export function renewalRefusal(
+  current: { expires_at: string } | null,
+  awaitingReview: boolean,
+): string | null {
+  if (awaitingReview) {
+    return 'Your payment is already received and waiting on document review — there is nothing to renew yet.'
+  }
+  if (!current) return null
+  const opens = new Date(current.expires_at).getTime() - RENEWAL_WINDOW_DAYS * 24 * 60 * 60 * 1000
+  if (Date.now() >= opens) return null
+  return `Your badge is active until ${new Date(current.expires_at).toISOString().slice(0, 10)}. You can renew from ${new Date(opens).toISOString().slice(0, 10)} (${RENEWAL_WINDOW_DAYS} days before it expires).`
+}
