@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
-import { BriefcaseIcon, LinkedinIcon } from '@/components/icons'
-import { LanguageSwitcher } from '@/components/app/LanguageSwitcher'
+import { LinkedinIcon } from '@/components/icons'
+import { Logo } from '@/components/app/Logo'
 import { useT } from '@/lib/i18n'
 
 export function SiteFooter() {
@@ -42,16 +42,8 @@ export function SiteFooter() {
       <div className="mx-auto w-full max-w-[1320px] px-6 lg:px-10">
         <div className="grid gap-10 py-16 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div className="flex flex-col gap-6">
-            <div className="flex items-center gap-2">
-              <BriefcaseIcon className="size-10 text-white" />
-              <span className="text-2xl font-semibold">
-                partly<span className="text-amber-400">.asia</span>
-              </span>
-            </div>
+            <Logo onDark className="self-start" />
             <p className="max-w-[312px] text-sm text-muted">{t('footer.tagline')}</p>
-            <div className="text-muted">
-              <LanguageSwitcher />
-            </div>
           </div>
 
           {columns.map((col) => (

@@ -460,3 +460,7 @@ verify_jwt = true
 # model as the other admin_* RPCs.
 [functions.admin-suspend-account]
 verify_jwt = false
+
+# partly.asia — emails a badge owner (expert or business) once their document is approved and the badge is live.
+[functions.notify-badge-active]
+verify_jwt = true

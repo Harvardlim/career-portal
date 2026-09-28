@@ -29,7 +29,7 @@ const fmtDateTime = (iso: string) =>
 export const DashboardPage = () => {
   const session = useAdminSession()
   const [data, setData] = useState<Overview | null>(null)
-  const [loading, setLoading] = useState(overviewEnabled)
+  const [, setLoading] = useState(overviewEnabled)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -67,28 +67,28 @@ export const DashboardPage = () => {
             <StatCard
               icon={<IconUsers width={16} height={16} />}
               label="Candidates"
-              value={loading ? ',' : num(data!.totals.candidates)}
+              value={num(data?.totals.candidates ?? 0)}
               delta={dstr(data?.deltas.candidates)}
               dir={ddir(data?.deltas.candidates)}
             />
             <StatCard
               icon={<IconBriefcase width={16} height={16} />}
               label="Employers"
-              value={loading ? ',' : num(data!.totals.employers)}
+              value={num(data?.totals.employers ?? 0)}
               delta={dstr(data?.deltas.employers)}
               dir={ddir(data?.deltas.employers)}
             />
             <StatCard
               icon={<IconBriefcase width={16} height={16} />}
               label="Jobs"
-              value={loading ? ',' : num(data!.totals.jobs)}
+              value={num(data?.totals.jobs ?? 0)}
               delta={dstr(data?.deltas.jobs)}
               dir={ddir(data?.deltas.jobs)}
             />
             <StatCard
               icon={<IconDollar width={16} height={16} />}
               label="Revenue"
-              value={loading ? ',' : money(data!.totals.revenueUsd)}
+              value={money(data?.totals.revenueUsd ?? 0)}
             />
           </div>
 
@@ -99,13 +99,13 @@ export const DashboardPage = () => {
               seriesB={data?.membershipRevenue}
               labelA="Employer credits"
               labelB="Memberships"
-              total={data ? money(data.totals.revenueUsd) : ','}
+              total={money(data?.totals.revenueUsd ?? 0)}
               delta={null}
             />
             <div className="space-y-5">
               <ProfitChart
                 title="Applications"
-                value={loading ? ',' : num(data!.totals.applications)}
+                value={num(data?.totals.applications ?? 0)}
                 delta={
                   dstr(data?.deltas.applications)
                     ? { value: dstr(data!.deltas.applications)!, dir: data!.deltas.applications.dir }
@@ -115,11 +115,7 @@ export const DashboardPage = () => {
               />
               <SessionsChart
                 title="New sign-ups"
-                value={
-                  loading
-                    ? ','
-                    : num((data?.signups ?? []).reduce((s, x) => s + x, 0))
-                }
+                value={num((data?.signups ?? []).reduce((s, x) => s + x, 0))}
                 delta={undefined}
                 series={data?.signups}
               />

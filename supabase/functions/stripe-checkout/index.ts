@@ -146,6 +146,8 @@ async function checkoutCredits(
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     customer_email: email,
+    // Charge in USD exactly as priced: no Adaptive Pricing currency switcher.
+    adaptive_pricing: { enabled: false },
     line_items: [
       {
         quantity: 1,
@@ -213,6 +215,8 @@ async function checkoutMembership(
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     customer_email: email,
+    // Charge in USD exactly as priced: no Adaptive Pricing currency switcher.
+    adaptive_pricing: { enabled: false },
     line_items: [
       {
         quantity: 1,

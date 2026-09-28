@@ -159,7 +159,7 @@ export const VerificationPage = () => {
                         <span className="text-ink">
                           {r.referred_by.name ?? 'Affiliate'}{' '}
                           <span className="font-mono text-muted">({r.referred_by.code})</span>
-                          <span className="text-muted"> · via {r.referred_by.via_invite ? 'HR invitation' : 'referral link'}</span>
+                          <span className="text-muted"> · via {r.referred_by.via_invite ? 'Business Affiliate' : 'referral link'}</span>
                         </span>
                       ) : (
                         'Direct sign-up'

@@ -282,7 +282,7 @@ export function EmployerAffiliatePage() {
                 </div>
               ) : (
                 <p className="py-4 text-center text-sm text-muted">
-                  No referrals yet ,  share your link, or send HR invitations from
+                  No referrals yet , share your link, or send Business Affiliate from
                   the Referral package on the pricing page.
                 </p>
               )}

@@ -217,6 +217,16 @@ export async function reviewVerification(
     p_notes: notes ?? null,
   })
   if (error) throw error
+  // Approving a document can switch on a badge the owner already paid for;
+  // that's the second badge email ("your badge is live"). The function only
+  // sends when a badge actually went live, and only once, so calling it for
+  // every approval is safe. A failed email must never fail the approval.
+  if (approve) {
+    const { error: mailError } = await client().functions.invoke('notify-badge-active', {
+      body: { document_id: documentId },
+    })
+    if (mailError) console.warn('notify-badge-active failed', mailError)
+  }
 }
 
 /* ---------- Postings & releases ---------- */

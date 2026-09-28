@@ -111,7 +111,38 @@ async function invoiceLinks(stripe: Stripe | undefined, session: Stripe.Checkout
   }
 }
 
-async function sendReceipt(session: Stripe.Checkout.Session, stripe?: Stripe): Promise<void> {
+const BADGE_TABLE: Record<string, 'verified_badges' | 'employer_verified_badges'> = {
+  verified_badge: 'verified_badges',
+  employer_verified_badge: 'employer_verified_badges',
+}
+
+/**
+ * Where a just-paid badge stands. 'active' means the document was approved
+ * before payment, so the badge switched on with the payment; anything else is
+ * waiting for the document review. A live badge is stamped as announced here
+ * because this payment email already says so -- notify-badge-active then
+ * won't send a duplicate.
+ */
+async function badgeState(
+  admin: SupabaseClient,
+  kind: string,
+  badgeId: string | undefined,
+): Promise<{ live: boolean; until: string | null }> {
+  const table = BADGE_TABLE[kind]
+  if (!table || !badgeId) return { live: false, until: null }
+  const { data } = await admin.from(table).select('status, expires_at').eq('id', badgeId).maybeSingle()
+  const live = data?.status === 'active'
+  if (live) {
+    await admin
+      .from(table)
+      .update({ activation_emailed_at: new Date().toISOString() })
+      .eq('id', badgeId)
+      .is('activation_emailed_at', null)
+  }
+  return { live, until: live ? ((data?.expires_at as string | null) ?? null) : null }
+}
+
+async function sendReceipt(session: Stripe.Checkout.Session, admin: SupabaseClient, stripe?: Stripe): Promise<void> {
   const to = session.customer_details?.email ?? session.customer_email ?? ''
   if (!to || session.amount_total == null || !session.currency) return
   const kind = session.metadata?.kind ?? ''
@@ -124,6 +155,18 @@ async function sendReceipt(session: Stripe.Checkout.Session, stripe?: Stripe): P
   })
   const ref = typeof session.payment_intent === 'string' ? session.payment_intent : session.id
   const inv = await invoiceLinks(stripe, session)
+  const isBadge = kind in BADGE_TABLE
+  const isExpertBadge = kind === 'verified_badge'
+  const badge = isBadge ? await badgeState(admin, kind, session.metadata?.badge_id) : null
+  const badgeNote = badge
+    ? badge.live
+      ? `<p style="margin-top:16px;"><b>Your Fully verified badge is live</b>${
+          badge.until ? ` and stays active until <b>${escapeHtml(new Date(badge.until).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }))}</b>` : ''
+        }. Your ${isExpertBadge ? 'identity' : 'registration'} document was already approved.</p>`
+      : `<p style="margin-top:16px;"><b>What happens next:</b> your ${
+          isExpertBadge ? 'identity' : 'registration'
+        } document is now with our team. Once it's approved your badge goes live and we'll email you again , there's nothing else you need to do.</p>`
+    : ''
   const row = (k: string, v: string) =>
     `<tr><td style="padding:6px 0;color:#64748b;">${escapeHtml(k)}</td><td style="padding:6px 0;text-align:right;color:#1b2a4a;font-weight:600;">${escapeHtml(v)}</td></tr>`
   const html = emailShell(
@@ -140,11 +183,15 @@ async function sendReceipt(session: Stripe.Checkout.Session, stripe?: Stripe): P
          ? `<p style="margin-top:16px;">Your invoice: ${inv.pdf ? `<a href="${inv.pdf}" style="color:#d4a12a;">Download invoice (PDF)</a>` : ''}${inv.pdf && inv.page ? ' · ' : ''}${inv.page ? `<a href="${inv.page}" style="color:#d4a12a;">View online</a>` : ''}</p>`
          : ''
      }
+     ${badgeNote}
      <p style="margin-top:16px;">Keep this email for your records.</p>`,
-    `${SITE_URL}/dashboard`,
-    'Open my dashboard',
+    isBadge ? `${SITE_URL}${isExpertBadge ? '/dashboard/verification' : '/employer/verification'}` : `${SITE_URL}/dashboard`,
+    isBadge ? 'View my verification' : 'Open my dashboard',
   )
-  await sendEmail(to, `Your partly.asia receipt , ${amount}`, html)
+  const subject = badge
+    ? `Payment received , your Fully verified badge is ${badge.live ? 'live' : 'under review'}`
+    : `Your partly.asia receipt , ${amount}`
+  await sendEmail(to, subject, html)
 }
 
 // The in-app bell already tells the business (confirm_lead_unlock writes it),
@@ -193,7 +240,7 @@ export async function fulfilCheckoutSession(
   const result = await fulfil(admin, session)
   if (result === 'granted') {
     try {
-      await sendReceipt(session, stripe)
+      await sendReceipt(session, admin, stripe)
     } catch (err) {
       console.error('receipt email failed', err)
     }
