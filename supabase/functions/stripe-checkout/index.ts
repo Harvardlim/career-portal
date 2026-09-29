@@ -39,7 +39,7 @@ const admin = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
 )
 
-const SITE_FALLBACK = Deno.env.get('SITE_URL') ?? 'https://trial.partly.asia'
+const SITE_FALLBACK = Deno.env.get('SITE_URL') ?? 'https://www.partly.asia'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })

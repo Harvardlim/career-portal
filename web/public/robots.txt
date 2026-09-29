@@ -12,4 +12,4 @@ Disallow: /email-verification
 Disallow: /apply-job
 Disallow: /send-email
 
-Sitemap: https://trial.partly.asia/sitemap.xml
+Sitemap: https://www.partly.asia/sitemap.xml

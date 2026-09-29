@@ -5,7 +5,7 @@
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? ''
 const FROM_ADDRESS = Deno.env.get('RESEND_FROM') ?? 'partly.asia <no-reply@partly.asia>'
-const SITE_URL = Deno.env.get('SITE_URL') ?? 'https://trial.partly.asia'
+const SITE_URL = Deno.env.get('SITE_URL') ?? 'https://www.partly.asia'
 
 export function escapeHtml(s: string): string {
   return s

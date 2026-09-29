@@ -34,7 +34,7 @@ export function downloadInvoice(inv: InvoiceData, billTo: BillTo): void {
   doc.setFont('helvetica', 'bold').setFontSize(22).setTextColor(15, 23, 42)
   doc.text('partly.asia', M, y)
   doc.setFont('helvetica', 'normal').setFontSize(10).setTextColor(100, 116, 139)
-  doc.text('trial.partly.asia', M, y + 16)
+  doc.text('www.partly.asia', M, y + 16)
 
   doc.setFont('helvetica', 'bold').setFontSize(16).setTextColor(15, 23, 42)
   doc.text('INVOICE', R, y, { align: 'right' })

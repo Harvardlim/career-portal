@@ -22,7 +22,7 @@ const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
 const FROM_ADDRESS =
   Deno.env.get('HR_INVITE_FROM') ?? 'Partly Asia <no-reply@partly.asia>'
 // Invitation links always point at the trial site.
-const SITE_URL = 'https://trial.partly.asia'
+const SITE_URL = 'https://www.partly.asia'
 
 const admin = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -54,7 +54,7 @@ function renderHtml(company: string, message: string, joinLink: string): string 
       <hr style="margin-top: 28px; border: none; border-top: 1px solid #e2e8f0;" />
       <p style="margin-top: 16px; font-size: 12px; color: #94a3b8;">
         If you weren't expecting this, you can ignore this email.<br />
-        <a href="https://trial.partly.asia" style="color: #2563eb; text-decoration: none;">trial.partly.asia</a>
+        <a href="https://www.partly.asia" style="color: #2563eb; text-decoration: none;">www.partly.asia</a>
       </p>
     </div>
   `

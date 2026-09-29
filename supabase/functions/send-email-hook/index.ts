@@ -21,7 +21,7 @@ import { Webhook } from 'npm:standardwebhooks@1.0.0'
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
 const HOOK_SECRET = (Deno.env.get('SEND_EMAIL_HOOK_SECRET') ?? '').replace(/^v1,/, '')
-const SITE_URL = Deno.env.get('SITE_URL') ?? 'https://trial.partly.asia'
+const SITE_URL = Deno.env.get('SITE_URL') ?? 'https://www.partly.asia'
 // The GoTrue verify endpoint lives on the Supabase project, not the site.
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
 const FROM_ADDRESS = Deno.env.get('RESEND_FROM') ?? 'Partly Asia <no-reply@partly.asia>'

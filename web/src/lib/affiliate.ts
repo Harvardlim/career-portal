@@ -57,7 +57,7 @@ export async function joinAffiliate(userId: string): Promise<AffiliateRow> {
 
 /** Full shareable referral URL for a code ,  always the trial site. */
 export function referralLink(code: string): string {
-  return `https://trial.partly.asia/?ref=${code}`
+  return `https://www.partly.asia/?ref=${code}`
 }
 
 /* ---------- Referral attribution ---------- */
