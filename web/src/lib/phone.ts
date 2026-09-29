@@ -1,4 +1,5 @@
-import { validatePhone } from '@/lib/partly'
+import { countryName, validatePhone } from '@/lib/partly'
+import { tr } from './i18n'
 
 /**
  * Per-country phone rules. The form shows the dial code as a fixed prefix and
@@ -8,15 +9,15 @@ import { validatePhone } from '@/lib/partly'
  * `national` matches the number as dialled from abroad: no country code and
  * no leading trunk "0" (Malaysia 012-345 6789 -> 123456789).
  */
-type PhoneRule = { name: string; dial: string; national: RegExp; example: string; trunkZero: boolean }
+type PhoneRule = { dial: string; national: RegExp; example: string; trunkZero: boolean }
 
 const RULES: Record<string, PhoneRule> = {
-  SG: { name: 'Singapore', dial: '65', national: /^[3689]\d{7}$/, example: '9123 4567', trunkZero: false },
-  MY: { name: 'Malaysia', dial: '60', national: /^(?:1\d{8,9}|[3-9]\d{7,8})$/, example: '12-345 6789', trunkZero: true },
-  ID: { name: 'Indonesia', dial: '62', national: /^(?:8\d{8,11}|[2-7]\d{7,10})$/, example: '812-3456-7890', trunkZero: true },
-  TH: { name: 'Thailand', dial: '66', national: /^(?:[689]\d{8}|[2-7]\d{7})$/, example: '81 234 5678', trunkZero: true },
-  VN: { name: 'Vietnam', dial: '84', national: /^(?:[35789]\d{8}|2\d{9})$/, example: '91 234 5678', trunkZero: true },
-  PH: { name: 'the Philippines', dial: '63', national: /^(?:9\d{9}|2\d{7,8}|[3-8]\d{8,9})$/, example: '917 123 4567', trunkZero: true },
+  SG: { dial: '65', national: /^[3689]\d{7}$/, example: '9123 4567', trunkZero: false },
+  MY: { dial: '60', national: /^(?:1\d{8,9}|[3-9]\d{7,8})$/, example: '12-345 6789', trunkZero: true },
+  ID: { dial: '62', national: /^(?:8\d{8,11}|[2-7]\d{7,10})$/, example: '812-3456-7890', trunkZero: true },
+  TH: { dial: '66', national: /^(?:[689]\d{8}|[2-7]\d{7})$/, example: '81 234 5678', trunkZero: true },
+  VN: { dial: '84', national: /^(?:[35789]\d{8}|2\d{9})$/, example: '91 234 5678', trunkZero: true },
+  PH: { dial: '63', national: /^(?:9\d{9}|2\d{7,8}|[3-8]\d{8,9})$/, example: '917 123 4567', trunkZero: true },
 }
 
 export function hasPhoneRule(country: string | null | undefined): boolean {
@@ -52,10 +53,10 @@ export function validateCountryPhone(country: string | null | undefined, raw: st
   const rule = country ? RULES[country] : undefined
   if (!rule) return validatePhone(raw) // no rule for this country: generic international check
   const v = raw.trim()
-  if (!v) return 'Enter a phone number.'
-  if (!/^\+?[0-9\s().-]+$/.test(v)) return 'Use digits only ,  spaces, dashes and brackets are fine.'
+  if (!v) return tr('val.phone')
+  if (!/^\+?[0-9\s().-]+$/.test(v)) return tr('val.phone_digits')
   if (!rule.national.test(nationalDigits(rule, v))) {
-    return `Enter a valid ${rule.name} phone number without the +${rule.dial}, e.g. ${rule.example}.`
+    return tr('val.phone_country', { country: countryName(country), dial: rule.dial, example: rule.example })
   }
   return null
 }

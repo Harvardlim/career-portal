@@ -12,13 +12,14 @@ import {
   NoCreditError,
   type EmployerJobRow as JobRecord,
 } from '@/lib/employers'
+import { useT, tr } from '@/lib/i18n'
 
 type Status = 'draft' | 'expired'
 type Confirm = 'publish' | 'extend' | 'delete'
 
 const ACTIONS: { status: Status; label: string; toast: string }[] = [
-  { status: 'draft', label: 'Move to Draft', toast: 'Moved to draft' },
-  { status: 'expired', label: 'Make it Expire', toast: 'Job expired' },
+  { status: 'draft', get label() { return tr('ejr.draft') }, get toast() { return tr('ejr.draft_t') } },
+  { status: 'expired', get label() { return tr('ejr.expire') }, get toast() { return tr('ejr.expire_t') } },
 ]
 
 export function EmployerJobRow({
@@ -30,6 +31,7 @@ export function EmployerJobRow({
   employerId: string
   onChanged?: () => void
 }) {
+  const t = useT()
   const [menu, setMenu] = useState(false)
   const [busy, setBusy] = useState(false)
   const [confirm, setConfirm] = useState<Confirm | null>(null)
@@ -37,13 +39,13 @@ export function EmployerJobRow({
   const isDraft = job.status === 'draft'
   const { text } = expiryLabel(job.expires_at)
 
-  const statusLabel = active ? 'Published' : isDraft ? 'Draft' : 'Expired'
+  const statusLabel = active ? t('ejr.published') : isDraft ? t('ejr.draft_lbl') : t('ejr.expired')
   const statusColor = active
     ? 'text-[#0ba02c]'
     : isDraft
       ? 'text-star'
       : 'text-danger'
-  const subLine = active ? text : isDraft ? 'Not published' : 'Expired'
+  const subLine = active ? text : isDraft ? t('ejr.not_published') : t('ejr.expired')
 
   function ask(which: Confirm) {
     setMenu(false)
@@ -70,20 +72,20 @@ export function EmployerJobRow({
     try {
       if (confirm === 'publish') {
         await publishJob(employerId, job)
-        toast.success('Job published')
+        toast.success(t('ui.job_published'))
       } else if (confirm === 'extend') {
         await extendJob(employerId, job)
-        toast.success('Job extended by 30 days')
+        toast.success(t('ui.job_extended_by_30_days'))
       } else {
         await deleteJob(job.id)
-        toast.success('Job deleted')
+        toast.success(t('ui.job_deleted'))
       }
       setConfirm(null)
       onChanged?.()
     } catch (err) {
       toast.error(
         err instanceof NoCreditError
-          ? 'You have no credits left ,  buy credits first.'
+          ? t('ui.you_have_no_credits_left_buy')
           : errMessage(err),
       )
     } finally {
@@ -93,21 +95,21 @@ export function EmployerJobRow({
 
   const dialog: Record<Confirm, { title: string; body: string; cta: string; danger?: boolean }> = {
     publish: {
-      title: 'Publish this job?',
+      title: t('ui.publish_this_job'),
       body: job.credit_charged
-        ? `"${job.title}" will go live again. No credit is used ,  it was already paid for.`
-        : `1 credit will be deducted and "${job.title}" goes live for 30 days.`,
-      cta: 'Yes, publish now',
+        ? t('ejr.publish_free', { title: job.title })
+        : t('ejr.publish_paid', { title: job.title }),
+      cta: t('ui.yes_publish_now'),
     },
     extend: {
-      title: 'Extend this job?',
-      body: `1 credit will be deducted to add 30 more days to "${job.title}".`,
-      cta: 'Yes, extend 30 days',
+      title: t('ui.extend_this_job'),
+      body: t('ui.1_credit_will_be_deducted_to', { title: job.title }),
+      cta: t('ui.yes_extend_30_days'),
     },
     delete: {
-      title: 'Delete this job?',
-      body: `"${job.title}" and its data will be removed. This can't be undone.`,
-      cta: 'Delete',
+      title: t('ui.delete_this_job'),
+      body: t('ui.and_its_data_will_be_removed', { title: job.title }),
+      cta: t('ui.delete'),
       danger: true,
     },
   }
@@ -135,20 +137,17 @@ export function EmployerJobRow({
         {statusLabel}
       </span>
       <span className="flex items-center gap-2 text-sm text-ink-600">
-        <UsersIcon className="size-4" />
-        {job.applications} application{job.applications === 1 ? '' : 's'}
+        <UsersIcon className="size-4" />{t('ui.application', { applications: job.applications })}{job.applications === 1 ? '' : t('ui.plural_s')}
       </span>
       <div className="flex items-center gap-2">
         <Link
           to={`/employer/applications?job=${job.id}`}
           className="rounded-[4px] bg-brand-50 px-5 py-2.5 text-sm font-semibold text-brand hover:bg-brand-100"
-        >
-          View Applications
-        </Link>
+        >{t('ui.view_applications')}</Link>
         <div className="relative">
           <button
             type="button"
-            aria-label="Job actions"
+            aria-label={t('ui.job_actions')}
             disabled={busy}
             onClick={() => setMenu((v) => !v)}
             className="grid size-9 place-items-center rounded text-muted hover:bg-surface-alt disabled:opacity-40"
@@ -160,26 +159,20 @@ export function EmployerJobRow({
               <Link
                 to={`/job/${job.slug}`}
                 className="block px-4 py-2 text-left text-ink-600 hover:bg-surface-alt"
-              >
-                View Detail
-              </Link>
+              >{t('ui.view_detail')}</Link>
               {job.status !== 'active' && (
                 <button
                   type="button"
                   onClick={() => ask('publish')}
                   className="block w-full px-4 py-2 text-left text-ink-600 hover:bg-surface-alt"
-                >
-                  Publish
-                </button>
+                >{t('ui.publish')}</button>
               )}
               {(job.status === 'active' || job.status === 'expired') && (
                 <button
                   type="button"
                   onClick={() => ask('extend')}
                   className="block w-full px-4 py-2 text-left text-ink-600 hover:bg-surface-alt"
-                >
-                  Extend 30 days
-                </button>
+                >{t('ui.extend_30_days')}</button>
               )}
               {ACTIONS.filter((a) => a.status !== job.status).map((a) => (
                 <button
@@ -195,9 +188,7 @@ export function EmployerJobRow({
                 type="button"
                 onClick={() => ask('delete')}
                 className="block w-full px-4 py-2 text-left text-danger hover:bg-surface-alt"
-              >
-                Delete
-              </button>
+              >{t('ui.delete')}</button>
             </div>
           )}
         </div>
@@ -214,9 +205,7 @@ export function EmployerJobRow({
                 onClick={() => setConfirm(null)}
                 disabled={busy}
                 className="rounded-[4px] border border-line px-5 py-2.5 text-sm font-semibold text-ink-600 hover:text-ink disabled:opacity-50"
-              >
-                Cancel
-              </button>
+              >{t('ui.cancel')}</button>
               <button
                 type="button"
                 onClick={runConfirm}
@@ -227,7 +216,7 @@ export function EmployerJobRow({
                     : 'bg-brand hover:bg-brand-600'
                 }`}
               >
-                {busy ? 'Working…' : dialog[confirm].cta}
+                {busy ? t('ui.working') : dialog[confirm].cta}
               </button>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { CheckIcon, CircleCheckIcon, ClockIcon, StarIcon } from '@/components/icons'
 import { useCountdown } from '@/lib/partly'
+import { useT, tr } from '@/lib/i18n'
 
 /** Read-only star display ,  avg out of 5, with an optional review count. */
 export function StarRating({
@@ -14,8 +15,9 @@ export function StarRating({
   size?: number
   showEmpty?: boolean
 }) {
+  const t = useT()
   if (!value && (!count || count === 0)) {
-    return showEmpty ? <span className="text-xs text-muted">No ratings yet</span> : null
+    return showEmpty ? <span className="text-xs text-muted">{t('ui.no_ratings_yet')}</span> : null
   }
   const rounded = Math.round((value ?? 0) * 2) / 2
   return (
@@ -65,16 +67,15 @@ export function Pill({
  * The higher tier replaces the lower one rather than stacking beside it.
  */
 export function VerifiedChips({ identity, badge }: { identity?: boolean; badge?: boolean }) {
+  const t = useT()
   return (
     <span className="inline-flex flex-wrap gap-1.5">
       {badge ? (
         <Pill tone="brand">
-          <CircleCheckIcon className="size-3.5" /> Fully verified
-        </Pill>
+          <CircleCheckIcon className="size-3.5" />{' '}{t('ui.fully_verified')}</Pill>
       ) : identity ? (
         <Pill tone="success">
-          <CheckIcon className="size-3.5" /> Basic verified
-        </Pill>
+          <CheckIcon className="size-3.5" />{' '}{t('ui.basic_verified')}</Pill>
       ) : null}
     </span>
   )
@@ -91,6 +92,7 @@ export function FullyVerifiedBubble({
   audience: 'business' | 'expert'
   action?: ReactNode
 }) {
+  const t = useT()
   return (
     <div className="relative w-fit max-w-xl">
       <div className="flex items-start gap-3 rounded-2xl border border-gold/50 bg-gold-50 px-4 py-3 text-sm text-navy">
@@ -98,12 +100,12 @@ export function FullyVerifiedBubble({
         <p>
           <strong>
             {audience === 'business'
-              ? 'A Fully verified mark attracts better experts.'
-              : 'A Fully verified mark attracts more interested leads.'}
+              ? t('ui.a_fully_verified_mark_attracts_better')
+              : t('ui.a_fully_verified_mark_attracts_more')}
           </strong>{' '}
           {audience === 'business'
-            ? 'Experts apply first to businesses they can trust.'
-            : 'Businesses release contact to verified experts first.'}
+            ? t('ui.experts_apply_first_to_businesses_they')
+            : t('ui.businesses_release_contact_to_verified_experts')}
           {action && <span className="ml-1">{action}</span>}
         </p>
       </div>
@@ -113,12 +115,13 @@ export function FullyVerifiedBubble({
   )
 }
 
-export function Countdown({ until, prefix = 'Time left:' }: { until: string | null; prefix?: string }) {
+export function Countdown({ until, prefix = tr('ui.time_left') }: { until: string | null; prefix?: string }) {
+  const t = useT()
   const { label, expired } = useCountdown(until)
   return (
     <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${expired ? 'text-danger' : 'text-amber-700'}`}>
       <ClockIcon className="size-4" />
-      {expired ? 'Window closed' : `${prefix} ${label}`}
+      {expired ? t('ui.window_closed') : `${prefix} ${label}`}
     </span>
   )
 }

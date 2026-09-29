@@ -15,6 +15,8 @@ import {
 import { errMessage } from '@/lib/errors'
 import { useCategoryNames } from '@/lib/categories'
 import { fetchJobs, toCardJob, type JobRow } from '@/lib/jobs'
+import { useT } from '@/lib/i18n'
+import { optionLabel } from '@/lib/optionLabels'
 
 const PAGE_SIZE = 12
 
@@ -25,7 +27,7 @@ const RATE_PERIODS = ['Hourly', 'Weekly', 'Monthly', 'Yearly', 'Project']
 
 const withAny = (label: string, values: string[]): Option[] => [
   { value: '', label },
-  ...values.map((v) => ({ value: v, label: v })),
+  ...values.map((v) => ({ value: v, label: optionLabel(v) })),
 ]
 
 type Filters = {
@@ -69,6 +71,7 @@ function matches(job: JobRow, f: Filters): boolean {
 }
 
 export function FindJobPage({ filterOpen = false }: { filterOpen?: boolean }) {
+  const t = useT()
   const categories = useCategoryNames()
   const [allJobs, setAllJobs] = useState<JobRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -117,14 +120,14 @@ export function FindJobPage({ filterOpen = false }: { filterOpen?: boolean }) {
       clear: () => setField('workplaceType', ''),
     },
     filters.ratePeriod && {
-      label: `Rate: ${filters.ratePeriod}`,
+      label: t('ui.rate_2', { ratePeriod: filters.ratePeriod }),
       clear: () => setField('ratePeriod', ''),
     },
   ].filter(Boolean) as { label: string; clear: () => void }[]
 
   return (
     <AppShell>
-      <Breadcrumb title="Find Job" trail={[{ label: 'Home', to: '/' }, { label: 'Find job' }]} />
+      <Breadcrumb title={t('ui.find_job')} trail={[{ label: t('ui.home'), to: '/' }, { label: t('ui.find_job_2') }]} />
 
       {/* Search + advanced filter */}
       <div className="bg-surface-alt">
@@ -138,7 +141,7 @@ export function FindJobPage({ filterOpen = false }: { filterOpen?: boolean }) {
                 <SearchIcon className="size-6 shrink-0 text-brand" />
                 <input
                   type="text"
-                  placeholder="Job title, keyword, company..."
+                  placeholder={t('ui.job_title_keyword_company')}
                   value={filters.keyword}
                   onChange={(e) => setField('keyword', e.target.value)}
                   className="min-w-0 flex-1 bg-transparent text-base text-ink outline-none placeholder:text-muted-400"
@@ -148,7 +151,7 @@ export function FindJobPage({ filterOpen = false }: { filterOpen?: boolean }) {
                 <MapPinIcon className="size-6 shrink-0 text-brand" />
                 <input
                   type="text"
-                  placeholder="Location"
+                  placeholder={t('ui.location')}
                   value={filters.location}
                   onChange={(e) => setField('location', e.target.value)}
                   className="min-w-0 flex-1 bg-transparent text-base text-ink outline-none placeholder:text-muted-400"
@@ -158,11 +161,11 @@ export function FindJobPage({ filterOpen = false }: { filterOpen?: boolean }) {
                 <Dropdown
                   className="flex-1 text-base"
                   icon={<LayersIcon className="size-6 shrink-0 text-brand" />}
-                  placeholder="All categories"
+                  placeholder={t('ui.all_categories')}
                   value={filters.category}
                   onChange={(v) => setField('category', v)}
                   options={[
-                    { value: '', label: 'All categories' },
+                    { value: '', label: t('ui.all_categories') },
                     ...categories.map((c) => ({ value: c, label: c })),
                   ]}
                 />
@@ -172,9 +175,7 @@ export function FindJobPage({ filterOpen = false }: { filterOpen?: boolean }) {
                 onClick={() => setAdvOpen((v) => !v)}
                 aria-expanded={advOpen}
                 className="flex h-14 items-center gap-2 px-4 text-base font-medium text-[#767e94]"
-              >
-                Advance Filter
-                <ChevronDownIcon
+              >{t('ui.advance_filter')}<ChevronDownIcon
                   className={`size-6 transition-transform ${advOpen ? 'rotate-180' : ''}`}
                 />
               </button>
@@ -182,36 +183,28 @@ export function FindJobPage({ filterOpen = false }: { filterOpen?: boolean }) {
             <button
               type="submit"
               className="shrink-0 rounded-[4px] bg-brand px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-brand-600"
-            >
-              Find Job
-            </button>
+            >{t('ui.find_job')}</button>
           </form>
 
           {advOpen && (
             <div className="mt-3 rounded-lg border border-line-soft bg-surface p-6 shadow-[0px_12px_40px_rgba(0,44,109,0.04)]">
               <div className="grid gap-6 sm:grid-cols-3">
-                <label className="flex flex-col gap-2 text-sm font-medium text-ink">
-                  Job Type
-                  <SelectMenu
+                <label className="flex flex-col gap-2 text-sm font-medium text-ink">{t('ui.job_type')}<SelectMenu
                     value={filters.jobType}
                     onChange={(v) => setField('jobType', v)}
-                    options={withAny('Any job type', JOB_TYPES)}
+                    options={withAny(t('fj.any_type'), JOB_TYPES)}
                   />
                 </label>
-                <label className="flex flex-col gap-2 text-sm font-medium text-ink">
-                  Workplace Type
-                  <SelectMenu
+                <label className="flex flex-col gap-2 text-sm font-medium text-ink">{t('ui.workplace_type')}<SelectMenu
                     value={filters.workplaceType}
                     onChange={(v) => setField('workplaceType', v)}
-                    options={withAny('Any workplace', WORKPLACE_TYPES)}
+                    options={withAny(t('fj.any_workplace'), WORKPLACE_TYPES)}
                   />
                 </label>
-                <label className="flex flex-col gap-2 text-sm font-medium text-ink">
-                  Rate Period
-                  <SelectMenu
+                <label className="flex flex-col gap-2 text-sm font-medium text-ink">{t('ui.rate_period')}<SelectMenu
                     value={filters.ratePeriod}
                     onChange={(v) => setField('ratePeriod', v)}
-                    options={withAny('Any rate period', RATE_PERIODS)}
+                    options={withAny(t('fj.any_rate'), RATE_PERIODS)}
                   />
                 </label>
               </div>
@@ -238,7 +231,7 @@ export function FindJobPage({ filterOpen = false }: { filterOpen?: boolean }) {
               ))
             ) : (
               <span className="text-sm text-muted">
-                {loading ? 'Loading jobs…' : `${filtered.length} jobs`}
+                {loading ? t('ui.loading_jobs') : t('ui.jobs', { length: filtered.length })}
               </span>
             )}
             {chips.length > 0 && (
@@ -246,20 +239,18 @@ export function FindJobPage({ filterOpen = false }: { filterOpen?: boolean }) {
                 type="button"
                 onClick={() => setFilters(emptyFilters)}
                 className="text-sm font-medium text-brand"
-              >
-                Clear all
-              </button>
+              >{t('ui.clear_all')}</button>
             )}
           </div>
           <div className="flex h-11 items-center gap-2 rounded-md border border-line px-4 text-sm text-muted-600">
-            <span className="shrink-0">Sort</span>
+            <span className="shrink-0">{t('ui.sort')}</span>
             <Dropdown
               className="w-[110px] font-medium"
               value={sort}
               onChange={(v) => setSort(v as 'latest' | 'oldest')}
               options={[
-                { value: 'latest', label: 'Latest' },
-                { value: 'oldest', label: 'Oldest' },
+                { value: 'latest', label: t('ui.latest') },
+                { value: 'oldest', label: t('ui.oldest') },
               ]}
               align="right"
             />
@@ -273,11 +264,9 @@ export function FindJobPage({ filterOpen = false }: { filterOpen?: boolean }) {
             {error}
           </p>
         ) : loading ? (
-          <p className="py-10 text-center text-sm text-muted">Loading jobs…</p>
+          <p className="py-10 text-center text-sm text-muted">{t('ui.loading_jobs')}</p>
         ) : visible.length === 0 ? (
-          <p className="rounded-lg bg-surface-alt px-4 py-12 text-center text-sm text-muted">
-            No jobs match your filters.
-          </p>
+          <p className="rounded-lg bg-surface-alt px-4 py-12 text-center text-sm text-muted">{t('ui.no_jobs_match_your_filters')}</p>
         ) : (
           <>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

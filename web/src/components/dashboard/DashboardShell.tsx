@@ -9,6 +9,7 @@ import {
   setActiveRole,
   useDisplayUser,
 } from '@/lib/useDisplayUser'
+import { useT } from '@/lib/i18n'
 
 export type DashboardNavItem = {
   label: string
@@ -27,6 +28,7 @@ export function DashboardShell({
   nav: DashboardNavItem[]
   children: ReactNode
 }) {
+  const t = useT()
   const { session, loading } = useSession()
   const { user } = useDisplayUser()
   const navigate = useNavigate()
@@ -41,7 +43,7 @@ export function DashboardShell({
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-surface">
-        <p className="text-sm text-muted">Loading...</p>
+        <p className="text-sm text-muted">{t('ui.loading')}</p>
       </div>
     )
   }
@@ -91,25 +93,18 @@ export function DashboardShell({
               onClick={switchRole}
               className="mt-8 flex items-center gap-3 rounded-md bg-brand-50 px-3 py-3 text-sm font-medium text-brand transition-colors hover:bg-brand-100"
             >
-              <ArrowRightIcon className="size-5" />
-              Switch to{' '}
-              {user.role === 'employer' ? 'Candidate' : 'Employer'} view
-            </button>
+              <ArrowRightIcon className="size-5" />{t('ui.switch_to')}{user.role === 'employer' ? t('ui.candidate') : t('ui.employer')}{' '}{t('ui.view_2')}</button>
           )}
           <button
             type="button"
             onClick={handleLogout}
             className={`${user?.hasBothRoles ? 'mt-2' : 'mt-8'} flex items-center gap-3 px-3 py-3 text-sm text-ink-600 transition-colors hover:text-ink`}
           >
-            <LogOutIcon className="size-5" />
-            Log-out
-          </button>
+            <LogOutIcon className="size-5" />{t('ui.log_out')}</button>
         </aside>
         <main className="flex-1 py-8 lg:pl-10">{children}</main>
       </div>
-      <div className="border-t border-line py-6 text-center text-sm text-muted">
-        © {new Date().getFullYear()} partly.asia. All rights reserved
-      </div>
+      <div className="border-t border-line py-6 text-center text-sm text-muted">{t('ui.partly_asia_all_rights_reserved', { v: new Date().getFullYear() })}</div>
     </div>
   )
 }

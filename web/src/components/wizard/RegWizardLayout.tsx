@@ -1,5 +1,6 @@
 import type { ComponentType, ReactNode, SVGProps } from 'react'
 import { Logo } from '@/components/app/Logo'
+import { useT, tr } from '@/lib/i18n'
 
 export type WizardStep = {
   label: string
@@ -17,14 +18,15 @@ export function RegWizardLayout({
   progress: number
   children: ReactNode
 }) {
+  const t = useT()
   return (
     <div className="flex min-h-screen flex-col bg-surface">
       <header className="mx-auto flex w-full max-w-[1320px] items-center justify-between px-6 py-8 lg:px-10">
         <Logo />
         <div className="flex w-[280px] flex-col gap-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-600">Setup Progress</span>
-            <span className="font-medium text-navy">{progress}% Completed</span>
+            <span className="text-muted-600">{t('ui.setup_progress')}</span>
+            <span className="font-medium text-navy">{t('ui.completed', { progress })}</span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-surface-alt">
             <div
@@ -54,15 +56,13 @@ export function RegWizardLayout({
         {children}
       </main>
 
-      <div className="border-t border-line py-6 text-center text-sm text-muted">
-        © {new Date().getFullYear()} partly.asia. All rights reserved
-      </div>
+      <div className="border-t border-line py-6 text-center text-sm text-muted">{t('ui.partly_asia_all_rights_reserved', { v: new Date().getFullYear() })}</div>
     </div>
   )
 }
 
 export function WizardButtons({
-  nextLabel = 'Save & Next',
+  nextLabel = tr('wiz.save_next'),
   onPrev,
   nextDisabled,
 }: {
@@ -70,6 +70,7 @@ export function WizardButtons({
   onPrev?: () => void
   nextDisabled?: boolean
 }) {
+  const t = useT()
   return (
     <div className="flex gap-3 pt-2">
       {onPrev && (
@@ -77,9 +78,7 @@ export function WizardButtons({
           type="button"
           onClick={onPrev}
           className="rounded-md bg-surface-alt px-6 py-3 text-base font-semibold text-navy"
-        >
-          Previous
-        </button>
+        >{t('ui.previous')}</button>
       )}
       <button
         type="submit"

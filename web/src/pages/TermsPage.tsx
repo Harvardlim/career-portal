@@ -1,7 +1,12 @@
 import { Link } from 'react-router-dom'
 import { Breadcrumb } from '@/components/app/Breadcrumb'
+import { useI18n } from '@/lib/i18n'
+import { localizeSections } from './legal/localize'
+import { termsZh } from './legal/terms.zh'
+import { termsMs } from './legal/terms.ms'
 
-const LAST_UPDATED = 'September 22, 2026'
+const LAST_UPDATED = new Date(2026, 8, 22)
+const DATE_LOCALES = { en: 'en-US', zh: 'zh-CN', ms: 'ms-MY', id: 'id-ID', th: 'th-TH', vi: 'vi-VN' } as const
 
 type Section = {
   id: string
@@ -17,7 +22,7 @@ type Section = {
 // a clear "we are the matchmaker, not the employer" disclaimer, the fee
 // mechanic spelled out in plain language, a circumvention clause, and
 // standard disclaimers/liability/termination sections at the end.
-const sections: Section[] = [
+const baseSections: Section[] = [
   {
     id: 'acceptance',
     num: '1.',
@@ -244,21 +249,20 @@ const sections: Section[] = [
 ]
 
 export function TermsPage() {
+  const { t, locale } = useI18n()
+  const sections = localizeSections(baseSections, locale, termsZh, termsMs)
+  const updated = LAST_UPDATED.toLocaleDateString(DATE_LOCALES[locale], { year: 'numeric', month: 'long', day: 'numeric' })
   return (
     <>
       <Breadcrumb
-        title="Terms & Conditions"
-        trail={[{ label: 'Home', to: '/' }, { label: 'Terms & Conditions' }]}
+        title={t('ui.terms_conditions')}
+        trail={[{ label: t('ui.home'), to: '/' }, { label: t('ui.terms_conditions') }]}
       />
       <div className="mx-auto grid w-full max-w-[1320px] gap-12 px-6 py-16 lg:grid-cols-[1fr_260px] lg:px-10">
         <div className="flex flex-col gap-12">
           <div>
-            <p className="text-sm text-muted">Last updated: {LAST_UPDATED}</p>
-            <p className="mt-3 rounded-md bg-brand-50 px-4 py-3 text-sm leading-6 text-brand-800">
-              This draft is written to match how partly.asia actually works today. It is provided as a starting
-              point for your own legal counsel to review before it is relied on commercially ,  it is not legal
-              advice.
-            </p>
+            <p className="text-sm text-muted">{t('ui.last_updated', { LAST_UPDATED: updated })}</p>
+            <p className="mt-3 rounded-md bg-brand-50 px-4 py-3 text-sm leading-6 text-brand-800">{t('ui.this_draft_is_written_to_match')}</p>
           </div>
 
           {sections.map((s) => (
@@ -274,10 +278,7 @@ export function TermsPage() {
                     {p}
                     {isLast && s.id === 'contact' && (
                       <>
-                        <Link to="/contact" className="font-medium text-brand hover:underline">
-                          Contact page
-                        </Link>
-                        .
+                        <Link to="/contact" className="font-medium text-brand hover:underline">{t('ui.contact_page')}</Link>{t('ui.legal_contact_end')}
                       </>
                     )}
                   </p>
@@ -298,22 +299,12 @@ export function TermsPage() {
             </section>
           ))}
 
-          <p className="text-sm leading-6 text-muted">
-            See also our{' '}
-            <Link to="/privacy" className="font-medium text-brand hover:underline">
-              Privacy Policy
-            </Link>{' '}
-            and{' '}
-            <Link to="/trust" className="font-medium text-brand hover:underline">
-              Trust &amp; Verification
-            </Link>{' '}
-            pages for more detail on verification and data handling.
-          </p>
+          <p className="text-sm leading-6 text-muted">{t('ui.see_also_our')}<Link to="/privacy" className="font-medium text-brand hover:underline">{t('ui.privacy_policy')}</Link>{t('ui.and')}<Link to="/trust" className="font-medium text-brand hover:underline">{t('ui.trust_verification')}</Link>{t('ui.pages_for_more_detail_on_verification')}</p>
         </div>
 
         <nav className="hidden lg:block">
           <div className="sticky top-6">
-            <p className="mb-4 text-xs font-medium uppercase tracking-wide text-muted-400">Table of contents</p>
+            <p className="mb-4 text-xs font-medium uppercase tracking-wide text-muted-400">{t('ui.table_of_contents')}</p>
             <ul className="flex max-h-[calc(100vh-6rem)] flex-col gap-3 overflow-y-auto text-sm">
               {sections.map((s) => (
                 <li key={s.id}>

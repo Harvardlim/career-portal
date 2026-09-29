@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { tr } from './i18n'
 import { SITE_URL } from './site'
 
 export type ResolvedAccount = {
@@ -71,7 +72,7 @@ export async function resolveAccountForRegister(
     await supabase.auth.signInWithPassword({ email, password })
   if (signInError || !signIn.user) {
     throw new Error(
-      'This email is already registered. Sign in instead ,  one email can only hold one account.',
+      tr('err.email_registered'),
     )
   }
   return { userId: signIn.user.id, needsConfirm: false }

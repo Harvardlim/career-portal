@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { tr } from './i18n'
 import { supabase } from './supabase'
 import { useSession } from './useSession'
 
@@ -193,7 +194,7 @@ export async function spendJobCredit(
 /** Thrown when a publish/extend needs a credit the employer doesn't have. */
 export class NoCreditError extends Error {
   constructor() {
-    super('You need at least 1 credit. Buy credits to continue.')
+    super(tr('err.no_credit'))
     this.name = 'NoCreditError'
   }
 }
@@ -299,7 +300,7 @@ export async function sendHrInvite(
     body: { email, message },
   })
   if (error) {
-    let msg = 'Could not send the invitation. Please try again.'
+    let msg = tr('err.invite')
     const ctx = (error as { context?: Response }).context
     if (ctx && typeof ctx.json === 'function') {
       try {
@@ -315,7 +316,7 @@ export async function sendHrInvite(
   }
   const res = data as { ok?: boolean; delivered?: boolean } | null
   if (!res?.ok) {
-    throw new Error('Could not send the invitation. Please try again.')
+    throw new Error(tr('err.invite'))
   }
   return { delivered: !!res.delivered }
 }

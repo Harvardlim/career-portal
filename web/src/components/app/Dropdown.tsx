@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ChevronDownIcon } from '@/components/icons'
+import { tr } from '@/lib/i18n'
 
 export type DropdownOption = { value: string; label: string }
 
@@ -8,7 +9,7 @@ export function Dropdown({
   value,
   options,
   onChange,
-  placeholder = 'Select…',
+  placeholder = tr('ui.select_3'),
   icon,
   className = '',
   align = 'left',

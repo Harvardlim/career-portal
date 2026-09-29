@@ -8,7 +8,7 @@ import { RichTextEditor } from '@/components/editor/RichTextEditor'
 import { LinkIcon, MailIcon } from '@/components/icons'
 import { errMessage } from '@/lib/errors'
 import { nationalFromStored, toStoredPhone, validateCountryPhone } from '@/lib/phone'
-import { COUNTRY_NAMES, MIN_BUSINESS_TEXT, plainTextLength, validateBusinessRegNo } from '@/lib/partly'
+import { COUNTRY_NAMES_EN, MIN_BUSINESS_TEXT, plainTextLength, validateBusinessRegNo } from '@/lib/partly'
 import { useCategoryNames } from '@/lib/categories'
 import { clearDisplayUserCache } from '@/lib/useDisplayUser'
 import {
@@ -16,6 +16,8 @@ import {
   uploadEmployerLogo,
   useEmployer,
 } from '@/lib/employers'
+import { useT } from '@/lib/i18n'
+import { optionLabel } from '@/lib/optionLabels'
 
 const INDUSTRIES = [
   'Technology',
@@ -30,14 +32,16 @@ const INDUSTRIES = [
 ]
 const SIZES = ['1-10', '11-50', '51-200', '201-500', '501-1000', '1001+']
 // Every country a business can register from (same list as the sign-up wizard).
-const LOCATIONS = Object.values(COUNTRY_NAMES)
+const LOCATIONS = Object.values(COUNTRY_NAMES_EN)
 
 /** Keeps an unknown existing value selectable (backoffice's withCurrent). */
-const withCurrent = (base: string[], current: string): Option[] => [
-  { value: '', label: 'Select…' },
-  ...base.map((v) => ({ value: v, label: v })),
+const withCurrent = (base: string[], current: string, placeholder: string): Option[] => {
+  return ([
+  { value: '', label: placeholder },
+  ...base.map((v) => ({ value: v, label: optionLabel(v) })),
   ...(current && !base.includes(current) ? [{ value: current, label: current }] : []),
-]
+])
+}
 
 type FormState = {
   company_name: string
@@ -74,6 +78,7 @@ const empty: FormState = {
 }
 
 export function EmployerProfilePage() {
+  const t = useT()
   const { employer, session, loading, reload } = useEmployer()
   const categoryNames = useCategoryNames()
   const [form, setForm] = useState<FormState>(empty)
@@ -117,7 +122,7 @@ export function EmployerProfilePage() {
     try {
       const url = await uploadEmployerLogo(session.user.id, file)
       set('logo_url', url)
-      toast.success('Logo uploaded ,  remember to Save Changes')
+      toast.success(t('ui.logo_uploaded_remember_to_save_changes'))
     } catch (err) {
       toast.error(errMessage(err))
     } finally {
@@ -127,16 +132,16 @@ export function EmployerProfilePage() {
 
   // Save stays disabled until every required field is filled and valid.
   const missing: string[] = []
-  if (!form.company_name.trim()) missing.push('company name')
-  if (!form.reg_no.trim()) missing.push('registration no.')
-  if (!form.industry) missing.push('industry')
-  if (!form.size) missing.push('team size')
-  if (!form.location) missing.push('location')
-  if (form.field.length === 0) missing.push('business field')
-  if (form.looking_for.length === 0) missing.push('what you’re looking to hire')
-  if (!form.phone.trim()) missing.push('phone')
-  if (!form.business_details.trim()) missing.push('business details')
-  if (plainTextLength(form.about) === 0) missing.push('about us')
+  if (!form.company_name.trim()) missing.push(t('miss.company'))
+  if (!form.reg_no.trim()) missing.push(t('miss.reg'))
+  if (!form.industry) missing.push(t('miss.industry'))
+  if (!form.size) missing.push(t('miss.size'))
+  if (!form.location) missing.push(t('miss.location'))
+  if (form.field.length === 0) missing.push(t('miss.field'))
+  if (form.looking_for.length === 0) missing.push(t('miss.looking'))
+  if (!form.phone.trim()) missing.push(t('miss.phone'))
+  if (!form.business_details.trim()) missing.push(t('miss.details'))
+  if (plainTextLength(form.about) === 0) missing.push(t('miss.about'))
 
   const problems: string[] = []
   if (form.phone.trim()) {
@@ -147,7 +152,7 @@ export function EmployerProfilePage() {
     (form.business_details.trim() && form.business_details.trim().length < MIN_BUSINESS_TEXT) ||
     (plainTextLength(form.about) > 0 && plainTextLength(form.about) < MIN_BUSINESS_TEXT)
   ) {
-    problems.push(`Business details and About us each need at least ${MIN_BUSINESS_TEXT} characters.`)
+    problems.push(t('miss.min_chars', { min: MIN_BUSINESS_TEXT }))
   }
   if (employer && form.reg_no.trim()) {
     const regErr = validateBusinessRegNo(employer.country_code ?? '', form.reg_no.trim())
@@ -175,7 +180,7 @@ export function EmployerProfilePage() {
         business_details: form.business_details.trim(),
         about: form.about,
       })
-      toast.success('Company profile saved')
+      toast.success(t('ui.company_profile_saved'))
       clearDisplayUserCache()
       await reload()
     } catch (err) {
@@ -188,22 +193,20 @@ export function EmployerProfilePage() {
   return (
     <EmployerDashboardLayout>
       <form onSubmit={handleSubmit} className="flex max-w-[760px] flex-col gap-6">
-        <h1 className="text-2xl font-medium text-ink">Company Profile</h1>
+        <h1 className="text-2xl font-medium text-ink">{t('ui.company_profile')}</h1>
 
         {!loading && !employer && (
-          <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-600">
-            No employer account found for this login.
-          </p>
+          <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-600">{t('ui.no_employer_account_found_for_this')}</p>
         )}
 
         <div className="grid gap-6 sm:grid-cols-2">
-          <Field label="Company name *">
+          <Field label={t('ui.company_name_2')}>
             <TextInput
               value={form.company_name}
               onChange={(e) => set('company_name', e.target.value)}
             />
           </Field>
-          <Field label="Registration No. *">
+          <Field label={t('ui.registration_no')}>
             <TextInput
               value={form.reg_no}
               onChange={(e) => set('reg_no', e.target.value)}
@@ -211,36 +214,36 @@ export function EmployerProfilePage() {
           </Field>
         </div>
 
-        <Field label="Business Email">
+        <Field label={t('ui.business_email')}>
           <TextInput
             type="email"
             icon={<MailIcon className="size-5" />}
             value={form.business_email}
             disabled
             readOnly
-            title="This is the email you sign in with, so it can't be changed here."
+            title={t('ui.this_is_the_email_you_sign')}
           />
-          <p className="mt-1 text-xs text-muted">This is your sign-in email and can&apos;t be changed here.</p>
+          <p className="mt-1 text-xs text-muted">{t('ui.this_is_your_sign_in_email')}</p>
         </Field>
 
         <div className="grid gap-6 sm:grid-cols-3">
-          <Field label="Industry *">
+          <Field label={t('ui.industry')}>
             <SelectMenu
-              options={withCurrent(INDUSTRIES, form.industry)}
+              options={withCurrent(INDUSTRIES, form.industry, t('ui.select_3'))}
               value={form.industry}
               onChange={(v) => set('industry', v)}
             />
           </Field>
-          <Field label="Team size *">
+          <Field label={t('ui.team_size_2')}>
             <SelectMenu
-              options={withCurrent(SIZES, form.size)}
+              options={withCurrent(SIZES, form.size, t('ui.select_3'))}
               value={form.size}
               onChange={(v) => set('size', v)}
             />
           </Field>
-          <Field label="Location *">
+          <Field label={t('ui.location_2')}>
             <SelectMenu
-              options={withCurrent(LOCATIONS, form.location)}
+              options={withCurrent(LOCATIONS, form.location, t('ui.select_3'))}
               value={form.location}
               onChange={(v) => set('location', v)}
             />
@@ -248,7 +251,7 @@ export function EmployerProfilePage() {
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
-          <Field label="Website">
+          <Field label={t('ui.website')}>
             <TextInput
               type="url"
               placeholder="https://company.com"
@@ -257,7 +260,7 @@ export function EmployerProfilePage() {
               onChange={(e) => set('website', e.target.value)}
             />
           </Field>
-          <Field label="Phone *">
+          <Field label={t('ui.phone_2')}>
             <PhoneInput
               country={employer?.country_code}
               value={form.phone}
@@ -268,7 +271,7 @@ export function EmployerProfilePage() {
               <p className="mt-1 text-xs text-danger">{validateCountryPhone(employer?.country_code, form.phone)}</p>
             )}
           </Field>
-          <Field label="Founded">
+          <Field label={t('ui.founded')}>
             <TextInput
               placeholder="e.g. 2015"
               value={form.founded}
@@ -278,21 +281,19 @@ export function EmployerProfilePage() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <span className="text-sm text-ink">Company Logo</span>
+          <span className="text-sm text-ink">{t('ui.company_logo')}</span>
           <div className="flex items-center gap-4">
             {form.logo_url ? (
               <img
                 src={form.logo_url}
-                alt="Company logo"
+                alt={t('ui.company_logo_2')}
                 className="size-16 shrink-0 rounded-md border border-line object-cover"
               />
             ) : (
-              <span className="grid size-16 shrink-0 place-items-center rounded-md border border-dashed border-line text-xs text-muted">
-                Logo
-              </span>
+              <span className="grid size-16 shrink-0 place-items-center rounded-md border border-dashed border-line text-xs text-muted">{t('ui.logo')}</span>
             )}
             <label className="cursor-pointer rounded-md border border-line px-4 py-2 text-sm font-medium text-ink-600 hover:bg-surface-alt">
-              {logoBusy ? 'Uploading…' : form.logo_url ? 'Replace image' : 'Upload image'}
+              {logoBusy ? t('ui.uploading') : form.logo_url ? t('ui.replace_image') : t('ui.upload_image')}
               <input
                 type="file"
                 accept="image/*"
@@ -306,43 +307,41 @@ export function EmployerProfilePage() {
                 type="button"
                 onClick={() => set('logo_url', '')}
                 className="text-sm text-muted hover:text-danger"
-              >
-                Remove
-              </button>
+              >{t('ui.remove')}</button>
             )}
           </div>
         </div>
 
         <CheckboxGroup
-          label="Business Field"
+          label={t('ui.business_field')}
           options={categoryNames}
           selected={form.field}
           onToggle={(v) => toggle('field', v)}
         />
         <CheckboxGroup
-          label="Looking to Hire"
+          label={t('ui.looking_to_hire')}
           options={categoryNames}
           selected={form.looking_for}
           onToggle={(v) => toggle('looking_for', v)}
         />
 
-        <Field label="Business Details *">
+        <Field label={t('ui.business_details')}>
           <textarea
             rows={4}
-            placeholder="Short summary of the company for the registration record…"
+            placeholder={t('ui.short_summary_of_the_company_for')}
             className="w-full resize-none rounded-md border border-line bg-surface p-4 text-base text-ink outline-none focus:border-brand placeholder:text-muted-400"
             value={form.business_details}
             onChange={(e) => set('business_details', e.target.value)}
           />
         </Field>
 
-        <Field label="About us *">
+        <Field label={t('ui.about_us_2')}>
           {employer ? (
             <RichTextEditor
               key={employer.id}
               value={employer.about ?? ''}
               onChange={(html) => set('about', html)}
-              placeholder="What the company does, mission, notable customers…"
+              placeholder={t('ui.what_the_company_does_mission_notable')}
             />
           ) : (
             <div className="h-44 rounded-md border border-line bg-surface-alt/40" />
@@ -355,10 +354,10 @@ export function EmployerProfilePage() {
             disabled={saving || !canSave}
             className="w-fit rounded-[4px] bg-brand px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? t('ui.saving_2') : t('ui.save_changes')}
           </button>
           {employer && missing.length > 0 && (
-            <span className="text-xs text-muted">Missing to save: {missing.join(', ')}</span>
+            <span className="text-xs text-muted">{t('ui.missing_to_save', { v: missing.join(', ') })}</span>
           )}
           {employer && missing.length === 0 && problems.length > 0 && (
             <span className="text-xs text-danger">{problems[0]}</span>

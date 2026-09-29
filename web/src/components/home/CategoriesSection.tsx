@@ -12,6 +12,7 @@ import {
   PenNibIcon,
 } from '@/components/icons'
 import { fetchCategories, type Category } from '@/lib/categories'
+import { useT } from '@/lib/i18n'
 
 const categoryIcons: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   'Graphics & Design': PenNibIcon,
@@ -25,6 +26,7 @@ const categoryIcons: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
 }
 
 export function CategoriesSection() {
+  const t = useT()
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -51,15 +53,11 @@ export function CategoriesSection() {
     <section className="border-b border-line bg-surface">
       <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-12 px-6 py-20 lg:gap-[50px] lg:px-10 lg:py-25">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <h2 className="text-3xl font-medium text-ink lg:text-[40px] lg:leading-[48px]">
-            Popular category
-          </h2>
+          <h2 className="text-3xl font-medium text-ink lg:text-[40px] lg:leading-[48px]">{t('ui.popular_category')}</h2>
           <a
             href="#"
             className="flex items-center gap-3 rounded-[3px] border border-brand-50 px-6 py-3 text-base font-semibold text-brand transition-colors hover:bg-brand-50"
-          >
-            View All
-            <ArrowRightIcon className="size-6" />
+          >{t('ui.view_all')}<ArrowRightIcon className="size-6" />
           </a>
         </div>
 
@@ -94,7 +92,7 @@ export function CategoriesSection() {
                       </span>
                       <span className="text-sm text-ink-600">
                         {subcategories.length}{' '}
-                        {subcategories.length === 1 ? 'Sub-category' : 'Sub-categories'}
+                        {subcategories.length === 1 ? t('ui.sub_category') : t('ui.sub_categories')}
                       </span>
                     </span>
                   </a>

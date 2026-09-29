@@ -16,10 +16,13 @@ import {
   type PostingInput,
   type ProjectType,
 } from '@/lib/partly'
+import { useT } from '@/lib/i18n'
+import { categoryLabel } from '@/lib/categoryNames'
 
 const BUDGET_CURRENCIES = ['USD', 'SGD', 'MYR', 'IDR', 'THB', 'VND', 'PHP']
 
 export function PostNeedPage() {
+  const t = useT()
   const navigate = useNavigate()
   const { employer, loading } = useEmployer()
   const { categories } = useCategories()
@@ -62,7 +65,7 @@ export function PostNeedPage() {
     e.preventDefault()
     if (!employer) return
     if (!employer.basic_verified) {
-      toast.error('Add your business registration number before you can post.')
+      toast.error(t('ui.add_your_business_registration_number_before'))
       return
     }
 
@@ -96,10 +99,10 @@ export function PostNeedPage() {
     setSubmitting(true)
     try {
       const id = await createPosting(employer.id, employer.company_name, input)
-      toast.success('Your need is live. Experts can now apply.')
+      toast.success(t('ui.your_need_is_live_experts_can'))
       navigate(`/employer/postings/${id}/matches`)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not post your need')
+      toast.error(err instanceof Error ? err.message : t('ui.could_not_post_your_need'))
     } finally {
       setSubmitting(false)
     }
@@ -111,19 +114,12 @@ export function PostNeedPage() {
     <EmployerDashboardLayout>
       <form onSubmit={handleSubmit} className="flex max-w-3xl flex-col gap-6">
         <div>
-          <h1 className="text-xl font-semibold text-ink">Post your need</h1>
-          <p className="mt-1 text-sm text-muted">
-            Posting is free. Describe what you need and we'll match you with up to 10 verified
-            experts ,  you only ever choose who to contact.
-          </p>
+          <h1 className="text-xl font-semibold text-ink">{t('ui.post_your_need')}</h1>
+          <p className="mt-1 text-sm text-muted">{t('ui.posting_is_free_describe_what_you')}</p>
         </div>
 
         {!loading && employer && !employer.basic_verified && (
-          <Notice tone="warning" title="Add your registration number">
-            A business registration number is what makes you Basic verified ,  and lets you post.{' '}
-            <Link to="/employer/verification" className="font-medium underline">
-              Add it now
-            </Link>
+          <Notice tone="warning" title={t('ui.add_your_registration_number')}>{t('ui.a_business_registration_number_is_what')}<Link to="/employer/verification" className="font-medium underline">{t('ui.add_it_now')}</Link>
             .
           </Notice>
         )}
@@ -131,45 +127,37 @@ export function PostNeedPage() {
           <FullyVerifiedBubble
             audience="business"
             action={
-              <Link to="/employer/verification" className="font-semibold underline">
-                Get Fully verified
-              </Link>
+              <Link to="/employer/verification" className="font-semibold underline">{t('ui.get_fully_verified')}</Link>
             }
           />
         )}
 
         <Card className="flex flex-col gap-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">1 · The brief (all fields required)</h2>
-          <Field label="What do you need? (title)">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('ui.1_the_brief_all_fields_required')}</h2>
+          <Field label={t('ui.what_do_you_need_title')}>
             <TextInput
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Fractional CFO for a Series A fundraise"
+              placeholder={t('ui.e_g_fractional_cfo_for_a')}
               required
             />
           </Field>
-          <Field label="Project brief">
+          <Field label={t('ui.project_brief')}>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={6}
               required
-              placeholder="The problem, the outcome you want, and anything an expert should know before applying."
+              placeholder={t('ui.the_problem_the_outcome_you_want')}
               className="w-full rounded-md border border-line bg-surface p-4 text-base text-ink outline-none focus:border-brand placeholder:text-muted-400"
             />
           </Field>
         </Card>
 
         <Card className="flex flex-col gap-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">2 · Category</h2>
-          <p className="text-sm text-muted">
-            One main category and at least one sub-category.
-            {restricted && (
-              <>
-                {' '}Showing what you're looking to hire for , {' '}
-                <Link to="/company/register" className="font-medium underline">
-                  change in your Business profile
-                </Link>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('ui.2_category')}</h2>
+          <p className="text-sm text-muted">{t('ui.one_main_category_and_at_least')}{restricted && (
+              <>{t('ui.showing_what_you_re_looking_to')}<Link to="/company/register" className="font-medium underline">{t('ui.change_in_your_business_profile')}</Link>
                 .
               </>
             )}
@@ -189,7 +177,7 @@ export function PostNeedPage() {
                     : 'border-line text-ink-600 hover:bg-surface-alt'
                 }`}
               >
-                {c.name}
+                {categoryLabel(c.name)}
               </button>
             ))}
           </div>
@@ -207,7 +195,7 @@ export function PostNeedPage() {
                       : 'border-line text-ink-600 hover:bg-surface-alt'
                   }`}
                 >
-                  {s.name}
+                  {categoryLabel(s.name)}
                 </button>
               ))}
             </div>
@@ -215,21 +203,21 @@ export function PostNeedPage() {
         </Card>
 
         <Card className="flex flex-col gap-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">3 · Scope</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('ui.3_scope')}</h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Country where the work sits">
+            <Field label={t('ui.country_where_the_work_sits')}>
               <SelectMenu
                 value={country}
                 onChange={setCountry}
                 options={Object.entries(COUNTRY_NAMES).map(([code, name]) => ({ value: code, label: name }))}
               />
             </Field>
-            <Field label="People required">
+            <Field label={t('ui.people_required')}>
               <TextInput required type="number" min={1} value={people} onChange={(e) => setPeople(e.target.value)} />
             </Field>
           </div>
           <div>
-            <p className="mb-2 text-sm text-ink">Project type</p>
+            <p className="mb-2 text-sm text-ink">{t('ui.project_type')}</p>
             <div className="grid gap-2 sm:grid-cols-5">
               {PROJECT_TYPES.map((p) => (
                 <button
@@ -248,49 +236,47 @@ export function PostNeedPage() {
               ))}
             </div>
           </div>
-          <Field label="Duration / timeline">
+          <Field label={t('ui.duration_timeline')}>
             <TextInput
               required
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
-              placeholder="e.g. 3 months, 2 days a week from October"
+              placeholder={t('ui.e_g_3_months_2_days')}
             />
           </Field>
-          <Field label="Skills / requirements (comma separated)">
+          <Field label={t('ui.skills_requirements_comma_separated')}>
             <TextInput
               required
               value={skills}
               onChange={(e) => setSkills(e.target.value)}
-              placeholder="e.g. Finance, FP&A, Investor relations"
+              placeholder={t('ui.e_g_finance_fp_a_investor')}
             />
           </Field>
         </Card>
 
         <Card className="flex flex-col gap-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">4 · Budget</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('ui.4_budget')}</h2>
           <div className="grid gap-4 sm:grid-cols-3">
-            <Field label="Currency">
+            <Field label={t('ui.currency')}>
               <SelectMenu
                 value={budgetCurrency}
                 onChange={setBudgetCurrency}
                 options={BUDGET_CURRENCIES.map((c) => ({ value: c, label: c }))}
               />
             </Field>
-            <Field label="From">
+            <Field label={t('ui.from')}>
               <TextInput required type="number" min={1} value={budgetMin} onChange={(e) => setBudgetMin(e.target.value)} />
             </Field>
-            <Field label="To">
+            <Field label={t('ui.to')}>
               <TextInput required type="number" min={1} value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} />
             </Field>
           </div>
         </Card>
 
         <div className="flex items-center justify-between gap-4">
-          <p className="text-xs text-muted">
-            You'll see up to 10 matched experts for this posting ,  a fixed shortlist, not a rolling list.
-          </p>
+          <p className="text-xs text-muted">{t('ui.you_ll_see_up_to_10')}</p>
           <PrimaryButton type="submit" disabled={submitting || loading}>
-            {submitting ? 'Posting…' : 'Post ,  it’s free'}
+            {submitting ? t('ui.posting') : t('ui.post_it_s_free')}
           </PrimaryButton>
         </div>
       </form>

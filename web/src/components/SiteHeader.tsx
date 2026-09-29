@@ -58,7 +58,7 @@ export function SiteHeader() {
                 <NavLink
                   to={user.dashboardPath}
                   className="flex items-center gap-2"
-                  aria-label="Go to your dashboard"
+                  aria-label={t('ui.go_to_your_dashboard')}
                 >
                   {user.avatarUrl ? (
                     <img

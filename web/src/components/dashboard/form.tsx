@@ -9,6 +9,8 @@ import {
 } from '@/components/icons'
 import { SelectMenu } from '@/components/app/SelectMenu'
 import { dialPrefix, phoneExample } from '@/lib/phone'
+import { useT, tr } from '@/lib/i18n'
+import { optionLabel } from '@/lib/optionLabels'
 
 export function Field({
   label,
@@ -34,6 +36,7 @@ export function TextInput({
   icon?: ReactNode
   className?: string
 }) {
+  const t = useT()
   const [reveal, setReveal] = useState(false)
   const isPassword = type === 'password'
   const resolvedType = isPassword && reveal ? 'text' : type
@@ -56,7 +59,7 @@ export function TextInput({
         <button
           type="button"
           onClick={() => setReveal((v) => !v)}
-          aria-label={reveal ? 'Hide password' : 'Show password'}
+          aria-label={reveal ? t('ui.hide_password') : t('ui.show_password')}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink"
         >
           {reveal ? (
@@ -94,7 +97,7 @@ export function Select({
     <SelectMenu
       value={value}
       onChange={onChange}
-      options={[{ value: '', label: empty }, ...rest.map((o) => ({ value: o, label: o }))]}
+      options={[{ value: '', label: optionLabel(empty) }, ...rest.map((o) => ({ value: o, label: optionLabel(o) }))]}
       disabled={disabled}
       className={className}
     />
@@ -168,7 +171,7 @@ export function Dropzone({
 }
 
 export function SaveButton({
-  children = 'Save Changes',
+  children = tr('ui.save_changes'),
   disabled,
 }: {
   children?: ReactNode
@@ -207,6 +210,7 @@ export function PhoneInput({
   required?: boolean
   className?: string
 }) {
+  const t = useT()
   const prefix = dialPrefix(country)
   return (
     <div
@@ -218,7 +222,7 @@ export function PhoneInput({
       {prefix && (
         <span
           aria-disabled="true"
-          title="Country code ,  set by the country you selected"
+          title={t('ui.country_code_set_by_the_country')}
           className="ml-3 flex h-full shrink-0 cursor-not-allowed select-none items-center border-x border-line bg-surface-alt px-3 text-base text-muted"
         >
           {prefix}
@@ -231,8 +235,8 @@ export function PhoneInput({
         required={required}
         disabled={disabled}
         maxLength={20}
-        placeholder={phoneExample(country) || 'Phone number'}
-        aria-label={prefix ? `Phone number (country code ${prefix})` : 'Phone number'}
+        placeholder={phoneExample(country) || t('ui.phone_number')}
+        aria-label={prefix ? t('ui.phone_number_country_code', { prefix }) : t('ui.phone_number')}
         value={value}
         // Only phone characters can be typed; letters never reach the field.
         onChange={(e) => onChange(e.target.value.replace(/[^0-9+\s().-]/g, ''))}

@@ -1,4 +1,5 @@
 import { ArrowRightIcon, BriefcaseIcon, MapPinIcon } from '@/components/icons'
+import { useT } from '@/lib/i18n'
 
 type Company = {
   name: string
@@ -22,24 +23,23 @@ const companies: Company[] = [
 ]
 
 export function TopCompaniesSection() {
+  const t = useT()
   return (
     <section className="bg-surface">
       <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-12 px-6 pb-20 lg:gap-[50px] lg:px-10 lg:pb-25">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-3xl font-medium text-ink lg:text-[40px] lg:leading-[48px]">
-            Top companies
-          </h2>
+          <h2 className="text-3xl font-medium text-ink lg:text-[40px] lg:leading-[48px]">{t('ui.top_companies')}</h2>
           <div className="flex items-center gap-4">
             <button
               type="button"
-              aria-label="Previous"
+              aria-label={t('ui.previous')}
               className="rounded-[5px] bg-brand-50 p-3 text-brand"
             >
               <ArrowRightIcon className="size-6 -scale-x-100" />
             </button>
             <button
               type="button"
-              aria-label="Next"
+              aria-label={t('ui.next')}
               className="rounded-[5px] bg-brand-50 p-3 text-brand"
             >
               <ArrowRightIcon className="size-6" />
@@ -70,9 +70,7 @@ export function TopCompaniesSection() {
                       {c.name}
                     </h3>
                     {c.featured && (
-                      <span className="rounded-full bg-danger-50 px-3 py-0.5 text-sm text-danger">
-                        Featured
-                      </span>
+                      <span className="rounded-full bg-danger-50 px-3 py-0.5 text-sm text-danger">{t('ui.featured')}</span>
                     )}
                   </div>
                   <span className="flex items-center gap-1.5 text-sm text-muted-slate">
@@ -88,9 +86,7 @@ export function TopCompaniesSection() {
                     ? 'bg-brand text-white hover:bg-brand-600'
                     : 'bg-brand-50 text-brand hover:bg-brand-100'
                 }`}
-              >
-                Open Position
-              </a>
+              >{t('ui.open_position')}</a>
             </article>
           ))}
         </div>

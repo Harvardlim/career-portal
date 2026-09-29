@@ -59,7 +59,7 @@ export function HowItWorksPage() {
         <div className="mt-10 grid gap-4 md:grid-cols-2">
           {[t('pay.compare1'), t('pay.compare2')].map((c) => (
             <div key={c} className="rounded-xl border border-line bg-cream p-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gold">vs. the alternative</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gold">{t('mkt.vs')}</p>
               <p className="mt-2 text-lg font-medium text-navy">“{c}”</p>
             </div>
           ))}
@@ -85,12 +85,12 @@ export function HowItWorksPage() {
                   <div>
                     <p className="text-xs uppercase tracking-wide text-muted">{t('pay.table.lead')}</p>
                     <p className="text-2xl font-semibold text-navy">{formatLocal(current, current.lead_fee_local)}</p>
-                    <p className="text-xs text-muted">or {formatUsd(current.lead_fee_usd)}</p>
+                    <p className="text-xs text-muted">{t('pay.or_usd', { amount: formatUsd(current.lead_fee_usd) })}</p>
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-wide text-muted">{t('pay.table.badge')}</p>
                     <p className="text-2xl font-semibold text-navy">{formatLocal(current, current.badge_fee_local)}</p>
-                    <p className="text-xs text-muted">or {formatUsd(current.badge_fee_usd)}</p>
+                    <p className="text-xs text-muted">{t('pay.or_usd', { amount: formatUsd(current.badge_fee_usd) })}</p>
                   </div>
                 </div>
               </div>

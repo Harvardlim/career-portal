@@ -11,8 +11,10 @@ import {
   useEmployer,
   type SavedCandidateRow,
 } from '@/lib/employers'
+import { useT } from '@/lib/i18n'
 
 export function SavedCandidatesPage() {
+  const t = useT()
   const { employer, loading: employerLoading } = useEmployer()
   const [rows, setRows] = useState<SavedCandidateRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -48,8 +50,7 @@ export function SavedCandidatesPage() {
   return (
     <EmployerDashboardLayout>
       <div className="flex flex-col gap-5">
-        <h1 className="text-lg font-medium text-ink">
-          Saved Candidates <span className="text-muted">({rows.length})</span>
+        <h1 className="text-lg font-medium text-ink">{t('ui.saved_candidates')}{' '}<span className="text-muted">({rows.length})</span>
         </h1>
 
         {rows.length > 0 ? (
@@ -79,14 +80,12 @@ export function SavedCandidatesPage() {
                       <Link
                         to={`/employer/applications/applicant?id=${rec.application_id}`}
                         className="rounded-[3px] border border-line px-4 py-2 text-sm font-semibold text-ink-600 hover:bg-surface-alt"
-                      >
-                        View Details
-                      </Link>
+                      >{t('ui.view_details')}</Link>
                     )}
                     <button
                       type="button"
                       onClick={() => remove(c.id)}
-                      aria-label="Remove from saved"
+                      aria-label={t('ui.remove_from_saved')}
                       className="grid size-9 place-items-center rounded text-brand hover:bg-surface-alt"
                     >
                       <BookmarkIcon className="size-5 fill-current" />
@@ -99,14 +98,12 @@ export function SavedCandidatesPage() {
         ) : (
           <p className="rounded-lg bg-surface-alt px-4 py-12 text-center text-sm text-muted">
             {loading
-              ? 'Loading…'
-              : 'No saved candidates yet. Save applicants from the '}
+              ? t('ui.loading_2')
+              : t('ui.no_saved_candidates_yet_save_applicants')}
             {!loading && (
-              <Link to="/employer/applications" className="font-medium text-brand">
-                Applications
-              </Link>
+              <Link to="/employer/applications" className="font-medium text-brand">{t('ui.applications_3')}</Link>
             )}
-            {!loading && ' board.'}
+            {!loading && t('ui.board')}
           </p>
         )}
       </div>

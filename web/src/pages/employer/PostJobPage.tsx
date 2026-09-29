@@ -14,6 +14,7 @@ import {
   spendJobCredit,
 } from '@/lib/employers'
 import { buildSalaryLabel, createJob, type NewJobInput } from '@/lib/jobs'
+import { useT } from '@/lib/i18n'
 
 const JOB_TYPES = ['Monthly', 'Weekly', 'Hours', 'Project Basis']
 const WORKPLACE_TYPES = ['On-site', 'Hybrid', 'Remote']
@@ -91,13 +92,16 @@ const initialState: FormState = {
   benefits: '',
 }
 
-const withCurrent = (base: string[], current: string): Option[] => [
-  { value: '', label: 'Select…' },
+const withCurrent = (base: string[], current: string, placeholder: string): Option[] => {
+  return ([
+  { value: '', label: placeholder },
   ...base.map((v) => ({ value: v, label: v })),
   ...(current && !base.includes(current) ? [{ value: current, label: current }] : []),
-]
+])
+}
 
 export function PostJobPage() {
+  const t = useT()
   const { user, loading } = useDisplayUser()
   const navigate = useNavigate()
   const categories = useCategoryNames()
@@ -135,11 +139,11 @@ export function PostJobPage() {
     }))
 
   const companyName = user?.name || form.company_name || ''
-  const categoryOptions = withCurrent(categories, form.category)
-  const jobTypeOptions = withCurrent(JOB_TYPES, form.job_type)
-  const workplaceOptions = withCurrent(WORKPLACE_TYPES, form.workplace_type)
-  const locationOptions = withCurrent(LOCATIONS, form.location)
-  const ratePeriodOptions = withCurrent(RATE_PERIODS, form.salary_type)
+  const categoryOptions = withCurrent(categories, form.category, t('ui.select_3'))
+  const jobTypeOptions = withCurrent(JOB_TYPES, form.job_type, t('ui.select_3'))
+  const workplaceOptions = withCurrent(WORKPLACE_TYPES, form.workplace_type, t('ui.select_3'))
+  const locationOptions = withCurrent(LOCATIONS, form.location, t('ui.select_3'))
+  const ratePeriodOptions = withCurrent(RATE_PERIODS, form.salary_type, t('ui.select_3'))
 
   const salaryMin = form.salary_min.trim() === '' ? null : Number(form.salary_min)
   const salaryMax = form.salary_max.trim() === '' ? null : Number(form.salary_max)
@@ -155,11 +159,11 @@ export function PostJobPage() {
    */
   async function persist(forceDraft: boolean, confirmed = false) {
     if (!user || user.role !== 'employer' || !user.profileId) {
-      toast.error('Only employer accounts can post a job.')
+      toast.error(t('ui.only_employer_accounts_can_post_a'))
       return
     }
     if (form.title.trim() === '') {
-      setError('Title is required ,  even a draft needs one.')
+      setError(t('ui.title_is_required_even_a_draft'))
       return
     }
 
@@ -169,7 +173,7 @@ export function PostJobPage() {
         return
       }
       if (creditsLeft !== null && creditsLeft < 1) {
-        toast.error('You need at least 1 credit to publish a job.')
+        toast.error(t('ui.you_need_at_least_1_credit'))
         return
       }
       if (!confirmed) {
@@ -214,11 +218,11 @@ export function PostJobPage() {
     try {
       const slug = await createJob(user.profileId, input)
       if (forceDraft) {
-        toast.success('Saved as draft')
+        toast.success(t('ui.saved_as_draft'))
         navigate('/employer/my-jobs')
       } else {
         await spendJobCredit(user.profileId, `Job post: ${input.title}`)
-        toast.success('Job published ,  live for 30 days')
+        toast.success(t('ui.job_published_live_for_30_days'))
         navigate(`/job/${slug}`)
       }
     } catch (err) {
@@ -237,18 +241,13 @@ export function PostJobPage() {
   return (
     <EmployerDashboardLayout>
       <form onSubmit={handleSubmit} className="flex max-w-[860px] flex-col gap-6">
-        <h1 className="text-2xl font-medium text-ink">Post a job</h1>
+        <h1 className="text-2xl font-medium text-ink">{t('ui.post_a_job')}</h1>
 
         {!loading && user && user.role !== 'employer' && (
-          <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-600">
-            This account isn&apos;t an employer account, so it can&apos;t post jobs.
-          </p>
+          <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-600">{t('ui.this_account_isn_t_an_employer')}</p>
         )}
 
-        <p className="text-xs text-muted">
-          Fields marked <Req /> are required for a job to go live. You can save an
-          incomplete job as a draft and publish it later.
-        </p>
+        <p className="text-xs text-muted">{t('ui.fields_marked')}{' '}<Req />{' '}{t('ui.are_required_for_a_job_to')}</p>
 
         {employerId && creditsLeft !== null && (
           <p
@@ -257,23 +256,16 @@ export function PostJobPage() {
                 ? 'bg-red-50 text-red-600'
                 : 'bg-brand-50 text-brand'
             }`}
-          >
-            Publishing costs 1 credit. You have{' '}
-            <span className="font-semibold">{creditsLeft}</span> credit
-            {creditsLeft === 1 ? '' : 's'}.{' '}
+          >{t('ui.publishing_costs_1_credit_you_have')}<span className="font-semibold">{creditsLeft}</span>{' '}{t(creditsLeft === 1 ? 'ui.credit' : 'ui.credit_plural')}.{' '}
             {creditsLeft < 1 && (
-              <Link to="/employer/pricing" className="font-semibold underline">
-                Buy credits
-              </Link>
+              <Link to="/employer/pricing" className="font-semibold underline">{t('ui.buy_credits')}</Link>
             )}
           </p>
         )}
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <label className={labelCls}>
-              Title
-              <Req />
+            <label className={labelCls}>{t('ui.title')}<Req />
             </label>
             <input
               className={inputCls}
@@ -283,7 +275,7 @@ export function PostJobPage() {
           </div>
 
           <div>
-            <label className={labelCls}>Company</label>
+            <label className={labelCls}>{t('ui.company')}</label>
             <input
               className={`${inputCls} cursor-not-allowed bg-surface-alt text-muted`}
               value={user?.name ?? 'Loading…'}
@@ -292,21 +284,17 @@ export function PostJobPage() {
             />
           </div>
           <div>
-            <label className={labelCls}>
-              Category
-              <Req />
+            <label className={labelCls}>{t('ui.category')}<Req />
             </label>
             <SelectMenu
               value={form.category}
               onChange={(v) => set('category', v)}
               options={categoryOptions}
-              placeholder={categories.length === 0 ? 'Loading…' : 'Select…'}
+              placeholder={categories.length === 0 ? t('ui.loading_2') : t('ui.select')}
             />
           </div>
           <div>
-            <label className={labelCls}>
-              Job type
-              <Req />
+            <label className={labelCls}>{t('ui.job_type_2')}<Req />
             </label>
             <SelectMenu
               value={form.job_type}
@@ -315,9 +303,7 @@ export function PostJobPage() {
             />
           </div>
           <div>
-            <label className={labelCls}>
-              Workplace type
-              <Req />
+            <label className={labelCls}>{t('ui.workplace_type_2')}<Req />
             </label>
             <SelectMenu
               value={form.workplace_type}
@@ -326,9 +312,7 @@ export function PostJobPage() {
             />
           </div>
           <div>
-            <label className={labelCls}>
-              Location
-              <Req />
+            <label className={labelCls}>{t('ui.location')}<Req />
             </label>
             <SelectMenu
               value={form.location}
@@ -338,19 +322,19 @@ export function PostJobPage() {
           </div>
 
           <div className="sm:col-span-2">
-            <label className={labelCls}>Rate</label>
+            <label className={labelCls}>{t('ui.rate_3')}</label>
             <div className="grid grid-cols-[1fr_1fr_1.2fr] gap-2">
               <input
                 className={inputCls}
                 inputMode="numeric"
-                placeholder="Min"
+                placeholder={t('ui.min')}
                 value={form.salary_min}
                 onChange={(e) => set('salary_min', e.target.value)}
               />
               <input
                 className={inputCls}
                 inputMode="numeric"
-                placeholder="Max"
+                placeholder={t('ui.max')}
                 value={form.salary_max}
                 onChange={(e) => set('salary_max', e.target.value)}
               />
@@ -358,38 +342,33 @@ export function PostJobPage() {
                 value={form.salary_type}
                 onChange={(v) => set('salary_type', v)}
                 options={ratePeriodOptions}
-                placeholder="Period"
+                placeholder={t('ui.period')}
               />
             </div>
-            <p className="mt-1 text-xs text-muted">
-              Leave blank for “Not posted”. Shown as {previewLabel}
-            </p>
+            <p className="mt-1 text-xs text-muted">{t('ui.leave_blank_for_not_posted_shown', { previewLabel })}</p>
           </div>
 
           <div>
-            <label className={labelCls}>Hours</label>
+            <label className={labelCls}>{t('ui.hours')}</label>
             <input
               className={inputCls}
-              placeholder={HOURS_HINT[form.job_type] ?? 'e.g. 30-40 hrs/week'}
+              placeholder={HOURS_HINT[form.job_type] ?? t('ui.e_g_30_40_hrs_week')}
               value={form.hours}
               onChange={(e) => set('hours', e.target.value)}
             />
           </div>
           <div>
-            <label className={labelCls}>Duration</label>
+            <label className={labelCls}>{t('ui.duration')}</label>
             <input
               className={inputCls}
-              placeholder="12 months"
+              placeholder={t('ui.12_months')}
               value={form.duration}
               onChange={(e) => set('duration', e.target.value)}
             />
           </div>
 
           <div className="flex flex-col justify-end">
-            <p className="text-xs text-muted">
-              Published jobs stay live for {JOB_LIVE_DAYS} days from the publish
-              date. You can extend them later from My Jobs.
-            </p>
+            <p className="text-xs text-muted">{t('ui.published_jobs_stay_live_for_days', { JOB_LIVE_DAYS })}</p>
           </div>
           <label className="flex items-center gap-2 self-end pb-2 text-sm text-ink-600">
             <input
@@ -397,53 +376,49 @@ export function PostJobPage() {
               checked={form.featured}
               onChange={(e) => set('featured', e.target.checked)}
               className="size-4 accent-brand"
-            />
-            Featured
-          </label>
+            />{t('ui.featured')}</label>
 
           <div className="sm:col-span-2">
-            <label className={labelCls}>Summary</label>
+            <label className={labelCls}>{t('ui.summary')}</label>
             <textarea
               className={`${inputCls} h-auto py-2`}
               rows={2}
               value={form.summary}
               onChange={(e) => set('summary', e.target.value)}
-              placeholder="One or two lines shown at the top of the job page."
+              placeholder={t('ui.one_or_two_lines_shown_at')}
             />
           </div>
           <div className="sm:col-span-2">
-            <label className={labelCls}>
-              Description
-              <Req />
+            <label className={labelCls}>{t('ui.description')}<Req />
             </label>
             <RichTextEditor
               value={form.description}
               onChange={(html) => set('description', html)}
-              placeholder="Overview of the role…"
+              placeholder={t('ui.overview_of_the_role')}
             />
           </div>
           <div className="sm:col-span-2">
-            <label className={labelCls}>Key Responsibilities</label>
+            <label className={labelCls}>{t('ui.key_responsibilities')}</label>
             <RichTextEditor
               value={form.responsibilities}
               onChange={(html) => set('responsibilities', html)}
-              placeholder="What this person will own and do…"
+              placeholder={t('ui.what_this_person_will_own_and')}
             />
           </div>
           <div className="sm:col-span-2">
-            <label className={labelCls}>Required Qualifications &amp; Experience</label>
+            <label className={labelCls}>{t('ui.required_qualifications_experience')}</label>
             <RichTextEditor
               value={form.requirements}
               onChange={(html) => set('requirements', html)}
-              placeholder="Must-have skills, experience, education…"
+              placeholder={t('ui.must_have_skills_experience_education')}
             />
           </div>
           <div className="sm:col-span-2">
-            <label className={labelCls}>Benefits</label>
+            <label className={labelCls}>{t('ui.benefits')}</label>
             <RichTextEditor
               value={form.benefits}
               onChange={(html) => set('benefits', html)}
-              placeholder="Perks, leave, equipment budget…"
+              placeholder={t('ui.perks_leave_equipment_budget')}
             />
           </div>
         </div>
@@ -459,20 +434,18 @@ export function PostJobPage() {
             disabled={submitting}
             className="rounded-[4px] border border-line px-6 py-3 text-base font-semibold text-ink-600 transition-colors hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {submitting ? 'Saving…' : 'Save as Draft'}
+            {submitting ? t('ui.saving') : t('ui.save_as_draft')}
           </button>
           <button
             type="submit"
             disabled={submitting}
             className="flex items-center gap-2 rounded-[4px] bg-brand px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {submitting ? 'Publishing…' : 'Publish Job'}
+            {submitting ? t('ui.publishing') : t('ui.publish_job')}
             <ArrowRightIcon className="size-4" />
           </button>
           {missing.length > 0 && (
-            <span className="text-xs text-muted">
-              Missing for publish: {missing.join(', ')}
-            </span>
+            <span className="text-xs text-muted">{t('ui.missing_for_publish', { v: missing.join(', ') })}</span>
           )}
         </div>
       </form>
@@ -480,13 +453,8 @@ export function PostJobPage() {
       {draftPrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">
           <div className="w-full max-w-[440px] rounded-xl bg-surface p-6 shadow-2xl">
-            <h2 className="text-lg font-medium text-ink">
-              Some required fields are empty
-            </h2>
-            <p className="mt-2 text-sm text-muted-600">
-              This job can&apos;t be published yet. Fill these in first, or save
-              it as a draft and finish later:
-            </p>
+            <h2 className="text-lg font-medium text-ink">{t('ui.some_required_fields_are_empty')}</h2>
+            <p className="mt-2 text-sm text-muted-600">{t('ui.this_job_can_t_be_published')}</p>
             <ul className="mt-3 list-disc pl-5 text-sm text-ink-600">
               {missing.map((m) => (
                 <li key={m}>{m}</li>
@@ -497,16 +465,14 @@ export function PostJobPage() {
                 type="button"
                 onClick={() => setDraftPrompt(false)}
                 className="rounded-[4px] border border-line px-5 py-2.5 text-sm font-semibold text-ink-600 hover:text-ink"
-              >
-                Edit first
-              </button>
+              >{t('ui.edit_first')}</button>
               <button
                 type="button"
                 disabled={submitting}
                 onClick={() => void persist(true)}
                 className="rounded-[4px] bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
               >
-                {submitting ? 'Saving…' : 'Save as Draft'}
+                {submitting ? t('ui.saving') : t('ui.save_as_draft')}
               </button>
             </div>
           </div>
@@ -516,19 +482,11 @@ export function PostJobPage() {
       {publishPrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">
           <div className="w-full max-w-[440px] rounded-xl bg-surface p-6 shadow-2xl">
-            <h2 className="text-lg font-medium text-ink">Publish this job?</h2>
-            <p className="mt-2 text-sm text-muted-600">
-              1 credit will be deducted and the job goes live for{' '}
-              {JOB_LIVE_DAYS} days.
-              {creditsLeft !== null && (
-                <>
-                  {' '}
-                  You&apos;ll have{' '}
-                  <span className="font-medium text-ink">
+            <h2 className="text-lg font-medium text-ink">{t('ui.publish_this_job')}</h2>
+            <p className="mt-2 text-sm text-muted-600">{t('ui.1_credit_will_be_deducted_and', { JOB_LIVE_DAYS })}{creditsLeft !== null && (
+                <>{t('ui.you_ll_have')}<span className="font-medium text-ink">
                     {Math.max(0, creditsLeft - 1)}
-                  </span>{' '}
-                  credit{creditsLeft - 1 === 1 ? '' : 's'} left.
-                </>
+                  </span>{t(creditsLeft - 1 === 1 ? 'ui.credit' : 'ui.credit_plural')}{' '}{t('ui.left')}</>
               )}
             </p>
             <div className="mt-6 flex justify-end gap-3">
@@ -536,16 +494,14 @@ export function PostJobPage() {
                 type="button"
                 onClick={() => setPublishPrompt(false)}
                 className="rounded-[4px] border border-line px-5 py-2.5 text-sm font-semibold text-ink-600 hover:text-ink"
-              >
-                Cancel
-              </button>
+              >{t('ui.cancel')}</button>
               <button
                 type="button"
                 disabled={submitting}
                 onClick={() => void persist(false, true)}
                 className="rounded-[4px] bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
               >
-                {submitting ? 'Publishing…' : 'Yes, publish now'}
+                {submitting ? t('ui.publishing') : t('ui.yes_publish_now')}
               </button>
             </div>
           </div>

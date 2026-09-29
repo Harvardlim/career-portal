@@ -20,11 +20,14 @@ import {
 } from '@/lib/partly'
 import { useDisplayUser } from '@/lib/useDisplayUser'
 import { formatDate } from '@/lib/format'
+import { useT } from '@/lib/i18n'
+import { categoryLabel } from '@/lib/categoryNames'
 
 const selectCls =
   'h-11 w-full rounded-md border border-line bg-surface px-3 text-sm text-ink outline-none focus:border-brand'
 
 export function BrowseNeedsPage() {
+  const t = useT()
   const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
   const { categories } = useCategories()
@@ -74,21 +77,21 @@ export function BrowseNeedsPage() {
       return
     }
     if (user?.role === 'employer' || !candidate) {
-      toast.error('Create an expert profile to apply to open needs.')
+      toast.error(t('ui.create_an_expert_profile_to_apply'))
       return
     }
     const missing = missingApplyProfile(candidate)
     if (missing.length > 0) {
-      toast.error(`Complete your profile before applying: add your ${missing.join(' and ')}.`)
+      toast.error(t('ui.complete_your_profile_before_applying_add', { v: missing.join(t('ui.and')) }))
       navigate('/dashboard/expert-profile')
       return
     }
     if (isOutsideExpertise(row.category, candidate.expertise_field)) {
-      toast.error(`This need is in ${row.category}, which isn't one of the categories you serve.`)
+      toast.error(t('ui.this_need_is_in_which_isn', { category: categoryLabel(row.category ?? '') }))
       return
     }
     if (!candidate.identity_verified) {
-      toast.error('Verify your identity before applying ,  it takes a minute.')
+      toast.error(t('ui.verify_your_identity_before_applying_it'))
       navigate('/dashboard/verification')
       return
     }
@@ -96,9 +99,9 @@ export function BrowseNeedsPage() {
     try {
       await applyToNeed(row.id, candidate.id, session.user.id)
       setRows((r) => r.map((x) => (x.id === row.id ? { ...x, applied: true } : x)))
-      toast.success('Applied. You’ll be notified here if the business releases contact.')
+      toast.success(t('ui.applied_you_ll_be_notified_here'))
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not apply')
+      toast.error(err instanceof Error ? err.message : t('ui.could_not_apply'))
     } finally {
       setApplying(null)
     }
@@ -107,80 +110,69 @@ export function BrowseNeedsPage() {
   return (
     <div className="mx-auto w-full max-w-[1320px] px-6 py-10 lg:px-10">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-ink">Open needs</h1>
-        <p className="mt-1 text-sm text-muted">
-          Real projects from verified businesses. Apply to the ones that fit ,  matching is private, and you only pay
-          if a business releases contact and you choose to unlock it.
-        </p>
+        <h1 className="text-2xl font-semibold text-ink">{t('ui.open_needs')}</h1>
+        <p className="mt-1 text-sm text-muted">{t('ui.real_projects_from_verified_businesses_apply')}</p>
       </div>
 
       <div className="mb-6 grid gap-3 md:grid-cols-5">
         <input
           value={q}
           onChange={(e) => setParam('q', e.target.value)}
-          placeholder="Search titles…"
+          placeholder={t('ui.search_titles')}
           className={selectCls}
         />
         <SelectMenu
           value={categoryParam}
           onChange={(v) => setParam('category', v)}
-          placeholder="All categories"
+          placeholder={t('ui.all_categories')}
           options={[
             ...(myCategories.length > 0
               ? [
-                  { value: '', label: `My categories (${myCategories.join(', ')})` },
-                  { value: 'all', label: 'All categories' },
+                  { value: '', label: t('ui.my_categories', { v: myCategories.map(categoryLabel).join(', ') }) },
+                  { value: 'all', label: t('ui.all_categories') },
                 ]
               : []),
-            ...categories.map((c) => ({ value: c.id, label: c.name })),
+            ...categories.map((c) => ({ value: c.id, label: categoryLabel(c.name) })),
           ]}
         />
         <SelectMenu
           value={country}
           onChange={(v) => setParam('country', v)}
-          placeholder="Any country"
+          placeholder={t('ui.any_country')}
           options={Object.entries(COUNTRY_NAMES).map(([code, name]) => ({ value: code, label: name }))}
         />
         <SelectMenu
           value={projectType}
           onChange={(v) => setParam('type', v)}
-          placeholder="Any project type"
+          placeholder={t('ui.any_project_type')}
           options={PROJECT_TYPES.map((p) => ({ value: p.value, label: p.label }))}
         />
         <SelectMenu
           value={minBudget ? String(minBudget) : ''}
           onChange={(v) => setParam('budget', v)}
-          placeholder="Any budget"
+          placeholder={t('ui.any_budget')}
           options={[1000, 3000, 5000, 10000, 25000].map((n) => ({
             value: String(n),
-            label: `Budget from ${n.toLocaleString()}`,
+            label: t('ui.budget_from', { v: n.toLocaleString() }),
           }))}
         />
       </div>
 
       {!session && (
         <Notice tone="brand">
-          <Link to="/create-account" className="font-medium underline">
-            Create your expert profile
-          </Link>{' '}
-          to apply. Businesses see up to 10 matched experts per need and choose who to contact.
-        </Notice>
+          <Link to="/create-account" className="font-medium underline">{t('ui.create_your_expert_profile')}</Link>{t('ui.to_apply_businesses_see_up_to')}</Notice>
       )}
 
       {session && candidate && missingProfile.length > 0 && (
-        <Notice tone="warning" title="Complete your profile to apply">
-          You can&apos;t apply until you&apos;ve added your {missingProfile.join(' and ')}.{' '}
-          <Link to="/dashboard/expert-profile" className="font-medium underline">
-            Finish your profile
-          </Link>
+        <Notice tone="warning" title={t('ui.complete_your_profile_to_apply')}>{t('ui.you_can_t_apply_until_you', { v: missingProfile.join(t('ui.and')) })}<Link to="/dashboard/expert-profile" className="font-medium underline">{t('ui.finish_your_profile')}</Link>
         </Notice>
       )}
 
       <div className="mt-6 flex flex-col gap-4">
         {loading ? (
-          <EmptyState>Loading…</EmptyState>
+          <EmptyState>{t('ui.loading_2')}</EmptyState>
         ) : rows.length === 0 ? (
-          <EmptyState>No open needs match these filters yet.</EmptyState>
+          <EmptyState>{t('ui.no_open_needs_match_these_filters')}</EmptyState>
         ) : (
           rows.map((row) => (
             <Card key={row.id} className="flex flex-col gap-3 md:flex-row md:items-start">
@@ -192,10 +184,10 @@ export function BrowseNeedsPage() {
                     </Link>
                   </h2>
                   <VerifiedChips identity={row.business_basic_verified} badge={row.business_badge_verified} />
-                  {row.matching_status === 'matched' && <Pill tone="warning">Shortlist drawn</Pill>}
+                  {row.matching_status === 'matched' && <Pill tone="warning">{t('ui.shortlist_drawn')}</Pill>}
                 </div>
                 <p className="mt-1 text-sm text-muted">
-                  {row.category ?? 'Uncategorised'} · {postingCountry(row)} · {projectTypeLabel(row.project_type, row.job_type)}
+                  {row.category ? categoryLabel(row.category) : t('ui.uncategorised')} · {postingCountry(row)} · {projectTypeLabel(row.project_type, row.job_type)}
                   {row.project_duration ? ` · ${row.project_duration}` : ''} · {budgetLabel(row)}
                 </p>
                 {row.description && (
@@ -204,35 +196,28 @@ export function BrowseNeedsPage() {
                 {(row.subcategories.length > 0 || (row.tags?.length ?? 0) > 0) && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {row.subcategories.map((s) => (
-                      <Pill key={s.id}>{s.name}</Pill>
+                      <Pill key={s.id}>{categoryLabel(s.name)}</Pill>
                     ))}
                     {row.subcategories.length === 0 && row.tags?.map((t) => <Pill key={t}>{t}</Pill>)}
                   </div>
                 )}
-                <p className="mt-2 text-xs text-muted">
-                  Posted {formatDate(row.posted_at)} · {row.people_required} expert
-                  {row.people_required === 1 ? '' : 's'} needed
-                </p>
+                <p className="mt-2 text-xs text-muted">{t('ui.posted_expert', { posted_at: formatDate(row.posted_at), people_required: row.people_required, s: row.people_required === 1 ? '' : t('ui.plural_s') })}</p>
               </div>
               <div className="shrink-0">
                 {row.applied ? (
-                  <SecondaryButton disabled>Applied</SecondaryButton>
+                  <SecondaryButton disabled>{t('ui.applied')}</SecondaryButton>
                 ) : candidate && isOutsideExpertise(row.category, candidate.expertise_field) ? (
                   <div className="flex flex-col items-start gap-1 md:items-end">
-                    <SecondaryButton disabled title={`You serve: ${(candidate.expertise_field ?? []).join(', ') || 'no categories yet'}`}>
-                      Not your expertise
-                    </SecondaryButton>
-                    <Link to="/dashboard/expert-profile" className="text-xs text-muted underline hover:text-ink">
-                      Edit the categories you serve
-                    </Link>
+                    <SecondaryButton disabled title={t('ui.you_serve', { v: (candidate.expertise_field ?? []).map(categoryLabel).join(', ') || t('bn.no_cats') })}>{t('ui.not_your_expertise')}</SecondaryButton>
+                    <Link to="/dashboard/expert-profile" className="text-xs text-muted underline hover:text-ink">{t('ui.edit_the_categories_you_serve')}</Link>
                   </div>
                 ) : (
                   <PrimaryButton
                     onClick={() => handleApply(row)}
                     disabled={applying === row.id || (!!candidate && missingProfile.length > 0)}
-                    title={missingProfile.length > 0 ? `Add your ${missingProfile.join(' and ')} first` : undefined}
+                    title={missingProfile.length > 0 ? t('ui.add_your_first', { v: missingProfile.join(t('ui.and')) }) : undefined}
                   >
-                    {applying === row.id ? 'Applying…' : 'Apply'}
+                    {applying === row.id ? t('ui.applying') : t('ui.apply')}
                   </PrimaryButton>
                 )}
               </div>

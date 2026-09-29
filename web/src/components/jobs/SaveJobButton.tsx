@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { BookmarkIcon } from '@/components/icons'
 import { useSavedJobs } from '@/lib/useSavedJobs'
+import { useT } from '@/lib/i18n'
 
 export function SaveJobButton({
   jobId,
@@ -13,6 +14,7 @@ export function SaveJobButton({
   size?: 'sm' | 'md'
   className?: string
 }) {
+  const t = useT()
   const { isSaved, toggle, canSave } = useSavedJobs()
   const navigate = useNavigate()
   const saved = isSaved(jobId)
@@ -25,20 +27,20 @@ export function SaveJobButton({
     e.preventDefault()
     e.stopPropagation()
     if (!canSave) {
-      toast.error('Sign in as a candidate to save jobs.')
+      toast.error(t('ui.sign_in_as_a_candidate_to'))
       navigate('/sign-in')
       return
     }
     const result = await toggle(jobId)
-    if (result === 'saved') toast.success('Saved to favourites')
-    else if (result === 'removed') toast('Removed from favourites')
+    if (result === 'saved') toast.success(t('ui.saved_to_favourites'))
+    else if (result === 'removed') toast(t('ui.removed_from_favourites'))
   }
 
   return (
     <button
       type="button"
       onClick={handleClick}
-      aria-label={saved ? 'Remove bookmark' : 'Bookmark this job'}
+      aria-label={saved ? t('ui.remove_bookmark') : t('ui.bookmark_this_job')}
       aria-pressed={saved}
       className={`grid shrink-0 place-items-center rounded-[5px] transition-colors ${pad} ${
         saved

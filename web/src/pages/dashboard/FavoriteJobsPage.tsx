@@ -7,8 +7,10 @@ import {
   useCandidate,
   type SavedJobRecord,
 } from '@/lib/dashboard'
+import { useT } from '@/lib/i18n'
 
 export function FavoriteJobsPage() {
+  const t = useT()
   const { candidate, session, loading: candidateLoading } = useCandidate()
   const [rows, setRows] = useState<SavedJobRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -41,8 +43,7 @@ export function FavoriteJobsPage() {
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-5">
-        <h1 className="text-lg font-medium text-ink">
-          Favorite Jobs <span className="text-muted">({rows.length})</span>
+        <h1 className="text-lg font-medium text-ink">{t('ui.favorite_jobs_2')}{' '}<span className="text-muted">({rows.length})</span>
         </h1>
         {rows.length > 0 ? (
           <div className="flex flex-col divide-y divide-line">
@@ -60,7 +61,7 @@ export function FavoriteJobsPage() {
           </div>
         ) : (
           <p className="rounded-lg bg-surface-alt px-4 py-10 text-center text-sm text-muted">
-            {loading ? 'Loading…' : 'No favorite jobs yet. Tap the bookmark on any job to save it.'}
+            {loading ? t('ui.loading_2') : t('ui.no_favorite_jobs_yet_tap_the')}
           </p>
         )}
       </div>

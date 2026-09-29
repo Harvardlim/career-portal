@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { CheckIcon, ChevronDownIcon } from '@/components/icons'
+import { tr } from '@/lib/i18n'
 
 export type Option = { value: string; label: string }
 
@@ -15,7 +16,7 @@ export function SelectMenu({
   value,
   onChange,
   options,
-  placeholder = 'Select…',
+  placeholder = tr('ui.select_3'),
   disabled = false,
   className = '',
 }: {

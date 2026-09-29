@@ -14,6 +14,7 @@ import {
   type PurchaseRow,
   type UsageRow,
 } from '@/lib/employers'
+import { useT } from '@/lib/i18n'
 
 const dateFmt = new Intl.DateTimeFormat('en-US', {
   month: 'short',
@@ -22,6 +23,7 @@ const dateFmt = new Intl.DateTimeFormat('en-US', {
 })
 
 export function PlansBillingPage() {
+  const t = useT()
   const { employer, loading: employerLoading } = useEmployer()
   const [balance, setBalance] = useState<CreditBalance | null>(null)
   const [purchases, setPurchases] = useState<PurchaseRow[]>([])
@@ -44,12 +46,12 @@ export function PlansBillingPage() {
         if (!alive) return
         toast.success(
           active
-            ? 'Payment confirmed ,  your credits are ready.'
-            : 'Payment received ,  your credits will appear here shortly.',
+            ? t('ui.payment_confirmed_your_credits_are_ready')
+            : t('ui.payment_received_your_credits_will_appear'),
         )
         setRefreshKey((k) => k + 1)
       } else {
-        toast('Checkout cancelled ,  no charge was made.')
+        toast(t('co.cancelled'))
       }
       if (alive) navigate('/employer/billing', { replace: true })
     })()
@@ -86,14 +88,12 @@ export function PlansBillingPage() {
       {confirming && <PaymentConfirmingOverlay />}
       <div className="flex flex-col gap-6">
         <div className="grid gap-6 lg:grid-cols-2">
-          <InfoCard title="Credit Balance">
+          <InfoCard title={t('ui.credit_balance')}>
             <div className="flex items-end gap-2">
               <span className="text-4xl font-medium text-ink">
                 {loading ? ', ' : left}
               </span>
-              <span className="pb-1 text-sm text-muted">
-                credit{left === 1 ? '' : 's'} remaining
-              </span>
+              <span className="pb-1 text-sm text-muted">{t(left === 1 ? 'ui.credit' : 'ui.credit_plural')}{' '}{t('ui.remaining')}</span>
             </div>
             <div className="mt-4 h-2 overflow-hidden rounded-full bg-surface-alt">
               <div
@@ -105,34 +105,29 @@ export function PlansBillingPage() {
                 }}
               />
             </div>
-            <p className="mt-3 text-sm text-muted-600">
-              {purchased} purchased · {balance?.credits_used ?? 0} used ·{' '}
-              {balance?.last_purchase_at
-                ? `last purchase ${dateFmt.format(new Date(balance.last_purchase_at))}`
-                : 'no purchases yet'}
+            <p className="mt-3 text-sm text-muted-600">{t('ui.purchased', { purchased })}{' '}{balance?.credits_used ?? 0}{' '}{t('ui.used')}{balance?.last_purchase_at
+                ? t('ui.last_purchase', { v: dateFmt.format(new Date(balance.last_purchase_at)) })
+                : t('ui.no_purchases_yet')}
             </p>
             <Link
               to="/employer/pricing"
               className="mt-5 flex w-fit items-center gap-2 rounded-[4px] bg-brand px-6 py-3 text-sm font-semibold text-white hover:bg-brand-600"
-            >
-              Buy more credits
-              <ArrowRightIcon className="size-4" />
+            >{t('ui.buy_more_credits')}<ArrowRightIcon className="size-4" />
             </Link>
           </InfoCard>
 
-          <InfoCard title="Total Spent">
+          <InfoCard title={t('ui.total_spent')}>
             <span className="text-4xl font-medium text-ink">
               {loading
                 ? ', '
                 : `$${(balance?.total_spent_usd ?? 0).toLocaleString()}`}
             </span>
-            <p className="mt-3 text-sm text-muted-600">
-              Across {purchases.length} purchase{purchases.length === 1 ? '' : 's'}.
+            <p className="mt-3 text-sm text-muted-600">{t('ui.across_purchase', { length: purchases.length })}{purchases.length === 1 ? '' : t('ui.plural_s')}.
             </p>
           </InfoCard>
         </div>
 
-        <InfoCard title="Purchase History">
+        <InfoCard title={t('ui.purchase_history')}>
           {purchases.length > 0 ? (
             <div className="flex flex-col divide-y divide-line">
               {purchases.map((p) => (
@@ -141,7 +136,7 @@ export function PlansBillingPage() {
                   className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"
                 >
                   <span className="font-medium text-ink">{p.package}</span>
-                  <span className="text-muted-600">{p.credits} credits</span>
+                  <span className="text-muted-600">{t('ui.credits', { credits: p.credits })}</span>
                   <span className="text-muted-600">
                     {dateFmt.format(new Date(p.created_at))}
                   </span>
@@ -176,20 +171,18 @@ export function PlansBillingPage() {
                     }
                     className="flex items-center gap-1.5 rounded-[3px] border border-line px-3 py-1.5 text-xs font-semibold text-ink-600 hover:bg-surface-alt"
                   >
-                    <DownloadIcon className="size-4" />
-                    Invoice
-                  </button>
+                    <DownloadIcon className="size-4" />{t('ui.invoice')}</button>
                 </div>
               ))}
             </div>
           ) : (
             <p className="py-6 text-center text-sm text-muted">
-              {loading ? 'Loading…' : 'No purchases yet.'}
+              {loading ? t('ui.loading_2') : t('ui.no_purchases_yet_2')}
             </p>
           )}
         </InfoCard>
 
-        <InfoCard title="Credit Usage">
+        <InfoCard title={t('ui.credit_usage')}>
           {usage.length > 0 ? (
             <div className="flex flex-col divide-y divide-line">
               {usage.map((u) => (
@@ -197,7 +190,7 @@ export function PlansBillingPage() {
                   key={u.id}
                   className="flex items-center justify-between gap-3 py-3 text-sm"
                 >
-                  <span className="text-ink-600">{u.reason ?? 'Credit spent'}</span>
+                  <span className="text-ink-600">{u.reason ?? t('ui.credit_spent')}</span>
                   <span className="text-muted-600">
                     {dateFmt.format(new Date(u.created_at))}
                   </span>
@@ -207,7 +200,7 @@ export function PlansBillingPage() {
             </div>
           ) : (
             <p className="py-6 text-center text-sm text-muted">
-              {loading ? 'Loading…' : 'No credits spent yet.'}
+              {loading ? t('ui.loading_2') : t('ui.no_credits_spent_yet')}
             </p>
           )}
         </InfoCard>

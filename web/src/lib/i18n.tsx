@@ -11,6 +11,33 @@ type I18n = {
 
 const I18nContext = createContext<I18n | null>(null)
 
+let activeLocale: Locale = 'en'
+
+function interpolate(raw: string, vars?: Record<string, string | number>) {
+  if (!vars) return raw
+  return raw.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? `{${k}}`))
+}
+
+/** Locale in use right now, for plain (non-React) code such as lib/ helpers. */
+export function currentLocale(): Locale {
+  return activeLocale
+}
+
+const INTL_LOCALES: Record<Locale, string> = { en: 'en-US', zh: 'zh-CN', ms: 'ms-MY', id: 'id-ID', th: 'th-TH', vi: 'vi-VN' }
+
+/** BCP-47 tag for Intl / toLocaleDateString in the active language. */
+export function intlLocale(): string {
+  return INTL_LOCALES[activeLocale]
+}
+
+/**
+ * Translate outside React. Reads the locale the provider last rendered with,
+ * so call it while rendering (or in event handlers), never at module load.
+ */
+export function tr(key: TranslationKey, vars?: Record<string, string | number>): string {
+  return interpolate(DICTIONARIES[activeLocale][key] ?? en[key] ?? key, vars)
+}
+
 function detect(): Locale {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -25,6 +52,7 @@ function detect(): Locale {
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(() => detect())
+  activeLocale = locale
 
   useEffect(() => {
     document.documentElement.lang = locale
@@ -41,9 +69,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const t = useCallback(
     (key: TranslationKey, vars?: Record<string, string | number>) => {
-      const raw = DICTIONARIES[locale][key] ?? en[key] ?? key
-      if (!vars) return raw
-      return raw.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? `{${k}}`))
+      return interpolate(DICTIONARIES[locale][key] ?? en[key] ?? key, vars)
     },
     [locale],
   )

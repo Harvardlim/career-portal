@@ -1,7 +1,12 @@
 import { Link } from 'react-router-dom'
 import { Breadcrumb } from '@/components/app/Breadcrumb'
+import { useI18n } from '@/lib/i18n'
+import { localizeSections } from './legal/localize'
+import { privacyZh } from './legal/privacy.zh'
+import { privacyMs } from './legal/privacy.ms'
 
-const LAST_UPDATED = 'September 22, 2026'
+const LAST_UPDATED = new Date(2026, 8, 22)
+const DATE_LOCALES = { en: 'en-US', zh: 'zh-CN', ms: 'ms-MY', id: 'id-ID', th: 'th-TH', vi: 'vi-VN' } as const
 
 type Section = {
   id: string
@@ -17,7 +22,7 @@ type Section = {
 // how long we keep it, and what rights you have over it ,  written around
 // what partly.asia actually stores (ID digits, encrypted; contact details,
 // exchanged only after a paid unlock; verification documents, never public).
-const sections: Section[] = [
+const baseSections: Section[] = [
   {
     id: 'overview',
     num: '1.',
@@ -165,22 +170,20 @@ const sections: Section[] = [
 ]
 
 export function PrivacyPage() {
+  const { t, locale } = useI18n()
+  const sections = localizeSections(baseSections, locale, privacyZh, privacyMs)
+  const updated = LAST_UPDATED.toLocaleDateString(DATE_LOCALES[locale], { year: 'numeric', month: 'long', day: 'numeric' })
   return (
     <>
       <Breadcrumb
-        title="Privacy Policy"
-        trail={[{ label: 'Home', to: '/' }, { label: 'Privacy Policy' }]}
+        title={t('ui.privacy_policy')}
+        trail={[{ label: t('ui.home'), to: '/' }, { label: t('ui.privacy_policy') }]}
       />
       <div className="mx-auto grid w-full max-w-[1320px] gap-12 px-6 py-16 lg:grid-cols-[1fr_260px] lg:px-10">
         <div className="flex flex-col gap-12">
           <div>
-            <p className="text-sm text-muted">Last updated: {LAST_UPDATED}</p>
-            <p className="mt-3 rounded-md bg-brand-50 px-4 py-3 text-sm leading-6 text-brand-800">
-              This draft describes what partly.asia actually collects and how it actually handles that data today.
-              It is provided as a starting point for your own legal/privacy counsel to review ,  for example against
-              PDPA (Singapore/Malaysia), GDPR (if you serve EU users), or other local requirements ,  before it is
-              relied on commercially. It is not legal advice.
-            </p>
+            <p className="text-sm text-muted">{t('ui.last_updated', { LAST_UPDATED: updated })}</p>
+            <p className="mt-3 rounded-md bg-brand-50 px-4 py-3 text-sm leading-6 text-brand-800">{t('ui.this_draft_describes_what_partly_asia')}</p>
           </div>
 
           {sections.map((s) => (
@@ -196,31 +199,18 @@ export function PrivacyPage() {
                     {p}
                     {isLast && s.id === 'overview' && (
                       <>
-                        <Link to="/terms" className="font-medium text-brand hover:underline">
-                          Terms &amp; Conditions
-                        </Link>
-                        , which describe the Platform more broadly.
-                      </>
+                        <Link to="/terms" className="font-medium text-brand hover:underline">{t('ui.terms_conditions')}</Link>{t('ui.which_describe_the_platform_more_broadly')}</>
                     )}
                     {isLast && s.id === 'contact' && (
                       <>
-                        <Link to="/contact" className="font-medium text-brand hover:underline">
-                          Contact page
-                        </Link>
-                        .
+                        <Link to="/contact" className="font-medium text-brand hover:underline">{t('ui.contact_page')}</Link>{t('ui.legal_contact_end')}
                       </>
                     )}
                   </p>
                 )
               })}
               {s.id === 'collect' && (
-                <p className="text-sm text-muted-600">
-                  See our{' '}
-                  <Link to="/trust" className="font-medium text-brand hover:underline">
-                    Trust &amp; Verification
-                  </Link>{' '}
-                  page for how reports about another user are reviewed.
-                </p>
+                <p className="text-sm text-muted-600">{t('ui.see_our')}<Link to="/trust" className="font-medium text-brand hover:underline">{t('ui.trust_verification')}</Link>{t('ui.page_for_how_reports_about_another')}</p>
               )}
               {s.bullets && s.bullets.length > 0 && (
                 <ul className="flex flex-col gap-3">
@@ -237,18 +227,12 @@ export function PrivacyPage() {
             </section>
           ))}
 
-          <p className="text-sm leading-6 text-muted">
-            See also our{' '}
-            <Link to="/terms" className="font-medium text-brand hover:underline">
-              Terms &amp; Conditions
-            </Link>{' '}
-            for how the Platform, fees, and matching work.
-          </p>
+          <p className="text-sm leading-6 text-muted">{t('ui.see_also_our')}<Link to="/terms" className="font-medium text-brand hover:underline">{t('ui.terms_conditions')}</Link>{t('ui.for_how_the_platform_fees_and')}</p>
         </div>
 
         <nav className="hidden lg:block">
           <div className="sticky top-6">
-            <p className="mb-4 text-xs font-medium uppercase tracking-wide text-muted-400">Table of contents</p>
+            <p className="mb-4 text-xs font-medium uppercase tracking-wide text-muted-400">{t('ui.table_of_contents')}</p>
             <ul className="flex max-h-[calc(100vh-6rem)] flex-col gap-3 overflow-y-auto text-sm">
               {sections.map((s) => (
                 <li key={s.id}>

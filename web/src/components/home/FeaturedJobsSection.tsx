@@ -6,6 +6,7 @@ import {
   DollarIcon,
   MapPinIcon,
 } from '@/components/icons'
+import { useT } from '@/lib/i18n'
 
 type Job = {
   title: string
@@ -72,19 +73,16 @@ const jobs: Job[] = [
 ]
 
 export function FeaturedJobsSection() {
+  const t = useT()
   return (
     <section className="bg-surface">
       <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-12 px-6 py-20 lg:gap-[50px] lg:px-10 lg:py-25">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <h2 className="text-3xl font-medium text-ink-heading lg:text-[40px] lg:leading-[48px]">
-            Featured job
-          </h2>
+          <h2 className="text-3xl font-medium text-ink-heading lg:text-[40px] lg:leading-[48px]">{t('ui.featured_job')}</h2>
           <a
             href="#"
             className="flex items-center gap-3 rounded-[3px] border border-brand-50 px-6 py-3 text-base font-semibold text-brand transition-colors hover:bg-brand-50"
-          >
-            View All
-            <ArrowRightIcon className="size-6" />
+          >{t('ui.view_all')}<ArrowRightIcon className="size-6" />
           </a>
         </div>
 
@@ -140,7 +138,7 @@ export function FeaturedJobsSection() {
               <div className="flex shrink-0 items-center gap-3">
                 <button
                   type="button"
-                  aria-label="Save job"
+                  aria-label={t('ui.save_job')}
                   className={`rounded-[5px] p-3 ${
                     job.active ? 'bg-brand-tint text-brand' : 'text-muted-slate'
                   }`}
@@ -154,9 +152,7 @@ export function FeaturedJobsSection() {
                       ? 'bg-brand text-white hover:bg-brand-600'
                       : 'bg-brand-50 text-brand hover:bg-brand-100'
                   }`}
-                >
-                  Apply Now
-                  <ArrowRightIcon className="size-6" />
+                >{t('ui.apply_now')}<ArrowRightIcon className="size-6" />
                 </a>
               </div>
             </article>

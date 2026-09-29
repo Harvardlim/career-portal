@@ -4,8 +4,10 @@ import { AuthLayout } from '@/components/auth/AuthLayout'
 import { AuthField, AuthSubmit } from '@/components/auth/fields'
 import { supabase } from '@/lib/supabase'
 import { errMessage } from '@/lib/errors'
+import { useT } from '@/lib/i18n'
 
 export function ResetPasswordPage() {
+  const t = useT()
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -35,7 +37,7 @@ export function ResetPasswordPage() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (password !== confirmPassword) {
-      setError('Passwords do not match.')
+      setError(t('ui.passwords_do_not_match'))
       return
     }
     setSubmitting(true)
@@ -54,7 +56,7 @@ export function ResetPasswordPage() {
   if (linkState === 'checking') {
     return (
       <AuthLayout variant="centered">
-        <p className="py-10 text-center text-sm text-muted">Checking your link…</p>
+        <p className="py-10 text-center text-sm text-muted">{t('ui.checking_your_link')}</p>
       </AuthLayout>
     )
   }
@@ -63,19 +65,12 @@ export function ResetPasswordPage() {
     return (
       <AuthLayout variant="centered">
         <div className="flex flex-col items-center gap-6 text-center">
-          <h1 className="text-3xl font-medium leading-10 text-ink">
-            This link is invalid or expired
-          </h1>
-          <p className="text-base leading-6 text-muted">
-            Password reset links can only be used once and expire after a short
-            time. Request a new one to continue.
-          </p>
+          <h1 className="text-3xl font-medium leading-10 text-ink">{t('ui.this_link_is_invalid_or_expired')}</h1>
+          <p className="text-base leading-6 text-muted">{t('ui.password_reset_links_can_only_be')}</p>
           <Link
             to="/forgot-password"
             className="rounded-[4px] bg-brand px-6 py-3 text-base font-semibold text-white"
-          >
-            Request a new link
-          </Link>
+          >{t('ui.request_a_new_link')}</Link>
         </div>
       </AuthLayout>
     )
@@ -85,18 +80,12 @@ export function ResetPasswordPage() {
     return (
       <AuthLayout variant="centered">
         <div className="flex flex-col items-center gap-6 text-center">
-          <h1 className="text-3xl font-medium leading-10 text-ink">
-            Password updated
-          </h1>
-          <p className="text-base leading-6 text-muted">
-            Your password has been reset. You can now sign in with it.
-          </p>
+          <h1 className="text-3xl font-medium leading-10 text-ink">{t('ui.password_updated')}</h1>
+          <p className="text-base leading-6 text-muted">{t('ui.your_password_has_been_reset_you')}</p>
           <Link
             to="/sign-in"
             className="rounded-[4px] bg-brand px-6 py-3 text-base font-semibold text-white"
-          >
-            Go to Sign In
-          </Link>
+          >{t('ui.go_to_sign_in')}</Link>
         </div>
       </AuthLayout>
     )
@@ -106,12 +95,8 @@ export function ResetPasswordPage() {
     <AuthLayout variant="centered">
       <form onSubmit={handleSubmit} className="flex flex-col items-center gap-9">
         <div className="flex flex-col gap-6 text-center">
-          <h1 className="text-3xl font-medium leading-10 text-ink">
-            Reset Password
-          </h1>
-          <p className="text-base leading-6 text-muted">
-            Enter a new password for your account below.
-          </p>
+          <h1 className="text-3xl font-medium leading-10 text-ink">{t('ui.reset_password')}</h1>
+          <p className="text-base leading-6 text-muted">{t('ui.enter_a_new_password_for_your')}</p>
         </div>
 
         {error && (
@@ -122,7 +107,7 @@ export function ResetPasswordPage() {
 
         <div className="flex w-full flex-col gap-4">
           <AuthField
-            label="New Password"
+            label={t('ui.new_password')}
             name="password"
             password
             autoComplete="new-password"
@@ -132,7 +117,7 @@ export function ResetPasswordPage() {
             onChange={(e) => setPassword(e.target.value)}
           />
           <AuthField
-            label="Confirm Password"
+            label={t('ui.confirm_password')}
             name="confirmPassword"
             password
             autoComplete="new-password"
@@ -144,7 +129,7 @@ export function ResetPasswordPage() {
         </div>
 
         <AuthSubmit disabled={submitting}>
-          {submitting ? 'Updating...' : 'Reset Password'}
+          {submitting ? t('ui.updating') : t('ui.reset_password')}
         </AuthSubmit>
       </form>
     </AuthLayout>

@@ -9,6 +9,7 @@ import {
   type NotificationRow,
 } from '@/lib/partly'
 import { justReturnedFromCheckout } from '@/lib/useCheckoutReturn'
+import { tr, useT } from '@/lib/i18n'
 
 /** Re-check for new notifications this often, and whenever the tab regains focus. */
 const POLL_MS = 60_000
@@ -20,10 +21,10 @@ const PAYMENT_KINDS = new Set(['badge_active', 'badge_awaiting_review', 'contact
 
 function timeAgo(iso: string): string {
   const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000))
-  if (s < 60) return 'just now'
-  if (s < 3600) return `${Math.floor(s / 60)}m ago`
-  if (s < 86400) return `${Math.floor(s / 3600)}h ago`
-  return `${Math.floor(s / 86400)}d ago`
+  if (s < 60) return tr('time.now')
+  if (s < 3600) return tr('time.m', { n: Math.floor(s / 60) })
+  if (s < 86400) return tr('time.h', { n: Math.floor(s / 3600) })
+  return tr('time.d', { n: Math.floor(s / 86400) })
 }
 
 /**
@@ -32,6 +33,7 @@ function timeAgo(iso: string): string {
  * toast so a warm lead is never missed while the person is on another page.
  */
 export function NotificationBell({ userId }: { userId: string }) {
+  const t = useT()
   const navigate = useNavigate()
   const { notifications, unread, loading, reload } = useNotifications()
   const [open, setOpen] = useState(false)
@@ -57,7 +59,7 @@ export function NotificationBell({ userId }: { userId: string }) {
         duration: 10_000,
         action: n.link
           ? {
-              label: 'View',
+              label: t('ui.view'),
               onClick: () => {
                 void markNotificationRead(n.id).then(reload)
                 navigate(n.link!)
@@ -110,7 +112,7 @@ export function NotificationBell({ userId }: { userId: string }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
+        aria-label={unread > 0 ? t('ui.notifications_unread', { unread }) : t('ui.notifications')}
         aria-haspopup="true"
         aria-expanded={open}
         className="relative grid size-11 place-items-center rounded-full text-ink-600 transition-colors hover:bg-surface-alt"
@@ -126,15 +128,13 @@ export function NotificationBell({ userId }: { userId: string }) {
       {open && (
         <div className="absolute right-0 top-13 z-50 w-[360px] max-w-[calc(100vw-32px)] overflow-hidden rounded-xl border border-line bg-surface shadow-xl">
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
-            <p className="text-sm font-semibold text-ink">Notifications</p>
+            <p className="text-sm font-semibold text-ink">{t('ui.notifications')}</p>
             {unread > 0 && (
-              <button type="button" onClick={readAll} className="text-xs font-medium text-brand hover:underline">
-                Mark all read
-              </button>
+              <button type="button" onClick={readAll} className="text-xs font-medium text-brand hover:underline">{t('ui.mark_all_read')}</button>
             )}
           </div>
           {notifications.length === 0 ? (
-            <p className="px-4 py-10 text-center text-sm text-muted">Nothing yet ,  warm leads and updates land here.</p>
+            <p className="px-4 py-10 text-center text-sm text-muted">{t('ui.nothing_yet_warm_leads_and_updates')}</p>
           ) : (
             <ul className="max-h-[420px] divide-y divide-line overflow-y-auto">
               {notifications.slice(0, 15).map((n) => (

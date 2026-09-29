@@ -5,13 +5,15 @@ import { SearchFilterBar, ResultsToolbar } from '@/components/app/SearchFilterBa
 import { SidebarFilter } from '@/components/app/SidebarFilter'
 import { CandidateRow } from '@/components/candidates/CandidateRow'
 import { candidates } from '@/data/candidates'
+import { useT } from '@/lib/i18n'
 
 export function BrowseCandidatePage() {
+  const t = useT()
   return (
     <AppShell>
       <Breadcrumb
-        title="Find Candidate"
-        trail={[{ label: 'Home', to: '/' }, { label: 'Find Candidate' }]}
+        title={t('ui.find_candidate')}
+        trail={[{ label: t('ui.home'), to: '/' }, { label: t('ui.find_candidate') }]}
       />
       <SearchFilterBar />
       <ResultsToolbar view="list" />
@@ -20,14 +22,14 @@ export function BrowseCandidatePage() {
         <SidebarFilter
           groups={[
             {
-              title: 'Candidate Level',
+              title: t('ui.candidate_level'),
               type: 'radio',
               name: 'level',
               options: ['Entry Level', 'Mid Level', 'Expert Level'],
               selected: ['Mid Level'],
             },
             {
-              title: 'Experiences',
+              title: t('ui.experiences'),
               type: 'radio',
               name: 'experience',
               options: [
@@ -43,7 +45,7 @@ export function BrowseCandidatePage() {
               selected: ['4 - 6 Years'],
             },
             {
-              title: 'Education',
+              title: t('ui.education'),
               type: 'checkbox',
               name: 'education',
               options: [
@@ -57,7 +59,7 @@ export function BrowseCandidatePage() {
               selected: ['Graduation'],
             },
             {
-              title: 'Gender',
+              title: t('ui.gender'),
               type: 'radio',
               name: 'gender',
               options: ['Male', 'Female', 'Others'],

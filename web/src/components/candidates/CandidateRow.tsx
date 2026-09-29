@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import type { Candidate } from '@/data/candidates'
 import { ArrowRightIcon, BookmarkIcon, ClockIcon, MapPinIcon } from '@/components/icons'
+import { useT } from '@/lib/i18n'
 
 export function CandidateRow({ candidate }: { candidate: Candidate }) {
+  const t = useT()
   return (
     <article
       className={`flex flex-col gap-4 rounded-xl border p-6 sm:flex-row sm:items-center sm:justify-between ${
@@ -41,7 +43,7 @@ export function CandidateRow({ candidate }: { candidate: Candidate }) {
       <div className="flex shrink-0 items-center gap-3">
         <button
           type="button"
-          aria-label="Save candidate"
+          aria-label={t('ui.save_candidate')}
           className={`rounded-[5px] p-3 ${
             candidate.highlighted ? 'bg-brand-tint text-brand' : 'text-muted-slate'
           }`}
@@ -55,9 +57,7 @@ export function CandidateRow({ candidate }: { candidate: Candidate }) {
               ? 'bg-brand text-white hover:bg-brand-600'
               : 'bg-brand-50 text-brand hover:bg-brand-100'
           }`}
-        >
-          View Profile
-          <ArrowRightIcon className="size-5" />
+        >{t('ui.view_profile')}<ArrowRightIcon className="size-5" />
         </Link>
       </div>
     </article>

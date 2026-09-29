@@ -16,16 +16,18 @@ import {
   type ReferralRow,
 } from '@/lib/affiliate'
 import { validateEmail } from '@/lib/partly'
+import { tr, useT } from '@/lib/i18n'
+import { optionLabel } from '@/lib/optionLabels'
 
 const dateFmt = new Intl.DateTimeFormat('en-US', {
   month: 'short',
   day: 'numeric',
   year: 'numeric',
 })
-const defaultInvitation =
-  "Hi,\n\nI'd like to invite you to join partly.asia.\n\nThanks"
+const defaultInvitation = () => tr('inv.candidate')
 
 export function CandidateAffiliatePage() {
+  const t = useT()
   const { candidate, session, loading: candidateLoading } = useCandidate()
   const userId = session?.user.id ?? null
 
@@ -66,7 +68,7 @@ export function CandidateAffiliatePage() {
       const row = await joinAffiliate(userId)
       setAffiliate(row)
       setReferrals(await fetchMyReferrals(row.id))
-      toast.success("You're enrolled ,  start sharing your referral link.")
+      toast.success(t('ui.you_re_enrolled_start_sharing_your'))
     } catch (err) {
       toast.error(errMessage(err))
     } finally {
@@ -82,11 +84,11 @@ export function CandidateAffiliatePage() {
   const inviteError = !inviteLc
     ? null
     : validateEmail(inviteEmail)
-      ? 'Enter a valid email address, e.g. name@company.com.'
+      ? t('aff.err_email')
       : isOwn
-      ? "You can't invite your own email address."
+      ? t('aff.err_own')
       : isDup
-        ? 'That email is already in your list.'
+        ? t('aff.err_dup_cand')
         : null
 
   async function sendInvite() {
@@ -97,8 +99,8 @@ export function CandidateAffiliatePage() {
       const { delivered } = await sendHrInvite(to, inviteMsg.trim())
       toast.success(
         delivered
-          ? `Invitation sent to ${to}`
-          : `Invitation recorded for ${to} (email delivery is currently unavailable)`,
+          ? t('ui.invitation_sent_to', { to })
+          : t('ui.invitation_recorded_for_email_delivery_is', { to }),
       )
       setInviteEmail('')
       await load()
@@ -113,9 +115,9 @@ export function CandidateAffiliatePage() {
     if (!affiliate) return
     try {
       await navigator.clipboard.writeText(referralLink(affiliate.referral_code))
-      toast.success('Referral link copied')
+      toast.success(t('ui.referral_link_copied'))
     } catch {
-      toast.error('Could not copy ,  select and copy the link manually.')
+      toast.error(t('ui.could_not_copy_select_and_copy'))
     }
   }
 
@@ -123,24 +125,18 @@ export function CandidateAffiliatePage() {
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-6">
-        <h1 className="text-lg font-medium text-ink">Affiliate</h1>
+        <h1 className="text-lg font-medium text-ink">{t('ui.affiliate')}</h1>
 
         {loading ? (
-          <p className="rounded-lg bg-surface-alt px-4 py-12 text-center text-sm text-muted">
-            Loading…
-          </p>
+          <p className="rounded-lg bg-surface-alt px-4 py-12 text-center text-sm text-muted">{t('ui.loading_2')}</p>
         ) : !affiliate ? (
-          <InfoCard title="Enrol in the Affiliate Program">
-            <p className="text-sm text-muted-600">
-              Earn a commission when someone you refer makes a qualifying
-              purchase. You get a personal referral link, and every invitation
-              you send counts as a referral.
-            </p>
+          <InfoCard title={t('ui.enrol_in_the_affiliate_program')}>
+            <p className="text-sm text-muted-600">{t('ui.earn_a_commission_when_someone_you')}</p>
             <ul className="mt-4 flex flex-col gap-2 text-sm text-ink-600">
               {[
-                '~20% of the fixed local lead fee, every time a referred expert unlocks a released lead (one-time per lead)',
-                '~20% of the fixed local badge fee when a referred expert buys a Verified badge ,  and again on every annual renewal',
-                'Paid in USD once your balance clears USD 50',
+                t('aff.perk1'),
+                t('aff.perk2'),
+                t('aff.perk3'),
               ].map((f) => (
                 <li key={f} className="flex items-center gap-2">
                   <CheckIcon className="size-4 text-brand" />
@@ -154,13 +150,13 @@ export function CandidateAffiliatePage() {
               disabled={joining}
               className="mt-5 flex w-fit items-center gap-2 rounded-[4px] bg-brand px-6 py-3 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
             >
-              {joining ? 'Enrolling…' : 'Enrol Affiliate Program'}
+              {joining ? t('ui.enrolling') : t('ui.enrol_affiliate_program')}
               <ArrowRightIcon className="size-4" />
             </button>
           </InfoCard>
         ) : (
           <>
-            <InfoCard title="Your referral link">
+            <InfoCard title={t('ui.your_referral_link')}>
               <div className="flex items-center gap-2">
                 <input
                   readOnly
@@ -172,20 +168,16 @@ export function CandidateAffiliatePage() {
                   type="button"
                   onClick={copyLink}
                   className="shrink-0 rounded-[3px] bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-600"
-                >
-                  Copy
-                </button>
+                >{t('ui.copy')}</button>
               </div>
-              <p className="mt-2 text-xs text-muted">
-                Affiliate since {dateFmt.format(new Date(affiliate.joined_at))}.
-              </p>
+              <p className="mt-2 text-xs text-muted">{t('ui.affiliate_since', { v: dateFmt.format(new Date(affiliate.joined_at)) })}</p>
             </InfoCard>
 
-            <InfoCard title="Invite someone">
+            <InfoCard title={t('ui.invite_someone')}>
               <div className="flex flex-col gap-3">
                 <input
                   type="email"
-                  placeholder="name@example.com"
+                  placeholder={t('ui.name_example_com')}
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   className="rounded-[3px] border border-line bg-surface px-3 py-2.5 text-sm text-ink outline-none focus:border-brand"
@@ -210,14 +202,14 @@ export function CandidateAffiliatePage() {
                   }
                   className="flex w-fit items-center gap-2 rounded-[4px] bg-brand px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {inviting ? 'Sending…' : 'Send invitation'}
+                  {inviting ? t('ui.sending') : t('ui.send_invitation')}
                   <ArrowRightIcon className="size-4" />
                 </button>
               </div>
             </InfoCard>
 
             <AffiliateLedger affiliateId={affiliate.id} userId={userId!} />
-            <InfoCard title="People you referred">
+            <InfoCard title={t('ui.people_you_referred')}>
               {referrals.length > 0 ? (
                 <div className="flex flex-col divide-y divide-line">
                   {referrals.map((r) => {
@@ -235,13 +227,13 @@ export function CandidateAffiliatePage() {
                           )}
                         </span>
                         <span className="text-muted-600">
-                          {pending ? 'Invited' : 'Joined'}{' '}
+                          {pending ? t('ui.invited') : t('ui.joined')}{' '}
                           {dateFmt.format(new Date(r.referred_at))}
                         </span>
                         <span className="text-muted-600">
                           {pending
-                            ? 'Not signed up yet'
-                            : (r.purchase_ref ?? 'No purchase yet')}
+                            ? t('ui.not_signed_up_yet')
+                            : (r.purchase_ref ?? t('ui.no_purchase_yet'))}
                         </span>
                         <span
                           className={`rounded-full px-2.5 py-0.5 text-xs ${
@@ -254,18 +246,16 @@ export function CandidateAffiliatePage() {
                         >
                           {r.commission_status === 'pending'
                             ? pending
-                              ? 'Awaiting sign-up'
-                              : 'Pending purchase'
-                            : `$${(r.commission_usd ?? 0).toLocaleString()} ${r.commission_status}`}
+                              ? t('ui.awaiting_sign_up')
+                              : t('ui.pending_purchase')
+                            : `$${(r.commission_usd ?? 0).toLocaleString()} ${optionLabel(r.commission_status)}`}
                         </span>
                       </div>
                     )
                   })}
                 </div>
               ) : (
-                <p className="py-4 text-center text-sm text-muted">
-                  No referrals yet ,  share your link or send an invitation.
-                </p>
+                <p className="py-4 text-center text-sm text-muted">{t('ui.no_referrals_yet_share_your_link')}</p>
               )}
             </InfoCard>
           </>

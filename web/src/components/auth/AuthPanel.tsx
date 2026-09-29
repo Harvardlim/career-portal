@@ -1,5 +1,6 @@
 import type { ComponentType, SVGProps } from 'react'
 import { BriefcaseIcon, BuildingIcon, CircleCheckIcon } from '@/components/icons'
+import { useT, tr } from '@/lib/i18n'
 
 type Feature = {
   value: string
@@ -8,9 +9,9 @@ type Feature = {
 }
 
 const features: Feature[] = [
-  { value: 'Verified', label: 'Businesses & experts, both sides', Icon: CircleCheckIcon },
-  { value: 'Max 10', label: 'Matched experts per posting', Icon: BuildingIcon },
-  { value: 'Pay on actual interest', label: 'Fixed fee, only after release', Icon: BriefcaseIcon },
+  { get value() { return tr('ap.v1') }, get label() { return tr('ap.l1') }, Icon: CircleCheckIcon },
+  { get value() { return tr('ap.v2') }, get label() { return tr('ap.l2') }, Icon: BuildingIcon },
+  { get value() { return tr('ap.v3') }, get label() { return tr('ap.l3') }, Icon: BriefcaseIcon },
 ]
 
 /**
@@ -19,6 +20,7 @@ const features: Feature[] = [
  * gradient so the page stays self-contained.
  */
 export function AuthPanel() {
+  const t = useT()
   return (
     <div className="relative flex h-full min-h-[560px] flex-col justify-end overflow-hidden bg-navy lg:min-h-screen lg:[clip-path:polygon(9%_0,100%_0,100%_100%,0_100%)]">
       <div
@@ -26,9 +28,7 @@ export function AuthPanel() {
         className="absolute inset-0 bg-[radial-gradient(120%_120%_at_80%_0%,#25365e_0%,#1b2a4a_45%,#121d33_100%)]"
       />
       <div className="relative flex flex-col gap-12 p-10 pb-16 text-white lg:p-[60px] lg:pb-24 lg:pl-24">
-        <p className="max-w-[560px] text-3xl font-medium leading-tight lg:text-[40px] lg:leading-[48px]">
-          The right expert, fast. Post free, hire only when it fits.
-        </p>
+        <p className="max-w-[560px] text-3xl font-medium leading-tight lg:text-[40px] lg:leading-[48px]">{t('ui.the_right_expert_fast_post_free')}</p>
         <div className="flex max-w-[560px] flex-wrap gap-x-6 gap-y-8 sm:justify-between">
           {features.map(({ value, label, Icon }) => (
             <div key={label} className="flex flex-col gap-6">

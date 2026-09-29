@@ -33,7 +33,7 @@ export function ForExpertsPage() {
           ]}
         />
         <div className="mt-10 rounded-xl border border-gold/40 bg-gold-50 p-6">
-          <p className="text-sm font-semibold uppercase tracking-wide text-gold">Trust</p>
+          <p className="text-sm font-semibold uppercase tracking-wide text-gold">{t('mkt.trust')}</p>
           <p className="mt-2 text-navy">{t('exp.trust')}</p>
         </div>
       </Section>

@@ -8,6 +8,7 @@ import { updateMyCandidate } from '@/lib/candidateProfile'
 import { useCandidate } from '@/lib/dashboard'
 import { SITE_URL } from '@/lib/site'
 import { supabase } from '@/lib/supabase'
+import { useT } from '@/lib/i18n'
 
 function slugify(s: string): string {
   return s
@@ -30,6 +31,7 @@ function badgeSvg(name: string): string {
 }
 
 export function HireMePage() {
+  const t = useT()
   const { candidate, session, loading, reload } = useCandidate()
   const [slug, setSlug] = useState('')
   const [saving, setSaving] = useState(false)
@@ -70,11 +72,11 @@ export function HireMePage() {
     setSaving(true)
     try {
       await updateMyCandidate(session.user.id, { public_slug: slugify(slug) })
-      toast.success('Your public profile is live.')
+      toast.success(t('ui.your_public_profile_is_live'))
       await reload()
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Could not save'
-      toast.error(msg.includes('duplicate') ? 'That link is taken ,  try another.' : msg)
+      const msg = err instanceof Error ? err.message : t('ui.could_not_save')
+      toast.error(msg.includes('duplicate') ? t('ui.that_link_is_taken_try_another') : msg)
     } finally {
       setSaving(false)
     }
@@ -83,9 +85,9 @@ export function HireMePage() {
   async function copy(text: string, what: string) {
     try {
       await navigator.clipboard.writeText(text)
-      toast.success(`${what} copied.`)
+      toast.success(t('ui.copied', { what }))
     } catch {
-      toast.error('Could not copy ,  select and copy it manually.')
+      toast.error(t('ui.could_not_copy_select_and_copy_2'))
     }
   }
 
@@ -93,48 +95,41 @@ export function HireMePage() {
     <DashboardLayout>
       <div className="flex max-w-3xl flex-col gap-6">
         <div>
-          <h1 className="text-xl font-semibold text-ink">"Hire me on partly.asia" badge</h1>
-          <p className="mt-1 text-sm text-muted">
-            Add this to your LinkedIn profile so businesses can find and apply to work with you directly.
-          </p>
+          <h1 className="text-xl font-semibold text-ink">{t('ui.hire_me_on_partly_asia_badge')}</h1>
+          <p className="mt-1 text-sm text-muted">{t('ui.add_this_to_your_linkedin_profile')}</p>
         </div>
 
         <Card className="flex flex-col gap-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Your public profile link</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('ui.your_public_profile_link')}</h2>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="flex-1">
-              <Field label="Profile address">
+              <Field label={t('ui.profile_address')}>
                 <div className="flex items-center gap-0">
-                  <span className="flex h-12 items-center rounded-l-md border border-r-0 border-line bg-surface-alt px-3 text-sm text-muted">
-                    {SITE_URL.replace(/^https?:\/\//, '')}/expert/
-                  </span>
+                  <span className="flex h-12 items-center rounded-l-md border border-r-0 border-line bg-surface-alt px-3 text-sm text-muted">{t('ui.expert_2', { v: SITE_URL.replace(/^https?:\/\//, '') })}</span>
                   <TextInput value={slug} onChange={(e) => setSlug(e.target.value)} className="rounded-l-none" />
                 </div>
               </Field>
             </div>
             <PrimaryButton onClick={enable} disabled={saving || loading || !slug.trim()}>
-              {saving ? 'Saving…' : profileUrl ? 'Update link' : 'Publish profile'}
+              {saving ? t('ui.saving') : profileUrl ? t('ui.update_link') : t('ui.publish_profile')}
             </PrimaryButton>
           </div>
-          <p className="text-xs text-muted">
-            Your public profile shows your name, headline, experience and verification marks ,  never your email or
-            phone. Those are only exchanged after a business releases contact and you unlock it.
-          </p>
+          <p className="text-xs text-muted">{t('ui.your_public_profile_shows_your_name')}</p>
         </Card>
 
         {profileUrl && candidate && (
           <>
             <Card className="flex flex-col gap-4">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Badge preview</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('ui.badge_preview')}</h2>
               <a href={badgeUrl ?? profileUrl} target="_blank" rel="noreferrer" className="w-fit">
-                <img src={svgData} alt="Hire me on partly.asia" width={240} height={56} />
+                <img src={svgData} alt={t('ui.hire_me_on_partly_asia')} width={240} height={56} />
               </a>
               {views && (
                 <div className="grid grid-cols-3 gap-3 rounded-lg bg-surface-alt p-3 text-center">
                   {[
-                    { label: 'Profile views', value: views.total },
-                    { label: 'From your badge', value: views.badge },
-                    { label: 'Last 30 days', value: views.last30 },
+                    { label: t('ui.profile_views'), value: views.total },
+                    { label: t('ui.from_your_badge'), value: views.badge },
+                    { label: t('ui.last_30_days'), value: views.last30 },
                   ].map((v) => (
                     <div key={v.label}>
                       <p className="text-lg font-semibold text-ink">{v.value}</p>
@@ -144,27 +139,21 @@ export function HireMePage() {
                 </div>
               )}
               <SecondaryButton className="w-fit" onClick={() => copy(profileUrl, 'Link')}>
-                <LinkIcon className="size-4" /> Copy link
-              </SecondaryButton>
+                <LinkIcon className="size-4" />{' '}{t('ui.copy_link')}</SecondaryButton>
             </Card>
 
             <Card className="flex flex-col gap-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Suggested post</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('ui.suggested_post')}</h2>
               <textarea
                 readOnly
                 value={shareText}
                 rows={3}
                 className="w-full resize-none rounded-md border border-line bg-surface-alt/50 p-3 text-sm text-ink"
               />
-              <SecondaryButton className="w-fit" onClick={() => copy(shareText, 'Post text')}>
-                Copy text
-              </SecondaryButton>
+              <SecondaryButton className="w-fit" onClick={() => copy(shareText, t('hm.post_text'))}>{t('ui.copy_text')}</SecondaryButton>
             </Card>
 
-            <Notice tone="brand">
-              Each badge link is unique to you, so we can show you how many profile views and applications come from
-              it. It links to your public profile ,  never to a payment or contact screen.
-            </Notice>
+            <Notice tone="brand">{t('ui.each_badge_link_is_unique_to')}</Notice>
           </>
         )}
       </div>

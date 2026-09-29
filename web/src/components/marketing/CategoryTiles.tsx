@@ -16,6 +16,8 @@ import {
 import { GoldCircle } from '@/components/marketing/blocks'
 import { useCategories, type Category } from '@/lib/categories'
 import { useT } from '@/lib/i18n'
+import { optionLabel } from '@/lib/optionLabels'
+import { categoryLabel } from '@/lib/categoryNames'
 
 const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   users: UsersIcon,
@@ -39,7 +41,7 @@ export function CategoryTiles({ audience }: { audience: 'business' | 'expert' | 
   const [open, setOpen] = useState<string | null>(null)
   const t = useT()
 
-  if (loading) return <p className="text-center text-sm text-muted">Loading…</p>
+  if (loading) return <p className="text-center text-sm text-muted">{t('ui.loading_2')}</p>
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -82,7 +84,7 @@ function Tile({
           <Icon className="size-5" />
         </GoldCircle>
         <span className="flex-1">
-          <span className="block font-semibold text-navy">{category.name}</span>
+          <span className="block font-semibold text-navy">{optionLabel(category.name)}</span>
           <span className="flex items-center gap-1 text-xs text-muted">
             {open ? t('cat.collapse') : t('cat.expand')}
             <ChevronDownIcon className={`size-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -99,19 +101,19 @@ function Tile({
                 title={s.notes ?? undefined}
                 className="rounded-full bg-cream px-3 py-1 text-xs text-navy"
               >
-                {s.name}
+                {categoryLabel(s.name)}
               </span>
             ))}
           </div>
           <div className="flex flex-wrap gap-3">
             {(audience === 'business' || audience === 'both') && (
               <Link to="/employer/post-need" className="text-sm font-medium text-brand hover:underline">
-                {t('cat.tile.business', { category: category.name })}
+                {t('cat.tile.business', { category: optionLabel(category.name) })}
               </Link>
             )}
             {(audience === 'expert' || audience === 'both') && (
               <Link to={`/needs?category=${category.id}`} className="text-sm font-medium text-brand hover:underline">
-                {t('cat.tile.expert', { category: category.name })}
+                {t('cat.tile.expert', { category: optionLabel(category.name) })}
               </Link>
             )}
           </div>

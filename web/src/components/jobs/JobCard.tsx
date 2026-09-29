@@ -3,8 +3,10 @@ import type { Job } from '@/data/jobs'
 import { MapPinIcon } from '@/components/icons'
 import { CompanyLogo } from '@/components/jobs/CompanyLogo'
 import { SaveJobButton } from '@/components/jobs/SaveJobButton'
+import { useT } from '@/lib/i18n'
 
 export function JobCard({ job }: { job: Job }) {
+  const t = useT()
   return (
     <Link
       to={job.slug ? `/job/${job.slug}` : '/job-detail'}
@@ -29,9 +31,7 @@ export function JobCard({ job }: { job: Job }) {
           <div className="flex items-center gap-2">
             <span className="text-base font-medium text-ink">{job.company}</span>
             {job.featured && (
-              <span className="rounded-full bg-[#ffeded] px-3 py-0.5 text-sm text-[#ff4f4f]">
-                Featured
-              </span>
+              <span className="rounded-full bg-[#ffeded] px-3 py-0.5 text-sm text-[#ff4f4f]">{t('ui.featured')}</span>
             )}
           </div>
           <span className="flex items-center gap-1.5 text-sm text-muted-slate">

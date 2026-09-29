@@ -8,11 +8,13 @@ import { supabase } from '@/lib/supabase'
 import { errMessage } from '@/lib/errors'
 import { useSession } from '@/lib/useSession'
 import { fetchMyCandidate, type CandidateProfileRow } from '@/lib/candidateProfile'
+import { useT } from '@/lib/i18n'
 
 // Personal and contact details (name, photo, CV, phone, nationality, month
 // and year of birth, gender, education) live on the Expert Profile page. This
 // page is just account-level: password and closing the account.
 export function SettingsPage() {
+  const t = useT()
   const { session } = useSession()
   const userId = session?.user?.id ?? null
   const navigate = useNavigate()
@@ -60,30 +62,25 @@ export function SettingsPage() {
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-8">
-        <h1 className="text-2xl font-medium text-ink">Account Settings</h1>
+        <h1 className="text-2xl font-medium text-ink">{t('ui.account_settings')}</h1>
 
         {loading ? (
-          <p className="text-sm text-muted">Loading...</p>
+          <p className="text-sm text-muted">{t('ui.loading')}</p>
         ) : !profile ? (
-          <p className="text-sm text-muted">No expert profile found for this account.</p>
+          <p className="text-sm text-muted">{t('ui.no_expert_profile_found_for_this')}</p>
         ) : (
           <div className="flex max-w-[720px] flex-col gap-10">
             <ChangePasswordForm accountEmail={accountEmail ?? profile.email ?? ''} />
 
             <div className="flex flex-col gap-4">
-              <h2 className="text-lg font-medium text-ink">Delete Your Account</h2>
-              <p className="text-sm text-muted-600">
-                If you delete your partly.asia account, you will no longer be able to get information about your
-                matches, warm leads, and applications. You will be removed from all of partly.asia's services.
-              </p>
+              <h2 className="text-lg font-medium text-ink">{t('ui.delete_your_account')}</h2>
+              <p className="text-sm text-muted-600">{t('ui.if_you_delete_your_partly_asia')}</p>
               <button
                 type="button"
                 onClick={() => setClosePrompt(true)}
                 className="flex w-fit items-center gap-2 text-sm font-medium text-danger"
               >
-                <TrashIcon className="size-4" />
-                Close Account
-              </button>
+                <TrashIcon className="size-4" />{t('ui.close_account')}</button>
             </div>
           </div>
         )}
@@ -92,27 +89,22 @@ export function SettingsPage() {
       {closePrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">
           <div className="w-full max-w-[420px] rounded-xl bg-surface p-6 shadow-2xl">
-            <h2 className="text-lg font-medium text-ink">Close your account?</h2>
-            <p className="mt-2 text-sm text-muted-600">
-              This permanently removes your expert profile, resumes, applications and leads, and signs you out. This
-              can&apos;t be undone.
-            </p>
+            <h2 className="text-lg font-medium text-ink">{t('ui.close_your_account')}</h2>
+            <p className="mt-2 text-sm text-muted-600">{t('ui.this_permanently_removes_your_expert_profile')}</p>
             <div className="mt-6 flex justify-end gap-3">
               <button
                 type="button"
                 disabled={closing}
                 onClick={() => setClosePrompt(false)}
                 className="rounded-[4px] border border-line px-5 py-2.5 text-sm font-semibold text-ink-600 hover:text-ink disabled:opacity-50"
-              >
-                Keep my account
-              </button>
+              >{t('ui.keep_my_account')}</button>
               <button
                 type="button"
                 disabled={closing}
                 onClick={confirmCloseAccount}
                 className="rounded-[4px] bg-danger px-5 py-2.5 text-sm font-semibold text-white hover:brightness-95 disabled:opacity-50"
               >
-                {closing ? 'Closing…' : 'Close account'}
+                {closing ? t('ui.closing') : t('ui.close_account_2')}
               </button>
             </div>
           </div>
@@ -123,6 +115,7 @@ export function SettingsPage() {
 }
 
 export function ChangePasswordForm({ accountEmail }: { accountEmail: string }) {
+  const t = useT()
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -131,11 +124,11 @@ export function ChangePasswordForm({ accountEmail }: { accountEmail: string }) {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (next.length < 6) {
-      toast.error('New password must be at least 6 characters.')
+      toast.error(t('ui.new_password_must_be_at_least'))
       return
     }
     if (next !== confirm) {
-      toast.error('Passwords do not match.')
+      toast.error(t('ui.passwords_do_not_match'))
       return
     }
     setBusy(true)
@@ -145,12 +138,12 @@ export function ChangePasswordForm({ accountEmail }: { accountEmail: string }) {
         password: current,
       })
       if (reauthError) {
-        toast.error('Current password is incorrect.')
+        toast.error(t('ui.current_password_is_incorrect'))
         return
       }
       const { error } = await supabase.auth.updateUser({ password: next })
       if (error) throw error
-      toast.success('Password updated')
+      toast.success(t('ui.password_updated'))
       setCurrent('')
       setNext('')
       setConfirm('')
@@ -163,19 +156,19 @@ export function ChangePasswordForm({ accountEmail }: { accountEmail: string }) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-      <h2 className="text-lg font-medium text-ink">Change Password</h2>
+      <h2 className="text-lg font-medium text-ink">{t('ui.change_password')}</h2>
       <div className="grid gap-6 sm:grid-cols-3">
-        <Field label="Current Password">
+        <Field label={t('ui.current_password')}>
           <TextInput type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />
         </Field>
-        <Field label="New Password">
+        <Field label={t('ui.new_password')}>
           <TextInput type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} />
         </Field>
-        <Field label="Confirm Password">
+        <Field label={t('ui.confirm_password')}>
           <TextInput type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
         </Field>
       </div>
-      <SaveButton disabled={busy}>{busy ? 'Saving...' : 'Save Changes'}</SaveButton>
+      <SaveButton disabled={busy}>{busy ? t('ui.saving_2') : t('ui.save_changes')}</SaveButton>
     </form>
   )
 }

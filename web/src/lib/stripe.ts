@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { tr } from './i18n'
 import { SITE_URL } from './site'
 
 /** Keys the `stripe-checkout` edge function understands. Amounts/credits live
@@ -21,7 +22,7 @@ export async function startCheckout(args: CheckoutArgs): Promise<never> {
 
   if (error) {
     // FunctionsHttpError carries the function's JSON body on `context`.
-    let message = 'Could not start checkout. Please try again.'
+    let message = tr('err.checkout')
     const ctx = (error as { context?: Response }).context
     if (ctx && typeof ctx.json === 'function') {
       try {
@@ -37,7 +38,7 @@ export async function startCheckout(args: CheckoutArgs): Promise<never> {
   }
 
   const url = (data as { url?: string } | null)?.url
-  if (!url) throw new Error('Stripe did not return a checkout URL.')
+  if (!url) throw new Error(tr('err.no_checkout_url'))
   window.location.href = url
   // Give the redirect a tick; callers can `await` without a resolve path.
   return new Promise<never>(() => {})

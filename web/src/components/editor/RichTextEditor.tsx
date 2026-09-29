@@ -31,6 +31,7 @@ import {
   type EditorState,
   type LexicalEditor,
 } from 'lexical'
+import { useT } from '@/lib/i18n'
 
 // Only transformers whose nodes are registered below (no code / links).
 const MD_TRANSFORMERS = [...ELEMENT_TRANSFORMERS, ...TEXT_FORMAT_TRANSFORMERS]
@@ -84,6 +85,7 @@ function InitialHtmlPlugin({ html }: { html: string }) {
 }
 
 function Toolbar() {
+  const t = useT()
   const [editor] = useLexicalComposerContext()
   const btn =
     'grid h-7 min-w-7 place-items-center rounded px-1 text-sm text-ink-600 hover:bg-surface-alt'
@@ -91,20 +93,20 @@ function Toolbar() {
 
   return (
     <div className="flex flex-wrap items-center gap-0.5 border-b border-line px-2 py-1.5">
-      <button type="button" className={btn} onMouseDown={stop} onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold')} aria-label="Bold">
+      <button type="button" className={btn} onMouseDown={stop} onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold')} aria-label={t('ui.bold')}>
         <span className="font-semibold">B</span>
       </button>
-      <button type="button" className={btn} onMouseDown={stop} onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic')} aria-label="Italic">
+      <button type="button" className={btn} onMouseDown={stop} onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic')} aria-label={t('ui.italic')}>
         <span className="italic">I</span>
       </button>
-      <button type="button" className={btn} onMouseDown={stop} onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline')} aria-label="Underline">
+      <button type="button" className={btn} onMouseDown={stop} onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline')} aria-label={t('ui.underline')}>
         <span className="underline">U</span>
       </button>
       <span className="mx-1 h-4 w-px bg-line" />
-      <button type="button" className={btn} onMouseDown={stop} onClick={() => editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined)} aria-label="Bulleted list">
+      <button type="button" className={btn} onMouseDown={stop} onClick={() => editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined)} aria-label={t('ui.bulleted_list')}>
         •
       </button>
-      <button type="button" className={btn} onMouseDown={stop} onClick={() => editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined)} aria-label="Numbered list">
+      <button type="button" className={btn} onMouseDown={stop} onClick={() => editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined)} aria-label={t('ui.numbered_list')}>
         1.
       </button>
       <span className="mx-1 h-4 w-px bg-line" />
@@ -119,8 +121,8 @@ function Toolbar() {
             includeHeaders: true,
           })
         }
-        aria-label="Insert table"
-        title="Insert 3×3 table"
+        aria-label={t('ui.insert_table')}
+        title={t('ui.insert_3_3_table')}
       >
         ▦
       </button>

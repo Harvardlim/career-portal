@@ -37,8 +37,11 @@ import {
 } from '@/lib/partly'
 import { formatDate } from '@/lib/format'
 import { formatStoredPhone } from '@/lib/phone'
+import { useT } from '@/lib/i18n'
+import { categoryLabel } from '@/lib/categoryNames'
 
 export function PostingMatchesPage() {
+  const t = useT()
   const { id = '' } = useParams()
   const [posting, setPosting] = useState<PostingRow | null>(null)
   const [matches, setMatches] = useState<MatchCard[]>([])
@@ -95,16 +98,20 @@ export function PostingMatchesPage() {
     if (ids.length === 0) return
     const others = released.length + ids.length - 1
     setConfirmState({
-      title: ids.length === 1 ? 'Tell this expert you\u2019re interested?' : `Tell ${ids.length} experts you\u2019re interested?`,
+      title: ids.length === 1 ? t('pm.tell_one') : t('pm.tell_many', { n: ids.length }),
       message:
         ids.length === 1
-          ? `Your contact is released to them. They'll have 2 days to pay to unlock it${others > 0 ? ` and will be told ${others} other expert${others === 1 ? ' was' : 's were'} also considered` : ''}.`
-          : 'Your contact is released to each. Each will have 2 days to pay to unlock it and will be told they are one of several being considered.',
-      confirmLabel: "I'm interested",
+          ? others > 0
+            ? others === 1
+              ? t('pm.msg_one_other1')
+              : t('pm.msg_one_others', { n: others })
+            : t('pm.msg_one')
+          : t('pm.msg_many'),
+      confirmLabel: t('ui.i_m_interested'),
       tone: 'default',
       run: async () => {
         const n = await releaseContact(id, ids)
-        toast.success(n === 1 ? 'Expert told you\u2019re interested.' : `${n} experts told you\u2019re interested.`)
+        toast.success(n === 1 ? t('ui.expert_told_you_re_interested') : t('ui.experts_told_you_re_interested', { n }))
         setSelected([])
         await load()
       },
@@ -113,14 +120,14 @@ export function PostingMatchesPage() {
 
   function handlePassOnAll() {
     setConfirmState({
-      title: `Pass on all ${matches.length} matches?`,
+      title: t('ui.pass_on_all_matches', { length: matches.length }),
       message:
-        'No further candidates will be surfaced for this posting, including anyone who applies later, and it will be marked as having no further matches.',
-      confirmLabel: 'Pass on all',
+        t('ui.no_further_candidates_will_be_surfaced'),
+      confirmLabel: t('ui.pass_on_all'),
       tone: 'danger',
       run: async () => {
         await markNoFurtherMatches(id)
-        toast('Posting marked: no further matches.')
+        toast(t('pm.marked'))
         await load()
       },
     })
@@ -128,16 +135,16 @@ export function PostingMatchesPage() {
 
   function handleClose() {
     setConfirmState({
-      title: 'Close this posting?',
+      title: t('ui.close_this_posting'),
       message:
         pending.length > 0
-          ? `${pending.length} expert${pending.length === 1 ? '' : 's'} still have an open payment window ,  closing ends all of them immediately and nobody is charged.`
-          : 'This stops any further matches from being surfaced.',
-      confirmLabel: 'Close posting',
+          ? t(pending.length === 1 ? 'pm.close_pending1' : 'pm.close_pendingn', { n: pending.length })
+          : t('pm.close_none'),
+      confirmLabel: t('ui.close_posting'),
       tone: 'danger',
       run: async () => {
         await closePosting(id)
-        toast.success('Posting closed.')
+        toast.success(t('ui.posting_closed'))
         await load()
       },
     })
@@ -150,7 +157,7 @@ export function PostingMatchesPage() {
       await confirmState.run()
       setConfirmState(null)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Something went wrong')
+      toast.error(err instanceof Error ? err.message : t('ui.something_went_wrong'))
     } finally {
       setBusy(false)
     }
@@ -159,14 +166,14 @@ export function PostingMatchesPage() {
   if (loading) {
     return (
       <EmployerDashboardLayout>
-        <p className="text-sm text-muted">Loading…</p>
+        <p className="text-sm text-muted">{t('ui.loading_2')}</p>
       </EmployerDashboardLayout>
     )
   }
   if (!posting) {
     return (
       <EmployerDashboardLayout>
-        <EmptyState>Posting not found.</EmptyState>
+        <EmptyState>{t('ui.posting_not_found')}</EmptyState>
       </EmployerDashboardLayout>
     )
   }
@@ -176,50 +183,38 @@ export function PostingMatchesPage() {
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
           <div>
-            <Link to="/employer/postings" className="text-xs text-muted hover:text-brand">
-              ← My postings
-            </Link>
+            <Link to="/employer/postings" className="text-xs text-muted hover:text-brand">{t('ui.my_postings_2')}</Link>
             <h1 className="mt-1 text-xl font-semibold text-ink">{posting.title}</h1>
             <p className="mt-1 text-sm text-muted">
-              {posting.category ?? 'Uncategorised'} · {postingCountry(posting)} · {projectTypeLabel(posting.project_type, posting.job_type)} ·{' '}
+              {posting.category ? categoryLabel(posting.category) : t('ui.uncategorised')} · {postingCountry(posting)} · {projectTypeLabel(posting.project_type, posting.job_type)} ·{' '}
               {budgetLabel(posting)}
             </p>
-            <p className="mt-1 text-xs text-muted">
-              Posted {formatDate(posting.posted_at)}
-              {posting.expires_at && (
+            <p className="mt-1 text-xs text-muted">{t('ui.posted', { posted_at: formatDate(posting.posted_at) })}{posting.expires_at && (
                 <>
                   {' · '}
                   <span className={expired ? 'font-medium text-danger' : ''}>
-                    {expired ? 'Expired' : 'Expires'} {formatDate(posting.expires_at)}
+                    {expired ? t('ui.expired') : t('ui.expires')} {formatDate(posting.expires_at)}
                   </span>
                 </>
               )}
             </p>
           </div>
           {!isClosed && (
-            <SecondaryButton className="text-danger" onClick={handleClose} disabled={busy}>
-              Close posting
-            </SecondaryButton>
+            <SecondaryButton className="text-danger" onClick={handleClose} disabled={busy}>{t('ui.close_posting')}</SecondaryButton>
           )}
         </div>
 
         {posting.matching_status === 'no_further_matches' && (
-          <Notice tone="warning" title="No further matches">
-            You passed on all matches for this posting. No additional candidates will be surfaced.
-          </Notice>
+          <Notice tone="warning" title={t('ui.no_further_matches')}>{t('ui.you_passed_on_all_matches_for')}</Notice>
         )}
         {posting.matching_status === 'closed' && (
-          <Notice tone="brand" title="This posting is closed">
-            Every open payment window was ended when you closed it. Contacts already unlocked stay visible until they expire.
-          </Notice>
+          <Notice tone="brand" title={t('ui.this_posting_is_closed')}>{t('ui.every_open_payment_window_was_ended')}</Notice>
         )}
 
         {/* Unlocked contacts */}
         {contacts.length > 0 && (
           <section className="flex flex-col gap-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-              Unlocked contacts ({contacts.length})
-            </h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('ui.unlocked_contacts', { length: contacts.length })}</h2>
             <div className="grid gap-3 md:grid-cols-2">
               {contacts.map((c) => (
                 <Card key={c.release_id} className="border-emerald-200 bg-emerald-50/40">
@@ -240,15 +235,12 @@ export function PostingMatchesPage() {
                         </span>
                         {c.linkedin_url && (
                           <a href={c.linkedin_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-ink hover:text-brand">
-                            <LinkedinIcon className="size-4 text-muted" /> LinkedIn
-                          </a>
+                            <LinkedinIcon className="size-4 text-muted" />{' '}{t('ui.linkedin')}</a>
                         )}
                       </div>
-                      <p className="mt-2 text-xs text-muted">
-                        Visible until {formatDate(c.contact_expires_at)} ,  keep this conversation on partly.asia.
-                      </p>
+                      <p className="mt-2 text-xs text-muted">{t('ui.visible_until_keep_this_conversation_on', { contact_expires_at: formatDate(c.contact_expires_at) })}</p>
                       <div className="mt-3">
-                        <RatingWidget releaseId={c.release_id} raterKind="employer" raterLabel="this expert" />
+                        <RatingWidget releaseId={c.release_id} raterKind="employer" raterLabel={t('ui.this_expert')} />
                       </div>
                     </div>
                   </div>
@@ -264,10 +256,10 @@ export function PostingMatchesPage() {
         {released.length > 0 && (
           <section className="grid gap-4 md:grid-cols-3">
             <Card>
-              <h2 className="text-sm font-semibold text-ink">Awaiting unlock ({pending.length})</h2>
-              <p className="mb-3 text-xs text-muted">You released contact; they have 2 days to pay to unlock it.</p>
+              <h2 className="text-sm font-semibold text-ink">{t('ui.awaiting_unlock_2', { length: pending.length })}</h2>
+              <p className="mb-3 text-xs text-muted">{t('ui.you_released_contact_they_have_2')}</p>
               {pending.length === 0 ? (
-                <p className="text-sm text-muted">Nobody pending.</p>
+                <p className="text-sm text-muted">{t('ui.nobody_pending')}</p>
               ) : (
                 <ul className="flex flex-col divide-y divide-line">
                   {pending.map((m) => (
@@ -283,10 +275,10 @@ export function PostingMatchesPage() {
               )}
             </Card>
             <Card>
-              <h2 className="text-sm font-semibold text-ink">Unlocked ({unlocked.length})</h2>
-              <p className="mb-3 text-xs text-muted">Paid leads ,  contact is exchanged both ways.</p>
+              <h2 className="text-sm font-semibold text-ink">{t('ui.unlocked_3', { length: unlocked.length })}</h2>
+              <p className="mb-3 text-xs text-muted">{t('ui.paid_leads_contact_is_exchanged_both')}</p>
               {unlocked.length === 0 ? (
-                <p className="text-sm text-muted">Nobody has unlocked yet.</p>
+                <p className="text-sm text-muted">{t('ui.nobody_has_unlocked_yet')}</p>
               ) : (
                 <ul className="flex flex-col divide-y divide-line">
                   {unlocked.map((m) => (
@@ -295,17 +287,17 @@ export function PostingMatchesPage() {
                         <Avatar name={m.full_name} src={m.avatar_path} size={32} />
                         <span className="text-sm text-ink">{m.full_name}</span>
                       </span>
-                      <Pill tone="success">Unlocked</Pill>
+                      <Pill tone="success">{t('ui.unlocked')}</Pill>
                     </li>
                   ))}
                 </ul>
               )}
             </Card>
             <Card>
-              <h2 className="text-sm font-semibold text-ink">Gone cold ({cold.length})</h2>
-              <p className="mb-3 text-xs text-muted">The window ran out or the posting closed ,  never charged.</p>
+              <h2 className="text-sm font-semibold text-ink">{t('ui.gone_cold', { length: cold.length })}</h2>
+              <p className="mb-3 text-xs text-muted">{t('ui.the_window_ran_out_or_the')}</p>
               {cold.length === 0 ? (
-                <p className="text-sm text-muted">Nothing has gone cold.</p>
+                <p className="text-sm text-muted">{t('ui.nothing_has_gone_cold')}</p>
               ) : (
                 <ul className="flex flex-col divide-y divide-line">
                   {cold.map((m) => (
@@ -314,7 +306,7 @@ export function PostingMatchesPage() {
                         <Avatar name={m.full_name} src={m.avatar_path} size={32} />
                         <span className="text-sm text-ink">{m.full_name}</span>
                       </span>
-                      <Pill tone="neutral">{m.release_status === 'job_closed' ? 'Closed' : 'Went cold'}</Pill>
+                      <Pill tone="neutral">{m.release_status === 'job_closed' ? t('ui.closed') : t('ui.went_cold')}</Pill>
                     </li>
                   ))}
                 </ul>
@@ -326,20 +318,14 @@ export function PostingMatchesPage() {
         {/* The 10 */}
         <section className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-              Your matches ({matches.length}/10)
-            </h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('ui.your_matches_10', { length: matches.length })}</h2>
             {!isClosed && releasable.length > 0 && (
               <div className="flex items-center gap-2">
                 {selected.length > 0 && (
-                  <PrimaryButton className="h-9 px-4 text-xs" disabled={busy} onClick={() => handleRelease(selected)}>
-                    I&apos;m interested in {selected.length} selected
-                  </PrimaryButton>
+                  <PrimaryButton className="h-9 px-4 text-xs" disabled={busy} onClick={() => handleRelease(selected)}>{t('ui.i_m_interested_in_selected', { length: selected.length })}</PrimaryButton>
                 )}
                 {released.length === 0 && matches.length > 0 && (
-                  <SecondaryButton className="h-9 px-3 text-xs" disabled={busy} onClick={handlePassOnAll}>
-                    Pass on all
-                  </SecondaryButton>
+                  <SecondaryButton className="h-9 px-3 text-xs" disabled={busy} onClick={handlePassOnAll}>{t('ui.pass_on_all')}</SecondaryButton>
                 )}
               </div>
             )}
@@ -347,17 +333,14 @@ export function PostingMatchesPage() {
 
           {matches.length > 0 && !isClosed && (
             <Notice tone="warning">
-              <strong>Your shortlist holds at most 10 experts ,  choose carefully.</strong> Experts already on it keep
-              their place; while there are free slots, new applicants are added below them. Passing on all of them
-              means no further candidates will be surfaced.
-            </Notice>
+              <strong>{t('ui.your_shortlist_holds_at_most_10')}</strong>{' '}{t('ui.experts_already_on_it_keep_their')}</Notice>
           )}
 
           {matches.length === 0 ? (
             <EmptyState>
               {posting.matching_status === 'open'
-                ? 'No applicants yet. Your matches appear here as soon as experts apply.'
-                : 'No matches for this posting.'}
+                ? t('ui.no_applicants_yet_your_matches_appear')
+                : t('ui.no_matches_for_this_posting')}
             </EmptyState>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -379,10 +362,10 @@ export function PostingMatchesPage() {
                         ) : (
                           <p className="truncate font-medium text-ink">{m.full_name}</p>
                         )}
-                        <p className="truncate text-sm text-muted">{m.headline ?? m.title ?? 'Expert'}</p>
+                        <p className="truncate text-sm text-muted">{m.headline ?? m.title ?? t('ui.expert')}</p>
                         {m.business_name && <p className="truncate text-xs text-muted">{m.business_name}</p>}
                         <p className="text-xs text-muted">
-                          {m.years_experience ? `${m.years_experience} experience` : ''}
+                          {m.years_experience ? t('ui.experience_3', { years_experience: m.years_experience }) : ''}
                           {m.years_experience && m.country_code ? ' · ' : ''}
                           {countryName(m.country_code)}
                         </p>
@@ -398,30 +381,24 @@ export function PostingMatchesPage() {
                       <Link
                         to={`/employer/applications/applicant?id=${m.application_id}`}
                         className="w-fit text-xs font-semibold text-brand hover:underline"
-                      >
-                        View full profile →
-                      </Link>
+                      >{t('ui.view_full_profile')}</Link>
                     )}
                     <div className="mt-auto flex items-center gap-2 pt-1">
                       {done ? (
                         <Pill tone={m.release_status === 'paid' ? 'success' : m.release_status === 'awaiting_payment' ? 'warning' : 'neutral'}>
                           {m.release_status === 'paid'
-                            ? 'Unlocked'
+                            ? t('ui.unlocked')
                             : m.release_status === 'awaiting_payment'
-                              ? 'Interested · awaiting unlock'
-                              : 'Interested · went cold'}
+                              ? t('ui.interested_awaiting_unlock')
+                              : t('ui.interested_went_cold')}
                         </Pill>
                       ) : isClosed ? (
-                        <Pill tone="neutral">Not released</Pill>
+                        <Pill tone="neutral">{t('ui.not_released')}</Pill>
                       ) : (
                         <>
-                          <PrimaryButton className="h-9 flex-1 text-xs" disabled={busy} onClick={() => handleRelease([m.candidate_id])}>
-                            I&apos;m interested
-                          </PrimaryButton>
+                          <PrimaryButton className="h-9 flex-1 text-xs" disabled={busy} onClick={() => handleRelease([m.candidate_id])}>{t('ui.i_m_interested')}</PrimaryButton>
                           <label className="flex cursor-pointer items-center gap-1 text-xs text-muted">
-                            <input type="checkbox" checked={checked} onChange={() => toggle(m.candidate_id)} />
-                            Select
-                          </label>
+                            <input type="checkbox" checked={checked} onChange={() => toggle(m.candidate_id)} />{t('ui.select_3')}</label>
                         </>
                       )}
                     </div>

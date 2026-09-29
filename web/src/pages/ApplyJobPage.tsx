@@ -16,8 +16,10 @@ import {
 } from '@/lib/candidateProfile'
 import { useCandidate } from '@/lib/dashboard'
 import { missingApplyProfile } from '@/lib/partly'
+import { useT } from '@/lib/i18n'
 
 export function ApplyJobPage() {
+  const t = useT()
   const [params] = useSearchParams()
   const slug = params.get('job')
   const navigate = useNavigate()
@@ -84,7 +86,7 @@ export function ApplyJobPage() {
       const row = await uploadResume(candidate.id, file)
       setResumes((prev) => [row, ...prev])
       setResumeId(row.id)
-      toast.success('Resume uploaded and saved to your account')
+      toast.success(t('ui.resume_uploaded_and_saved_to_your'))
     } catch (err) {
       toast.error(errMessage(err))
     } finally {
@@ -95,28 +97,28 @@ export function ApplyJobPage() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!candidate || !session) {
-      toast.error('Sign in as a candidate to apply.')
+      toast.error(t('ui.sign_in_as_a_candidate_to_2'))
       navigate('/sign-in')
       return
     }
     if (!job) return
     const missing = missingApplyProfile(candidate)
     if (missing.length > 0) {
-      toast.error(`Complete your profile before applying: add your ${missing.join(' and ')}.`)
+      toast.error(t('ui.complete_your_profile_before_applying_add', { v: missing.join(t('ui.and')) }))
       navigate('/dashboard/expert-profile')
       return
     }
     if (isOutsideExpertise(job.category, candidate.expertise_field)) {
-      toast.error(`This need is in ${job.category}, which isn't one of the categories you serve.`)
+      toast.error(t('ui.this_need_is_in_which_isn', { category: job.category ?? '' }))
       return
     }
     if (!candidate.identity_verified) {
-      toast.error('Finish Basic verification (the last 4 characters of your ID) before applying.')
+      toast.error(t('ui.finish_basic_verification_the_last_4'))
       navigate('/dashboard/verification')
       return
     }
     if (blocked) {
-      toast('You have already applied to this job.')
+      toast(t('apply.already'))
       navigate(`/job/${job.slug}`)
       return
     }
@@ -144,14 +146,14 @@ export function ApplyJobPage() {
         })
         if (error) {
           if (/duplicate|unique/i.test(error.message)) {
-            toast('You have already applied to this job.')
+            toast(t('apply.already'))
             navigate(`/job/${job.slug}`)
             return
           }
           throw error
         }
       }
-      toast.success(canReapply ? 'Re-applied successfully' : 'Application submitted')
+      toast.success(canReapply ? t('ui.re_applied_successfully') : t('ui.application_submitted'))
       navigate('/dashboard/applied-jobs')
     } catch (err) {
       toast.error(errMessage(err))
@@ -161,70 +163,53 @@ export function ApplyJobPage() {
   }
 
   const resumeOptions = [
-    { value: '', label: 'Select a resume…' },
+    { value: '', label: t('ui.select_a_resume') },
     ...resumes.map((r) => ({ value: r.id, label: r.file_name })),
   ]
 
   return (
     <AppShell>
       <Breadcrumb
-        title="Apply Job"
+        title={t('ui.apply_job_2')}
         trail={[
-          { label: 'Home', to: '/' },
-          { label: 'Find Job', to: '/find-job' },
+          { label: t('ui.home'), to: '/' },
+          { label: t('ui.find_job'), to: '/find-job' },
           { label: job?.title ?? 'Apply' },
         ]}
       />
 
       <div className="mx-auto w-full max-w-[720px] px-6 py-12 lg:px-10">
         {loading || candidateLoading ? (
-          <p className="py-10 text-center text-sm text-muted">Loading…</p>
+          <p className="py-10 text-center text-sm text-muted">{t('ui.loading_2')}</p>
         ) : !job ? (
-          <p className="rounded-lg bg-surface-alt px-4 py-12 text-center text-sm text-muted">
-            Job not found.{' '}
-            <Link to="/find-job" className="font-medium text-brand">
-              Browse jobs
-            </Link>
+          <p className="rounded-lg bg-surface-alt px-4 py-12 text-center text-sm text-muted">{t('ui.job_not_found')}<Link to="/find-job" className="font-medium text-brand">{t('ui.browse_jobs')}</Link>
           </p>
         ) : !candidate ? (
           <div className="rounded-xl border border-line p-8 text-center">
-            <p className="text-base font-medium text-ink">
-              Sign in to apply for {job.title}
-            </p>
+            <p className="text-base font-medium text-ink">{t('ui.sign_in_to_apply_for', { title: job.title })}</p>
             <Link
               to="/sign-in"
               className="mt-4 inline-flex items-center gap-2 rounded-[4px] bg-brand px-6 py-3 text-sm font-semibold text-white hover:bg-brand-600"
-            >
-              Sign in <ArrowRightIcon className="size-4" />
+            >{t('ui.sign_in')}{' '}<ArrowRightIcon className="size-4" />
             </Link>
           </div>
         ) : blocked ? (
           <div className="rounded-xl border border-line p-8 text-center">
-            <p className="text-base font-medium text-ink">
-              You&apos;ve already applied to {job.title}
-            </p>
-            <p className="mt-1 text-sm text-muted">
-              Current status:{' '}
-              <span className="font-medium capitalize text-ink">
+            <p className="text-base font-medium text-ink">{t('ui.you_ve_already_applied_to', { title: job.title })}</p>
+            <p className="mt-1 text-sm text-muted">{t('ui.current_status')}<span className="font-medium capitalize text-ink">
                 {existingApp?.status === 'active'
                   ? 'submitted'
                   : existingApp?.status}
-              </span>
-              . You can apply again only if this application is rejected.
-            </p>
+              </span>{t('ui.you_can_apply_again_only_if')}</p>
             <div className="mt-5 flex justify-center gap-3">
               <Link
                 to="/dashboard/applied-jobs"
                 className="rounded-[4px] bg-brand-50 px-6 py-3 text-sm font-semibold text-brand"
-              >
-                View my applications
-              </Link>
+              >{t('ui.view_my_applications')}</Link>
               <Link
                 to={`/job/${job.slug}`}
                 className="rounded-[4px] border border-line px-6 py-3 text-sm font-semibold text-ink-600"
-              >
-                Back to job
-              </Link>
+              >{t('ui.back_to_job')}</Link>
             </div>
           </div>
         ) : (
@@ -234,7 +219,7 @@ export function ApplyJobPage() {
           >
             <div>
               <h1 className="text-xl font-medium text-ink">
-                {canReapply ? 'Re-apply for ' : 'Apply for '}
+                {canReapply ? t('ui.re_apply_for') : t('ui.apply_for')}
                 {job.title}
               </h1>
               <p className="mt-1 text-sm text-muted">
@@ -244,30 +229,26 @@ export function ApplyJobPage() {
             </div>
 
             {canReapply && (
-              <p className="rounded-md bg-star/10 px-4 py-3 text-sm text-ink-600">
-                Your previous application was rejected ,  submit an updated one
-                below.
-              </p>
+              <p className="rounded-md bg-star/10 px-4 py-3 text-sm text-ink-600">{t('ui.your_previous_application_was_rejected_submit')}</p>
             )}
 
             <div className="flex flex-col gap-2 text-sm text-ink">
-              <span>
-                Resume <span className="text-muted">(optional)</span>
+              <span>{t('ui.resume')}{' '}<span className="text-muted">{t('ui.optional')}</span>
               </span>
               {resumes.length > 0 && (
                 <SelectMenu
                   value={resumeId}
                   onChange={setResumeId}
                   options={resumeOptions}
-                  placeholder="Select a resume…"
+                  placeholder={t('ui.select_a_resume')}
                 />
               )}
               <label className="flex w-fit cursor-pointer items-center gap-2 rounded-md border border-line px-4 py-2 text-sm font-medium text-ink-600 hover:bg-surface-alt">
                 {uploading
-                  ? 'Uploading…'
+                  ? t('ui.uploading')
                   : resumes.length
-                    ? 'Upload another resume'
-                    : 'Upload your resume'}
+                    ? t('ui.upload_another_resume')
+                    : t('ui.upload_your_resume')}
                 <input
                   type="file"
                   accept=".pdf,.doc,.docx"
@@ -276,18 +257,14 @@ export function ApplyJobPage() {
                   onChange={(e) => handleUpload(e.target.files?.[0] ?? null)}
                 />
               </label>
-              <span className="text-xs text-muted">
-                PDF or DOCX. Not required ,  your expert profile is what businesses see first. Uploads are saved to your account for next time.
-              </span>
+              <span className="text-xs text-muted">{t('ui.pdf_or_docx_not_required_your')}</span>
             </div>
 
-            <label className="flex flex-col gap-2 text-sm text-ink">
-              Cover Letter
-              <textarea
+            <label className="flex flex-col gap-2 text-sm text-ink">{t('ui.cover_letter')}<textarea
                 rows={12}
                 value={cover}
                 onChange={(e) => setCover(e.target.value)}
-                placeholder="Tell the employer why you're a great fit for this role…"
+                placeholder={t('ui.tell_the_employer_why_you_re')}
                 className="w-full resize-y rounded-md border border-line bg-surface p-4 text-base leading-7 text-ink outline-none focus:border-brand placeholder:text-muted-400"
               />
             </label>
@@ -296,15 +273,13 @@ export function ApplyJobPage() {
               <Link
                 to={`/job/${job.slug}`}
                 className="rounded-[4px] bg-brand-50 px-6 py-3 text-sm font-semibold text-brand"
-              >
-                Cancel
-              </Link>
+              >{t('ui.cancel')}</Link>
               <button
                 type="submit"
                 disabled={submitting || uploading}
                 className="flex items-center gap-2 rounded-[4px] bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {submitting ? 'Submitting…' : 'Apply Now'}
+                {submitting ? t('ui.submitting') : t('ui.apply_now')}
                 <ArrowRightIcon className="size-4" />
               </button>
             </div>

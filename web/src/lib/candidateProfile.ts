@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { tr } from './i18n'
 
 export type SocialLink = { platform: string; url: string }
 
@@ -154,8 +155,8 @@ export const MIN_EXPERT_AGE = 18
  */
 export function birthMonthProblem(year: string, month: string, now = new Date()): string | null {
   if (!year && !month) return null
-  if (!year || !month) return 'Select both the month and the year of birth.'
+  if (!year || !month) return tr('val.dob_both')
   const monthsOld = (now.getFullYear() - Number(year)) * 12 + (now.getMonth() + 1 - Number(month))
-  if (monthsOld <= MIN_EXPERT_AGE * 12) return `You must be ${MIN_EXPERT_AGE} or older to be an expert on partly.asia.`
+  if (monthsOld <= MIN_EXPERT_AGE * 12) return tr('val.dob_age', { age: MIN_EXPERT_AGE })
   return null
 }

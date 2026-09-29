@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Breadcrumb } from '@/components/app/Breadcrumb'
+import { useT } from '@/lib/i18n'
 
 const groups = [
   {
@@ -66,9 +67,10 @@ function Accordion({ items }: { items: string[] }) {
 }
 
 export function FaqPage() {
+  const t = useT()
   return (
     <>
-      <Breadcrumb title="Faq" trail={[{ label: 'Home', to: '/' }, { label: 'Faq' }]} />
+      <Breadcrumb title={t('ui.faq')} trail={[{ label: t('ui.home'), to: '/' }, { label: t('ui.faq') }]} />
       <div className="mx-auto flex w-full max-w-[820px] flex-col gap-12 px-6 py-16">
         {groups.map((g) => (
           <section key={g.title} className="flex flex-col gap-6">

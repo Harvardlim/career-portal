@@ -2,6 +2,7 @@ import { Link, NavLink } from 'react-router-dom'
 import { AppShell } from '@/layouts/AppShell'
 import { Breadcrumb } from '@/components/app/Breadcrumb'
 import { ArrowRightIcon, CheckIcon } from '@/components/icons'
+import { useT } from '@/lib/i18n'
 
 type Audience = 'candidate' | 'employer'
 
@@ -101,6 +102,7 @@ const plansByAudience: Record<Audience, Plan[]> = {
 }
 
 export function PricingPage({ audience }: { audience: Audience }) {
+  const t = useT()
   const plans = plansByAudience[audience]
 
   const tab = (to: string, label: string, active: boolean) => (
@@ -119,22 +121,20 @@ export function PricingPage({ audience }: { audience: Audience }) {
   return (
     <AppShell>
       <Breadcrumb
-        title="Pricing Plans"
+        title={t('ui.pricing_plans')}
         trail={[
-          { label: 'Home', to: '/' },
-          { label: 'Pricing Plans' },
+          { label: t('ui.home'), to: '/' },
+          { label: t('ui.pricing_plans') },
         ]}
       />
 
       <div className="mx-auto flex w-full max-w-[1320px] flex-col items-center gap-8 px-6 py-14 lg:px-10">
         <div className="flex max-w-2xl flex-col items-center gap-3 text-center">
-          <h1 className="text-3xl font-medium text-ink lg:text-[40px]">
-            Simple, transparent pricing
-          </h1>
+          <h1 className="text-3xl font-medium text-ink lg:text-[40px]">{t('ui.simple_transparent_pricing')}</h1>
           <p className="text-muted-600">
             {audience === 'candidate'
-              ? 'Applying to jobs is always free. Upgrade any time for Priority Match.'
-              : 'One job post uses one credit. Buy a package now, top up later.'}
+              ? t('ui.applying_to_jobs_is_always_free')
+              : t('ui.one_job_post_uses_one_credit')}
           </p>
         </div>
 
@@ -152,9 +152,7 @@ export function PricingPage({ audience }: { audience: Audience }) {
               }`}
             >
               {plan.popular && (
-                <span className="absolute -top-3 left-8 rounded bg-brand px-3 py-1 text-xs font-medium text-white">
-                  Most popular
-                </span>
+                <span className="absolute -top-3 left-8 rounded bg-brand px-3 py-1 text-xs font-medium text-white">{t('ui.most_popular')}</span>
               )}
               <p className="text-lg font-medium text-ink">{plan.name}</p>
               <p className="mt-4 flex items-baseline gap-1.5">
@@ -192,11 +190,7 @@ export function PricingPage({ audience }: { audience: Audience }) {
           ))}
         </div>
 
-        <p className="text-sm text-muted">
-          Prices in USD. Taxes may apply. Need something else?{' '}
-          <Link to="/contact" className="font-medium text-brand">
-            Talk to us
-          </Link>
+        <p className="text-sm text-muted">{t('ui.prices_in_usd_taxes_may_apply')}<Link to="/contact" className="font-medium text-brand">{t('ui.talk_to_us')}</Link>
           .
         </p>
       </div>

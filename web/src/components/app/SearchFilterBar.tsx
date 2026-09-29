@@ -7,9 +7,11 @@ import {
   MapPinIcon,
   SearchIcon,
 } from '@/components/icons'
+import { useT } from '@/lib/i18n'
 
 /** Compact search bar used on the browse Employer / Candidate pages. */
 export function SearchFilterBar() {
+  const t = useT()
   return (
     <div className="bg-surface-alt">
       <div className="mx-auto w-full max-w-[1320px] px-6 pb-8 lg:px-10">
@@ -19,7 +21,7 @@ export function SearchFilterBar() {
               <SearchIcon className="size-6 shrink-0 text-brand" />
               <input
                 type="text"
-                placeholder="Job tittle, Keyword..."
+                placeholder={t('ui.job_tittle_keyword')}
                 className="min-w-0 flex-1 bg-transparent text-base text-ink outline-none placeholder:text-muted-400"
               />
             </label>
@@ -27,7 +29,7 @@ export function SearchFilterBar() {
               <MapPinIcon className="size-6 shrink-0 text-brand" />
               <input
                 type="text"
-                placeholder="Location"
+                placeholder={t('ui.location')}
                 className="min-w-0 flex-1 bg-transparent text-base text-ink outline-none placeholder:text-muted-400"
               />
             </label>
@@ -36,16 +38,14 @@ export function SearchFilterBar() {
               className="flex h-14 flex-1 items-center gap-3 px-4 text-muted-400"
             >
               <LayersIcon className="size-6 shrink-0 text-brand" />
-              <span className="flex-1 text-left text-base">Select Category</span>
+              <span className="flex-1 text-left text-base">{t('ui.select_category')}</span>
               <ChevronDownIcon className="size-6" />
             </button>
           </div>
           <button
             type="button"
             className="shrink-0 rounded-[4px] bg-brand px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-brand-600"
-          >
-            Find Job
-          </button>
+          >{t('ui.find_job')}</button>
         </div>
       </div>
     </div>
@@ -53,6 +53,7 @@ export function SearchFilterBar() {
 }
 
 export function ResultsToolbar({ view = 'list' }: { view?: 'grid' | 'list' }) {
+  const t = useT()
   return (
     <div className="bg-surface">
       <div className="mx-auto flex w-full max-w-[1320px] flex-wrap items-center justify-between gap-4 px-6 py-4 lg:px-10">
@@ -60,12 +61,10 @@ export function ResultsToolbar({ view = 'list' }: { view?: 'grid' | 'list' }) {
           type="button"
           className="flex items-center gap-2 rounded-[4px] bg-brand px-6 py-3 text-sm font-semibold text-white"
         >
-          <FilterIcon className="size-5" />
-          Filter
-        </button>
+          <FilterIcon className="size-5" />{t('ui.filter')}</button>
         <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-          <SelectPill label="Latest" />
-          <SelectPill label="12 per page" />
+          <SelectPill label={t('ui.latest')} />
+          <SelectPill label={t('ui.12_per_page')} />
           <div className="flex items-center gap-2 rounded-md border border-line p-2">
             <span
               className={`grid size-8 place-items-center rounded-[3px] ${

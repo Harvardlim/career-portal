@@ -10,13 +10,13 @@ export function CreateAccountPage() {
     {
       to: '/employer/register',
       title: t('hero.toggle.business'),
-      description: 'Post your project free, review up to 10 verified experts, and release contact only when it fits.',
+      description: t('ca.business'),
       Icon: UsersIcon,
     },
     {
       to: '/candidate/register',
       title: t('hero.toggle.expert'),
-      description: 'Apply to real projects and pay a small fixed fee only when a business releases contact to you.',
+      description: t('ca.expert'),
       Icon: CircleCheckIcon,
     },
   ]
@@ -28,12 +28,10 @@ export function CreateAccountPage() {
           <h1
             className="text-3xl font-medium leading-tight text-navy"
             style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
-          >
-            Join partly.asia
-          </h1>
+          >{t('ca.join')}</h1>
           <p className="text-base text-ink-600">{t('hero.sub')}</p>
           <p className="text-sm text-ink-600">
-            Already have an account?{' '}
+            {t('ca.have')}{' '}
             <Link to="/sign-in" className="font-medium text-brand">
               {t('nav.login')}
             </Link>
@@ -41,7 +39,7 @@ export function CreateAccountPage() {
         </div>
 
         <div className="flex flex-col gap-4">
-          <p className="text-sm font-medium text-ink-200">First, tell us who you are</p>
+          <p className="text-sm font-medium text-ink-200">{t('ca.first')}</p>
           {paths.map(({ to, title, description, Icon }) => (
             <Link
               key={to}

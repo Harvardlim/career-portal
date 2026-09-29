@@ -6,6 +6,7 @@ import {
   SearchPlusIcon,
   UserPlusIcon,
 } from '@/components/icons'
+import { useT } from '@/lib/i18n'
 
 type Step = {
   title: string
@@ -70,12 +71,11 @@ function Connector({ flip }: { flip?: boolean }) {
 }
 
 export function HowItWorksSection() {
+  const t = useT()
   return (
     <section className="bg-surface-alt">
       <div className="mx-auto flex w-full max-w-[1320px] flex-col items-center gap-12 px-6 py-20 lg:gap-[50px] lg:px-10 lg:py-25">
-        <h2 className="text-center text-3xl font-medium text-ink lg:text-[40px] lg:leading-[48px]">
-          How jobpilot work
-        </h2>
+        <h2 className="text-center text-3xl font-medium text-ink lg:text-[40px] lg:leading-[48px]">{t('ui.how_jobpilot_work')}</h2>
         <div className="flex flex-col items-center gap-10 sm:grid sm:grid-cols-2 xl:flex xl:flex-row xl:items-start xl:justify-center xl:gap-0">
           {steps.map((step, i) => (
             <Fragment key={step.title}>

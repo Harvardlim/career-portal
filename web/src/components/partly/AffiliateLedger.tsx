@@ -11,11 +11,19 @@ import {
 } from '@/lib/partly'
 import { supabase } from '@/lib/supabase'
 import { formatDate } from '@/lib/format'
+import { intlLocale, tr, useT } from '@/lib/i18n'
 
+// Getters, so the label follows the language switcher.
 const EVENT_LABEL: Record<CommissionRow['event_type'], string> = {
-  badge_purchase: 'Verified badge ,  first purchase',
-  badge_renewal: 'Verified badge ,  annual renewal',
-  lead_unlock: 'Released lead ,  unlocked',
+  get badge_purchase() {
+    return tr('led.badge_purchase')
+  },
+  get badge_renewal() {
+    return tr('led.badge_renewal')
+  },
+  get lead_unlock() {
+    return tr('led.lead_unlock')
+  },
 }
 
 type Payout = { id: string; amount_usd: number; status: string; requested_at: string; paid_at: string | null }
@@ -27,6 +35,7 @@ type Payout = { id: string; amount_usd: number; status: string; requested_at: st
  * clears USD 50.
  */
 export function AffiliateLedger({ affiliateId, userId }: { affiliateId: string; userId: string }) {
+  const t = useT()
   const { pricing } = usePricing()
   const [balance, setBalance] = useState<AffiliateBalance | null>(null)
   const [rows, setRows] = useState<CommissionRow[]>([])
@@ -66,40 +75,38 @@ export function AffiliateLedger({ affiliateId, userId }: { affiliateId: string; 
 
   return (
     <>
-      <InfoCard title="Commission balance">
+      <InfoCard title={t('ui.commission_balance')}>
         <div className="grid gap-4 sm:grid-cols-3">
           {[
-            { label: 'Earned to date', value: balance?.earned_usd ?? 0 },
-            { label: 'Paid out', value: balance?.paid_usd ?? 0 },
-            { label: 'Accrued balance', value: owed },
+            { label: t('ui.earned_to_date'), value: balance?.earned_usd ?? 0 },
+            { label: t('ui.paid_out'), value: balance?.paid_usd ?? 0 },
+            { label: t('ui.accrued_balance'), value: owed },
           ].map((s) => (
             <div key={s.label} className="flex flex-col gap-1">
               <span className="text-sm text-muted-600">{s.label}</span>
-              <span className="text-2xl font-medium text-ink">USD {s.value.toLocaleString()}</span>
+              <span className="text-2xl font-medium text-ink">{t('ui.usd', { v: s.value.toLocaleString() })}</span>
             </div>
           ))}
         </div>
         <div className="mt-4">
           <div className="flex items-center justify-between text-xs text-muted">
-            <span>Payout threshold USD 50</span>
-            <span>{balance?.payout_eligible ? 'Eligible for the next payout cycle' : `${pct}%`}</span>
+            <span>{t('ui.payout_threshold_usd_50')}</span>
+            <span>{balance?.payout_eligible ? t('ui.eligible_for_the_next_payout_cycle') : `${pct}%`}</span>
           </div>
           <div className="mt-1 h-2 overflow-hidden rounded-full bg-surface-alt">
             <div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} />
           </div>
           <p className="mt-2 text-xs text-muted">
             {nextPayout
-              ? `Next payout: USD ${nextPayout.amount_usd.toLocaleString()} ,  ${nextPayout.status}`
-              : `Next payout cycle: ${nextCycle.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} ,  in USD, less FX and transaction fees.`}
+              ? t('ui.next_payout_usd', { v: nextPayout.amount_usd.toLocaleString(), status: nextPayout.status })
+              : t('led.next_cycle', { date: nextCycle.toLocaleDateString(intlLocale(), { day: 'numeric', month: 'short', year: 'numeric' }) })}
           </p>
         </div>
       </InfoCard>
 
-      <InfoCard title="Commission ledger">
+      <InfoCard title={t('ui.commission_ledger')}>
         {rows.length === 0 ? (
-          <p className="py-4 text-center text-sm text-muted">
-            No commissions yet. You earn when a referred expert unlocks a lead or buys / renews a Verified badge.
-          </p>
+          <p className="py-4 text-center text-sm text-muted">{t('ui.no_commissions_yet_you_earn_when')}</p>
         ) : (
           <div className="flex flex-col divide-y divide-line">
             {rows.map((r) => {
@@ -109,11 +116,9 @@ export function AffiliateLedger({ affiliateId, userId }: { affiliateId: string; 
                   <span className="font-medium text-ink">{EVENT_LABEL[r.event_type]}</span>
                   <span className="text-muted-600">{formatDate(r.earned_at)}</span>
                   <span className="text-muted-600">
-                    {p ? formatLocal(p, r.amount_local) : `${r.currency} ${r.amount_local.toLocaleString()}`} ·{' '}
-                    USD {r.amount_usd.toLocaleString()}
-                  </span>
+                    {p ? formatLocal(p, r.amount_local) : `${r.currency} ${r.amount_local.toLocaleString()}`}{' '}{t('ui.usd_2', { v: r.amount_usd.toLocaleString() })}</span>
                   <Pill tone={r.status === 'paid' ? 'brand' : r.status === 'earned' ? 'success' : 'neutral'}>
-                    {r.status === 'paid' && r.paid_at ? `Paid ${formatDate(r.paid_at)}` : r.status}
+                    {r.status === 'paid' && r.paid_at ? t('ui.paid', { paid_at: formatDate(r.paid_at) }) : r.status}
                   </Pill>
                 </div>
               )

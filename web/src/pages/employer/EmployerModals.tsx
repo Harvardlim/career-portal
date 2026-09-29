@@ -5,6 +5,7 @@ import { MyJobsPage } from '@/pages/employer/MyJobsPage'
 import { Dialog } from '@/components/app/Dialog'
 import { SelectMenu } from '@/components/app/SelectMenu'
 import { ArrowRightIcon, CheckIcon } from '@/components/icons'
+import { useT, tr } from '@/lib/i18n'
 
 /** Custom kanban columns were dropped in favour of the four fixed statuses. */
 export function AddColumnPage() {
@@ -12,6 +13,7 @@ export function AddColumnPage() {
 }
 
 export function PostJobSuccessPage() {
+  const t = useT()
   return (
     <>
       <PostJobPage />
@@ -20,26 +22,17 @@ export function PostJobSuccessPage() {
           <span className="grid size-16 place-items-center rounded-full bg-brand-50 text-brand">
             <CheckIcon className="size-8" />
           </span>
-          <h2 className="text-xl font-medium text-ink">
-            🎉 Your job is successfully posted!
-          </h2>
-          <p className="text-sm text-muted-600">
-            Your job posting is now live and candidates can start applying right
-            away. You can manage it any time from My Jobs.
-          </p>
+          <h2 className="text-xl font-medium text-ink">{t('ui.your_job_is_successfully_posted')}</h2>
+          <p className="text-sm text-muted-600">{t('ui.your_job_posting_is_now_live')}</p>
           <div className="flex gap-3">
             <Link
               to="/employer/my-jobs"
               className="rounded-[4px] bg-brand-50 px-6 py-3 text-sm font-semibold text-brand"
-            >
-              View Jobs
-            </Link>
+            >{t('ui.view_jobs')}</Link>
             <Link
               to="/employer/post-job"
               className="flex items-center gap-2 rounded-[4px] bg-brand px-6 py-3 text-sm font-semibold text-white"
-            >
-              Post Another Job
-              <ArrowRightIcon className="size-4" />
+            >{t('ui.post_another_job')}<ArrowRightIcon className="size-4" />
             </Link>
           </div>
         </div>
@@ -49,12 +42,13 @@ export function PostJobSuccessPage() {
 }
 
 const DURATION_OPTIONS = [
-  { value: '7', label: '7 days' },
-  { value: '14', label: '14 days' },
-  { value: '30', label: '30 days' },
+  { value: '7', get label() { return tr('em.d7') } },
+  { value: '14', get label() { return tr('em.d14') } },
+  { value: '30', get label() { return tr('em.d30') } },
 ]
 
 export function PromoteJobPage() {
+  const t = useT()
   const [duration, setDuration] = useState('7')
   return (
     <>
@@ -64,16 +58,13 @@ export function PromoteJobPage() {
           onSubmit={(e) => e.preventDefault()}
           className="flex flex-col gap-6 p-8"
         >
-          <h2 className="text-xl font-medium text-ink">Promote Job</h2>
-          <p className="text-sm text-muted-600">
-            Boost this job to the top of search results and highlight it in the
-            listings.
-          </p>
+          <h2 className="text-xl font-medium text-ink">{t('ui.promote_job')}</h2>
+          <p className="text-sm text-muted-600">{t('ui.boost_this_job_to_the_top')}</p>
 
           <fieldset className="flex flex-col gap-3">
             {[
-              { label: 'Featured Job', desc: 'Pinned to the top with a highlighted card.', price: '$9' },
-              { label: 'Urgent Job', desc: 'Adds an “Urgent” badge to attract applicants.', price: '$5' },
+              { label: t('ui.featured_job_2'), desc: t('em.featured'), price: '$9' },
+              { label: t('ui.urgent_job'), desc: t('em.urgent'), price: '$5' },
             ].map((o, i) => (
               <label
                 key={o.label}
@@ -98,22 +89,18 @@ export function PromoteJobPage() {
             ))}
           </fieldset>
 
-          <div className="flex flex-col gap-2 text-sm text-ink">
-            Duration
-            <SelectMenu value={duration} onChange={setDuration} options={DURATION_OPTIONS} />
+          <div className="flex flex-col gap-2 text-sm text-ink">{t('ui.duration')}<SelectMenu value={duration} onChange={setDuration} options={DURATION_OPTIONS} />
           </div>
 
           <div className="flex items-center justify-between border-t border-line pt-4 text-sm font-medium text-ink">
-            <span>Total</span>
-            <span>$9 USD</span>
+            <span>{t('ui.total')}</span>
+            <span>{t('ui.9_usd')}</span>
           </div>
 
           <button
             type="submit"
             className="flex items-center justify-center gap-2 rounded-[4px] bg-brand px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-brand-600"
-          >
-            Promote Now
-            <ArrowRightIcon className="size-4" />
+          >{t('ui.promote_now')}<ArrowRightIcon className="size-4" />
           </button>
         </form>
       </Dialog>

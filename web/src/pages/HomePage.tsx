@@ -21,19 +21,19 @@ import {
   SearchPlusIcon,
   UsersIcon,
 } from '@/components/icons'
-import { useT } from '@/lib/i18n'
+import { useT, tr } from '@/lib/i18n'
 import { useDisplayUser } from '@/lib/useDisplayUser'
 
 // Mirrors the 8 live DB categories ,  Training rolled into HR, Design rolled into Marketing.
 const VERTICALS = [
-  { Icon: UsersIcon, label: 'HR' },
-  { Icon: CodeIcon, label: 'IT' },
-  { Icon: DollarIcon, label: 'Finance' },
-  { Icon: MegaphoneIcon, label: 'Marketing' },
-  { Icon: FileIcon, label: 'Legal' },
-  { Icon: ChartBarIcon, label: 'Sales' },
-  { Icon: SearchPlusIcon, label: 'Strategy' },
-  { Icon: GearIcon, label: 'Operations' },
+  { Icon: UsersIcon, get label() { return tr('cat.name.hr') } },
+  { Icon: CodeIcon, get label() { return tr('cat.name.it') } },
+  { Icon: DollarIcon, get label() { return tr('cat.name.finance') } },
+  { Icon: MegaphoneIcon, get label() { return tr('cat.name.marketing') } },
+  { Icon: FileIcon, get label() { return tr('cat.name.legal') } },
+  { Icon: ChartBarIcon, get label() { return tr('cat.name.sales') } },
+  { Icon: SearchPlusIcon, get label() { return tr('cat.name.strategy') } },
+  { Icon: GearIcon, get label() { return tr('cat.name.operations') } },
 ]
 
 export function HomePage() {

@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { tr } from './i18n'
 
 export type AffiliateRow = {
   id: string
@@ -51,7 +52,7 @@ export async function joinAffiliate(userId: string): Promise<AffiliateRow> {
     }
     throw error
   }
-  throw new Error('Could not join the affiliate program. Please try again.')
+  throw new Error(tr('err.affiliate'))
 }
 
 /** Full shareable referral URL for a code ,  always the trial site. */

@@ -12,6 +12,7 @@ import {
   MapPinIcon,
   XCircleIcon,
 } from '@/components/icons'
+import { useT } from '@/lib/i18n'
 
 const jobDetailPath = (job: JobRow) => `/job/${encodeURIComponent(job.slug)}`
 
@@ -58,12 +59,13 @@ export function AppliedJobRow({
   appliedAt: string
   status: string
 }) {
+  const t = useT()
   // Candidate-facing application status.
   const label =
     status === 'active'
-      ? 'Submitted'
+      ? t('jr.submitted')
       : status === 'interested'
-        ? 'Business interested'
+        ? t('jr.interested')
         : status.charAt(0).toUpperCase() + status.slice(1)
   const color =
     status === 'interested'
@@ -106,7 +108,7 @@ export function AppliedJobRow({
         to={status === 'interested' ? '/dashboard/leads' : jobDetailPath(job)}
         className="rounded-[3px] bg-brand-50 px-6 py-2.5 text-center text-sm font-semibold text-brand hover:bg-brand-100"
       >
-        {status === 'interested' ? 'View warm lead' : 'View Details'}
+        {status === 'interested' ? t('ui.view_warm_lead') : t('ui.view_details')}
       </Link>
     </div>
   )
@@ -121,6 +123,7 @@ export function SavedJobRow({
   saved?: boolean
   onToggleSave?: () => void
 }) {
+  const t = useT()
   const { text, expired } = expiryLabel(job.expires_at)
   const isExpired = expired || job.status !== 'active'
   return (
@@ -142,9 +145,7 @@ export function SavedJobRow({
             trailing={
               isExpired ? (
                 <span className="flex items-center gap-1.5 text-danger">
-                  <XCircleIcon className="size-[18px]" />
-                  Job Expire
-                </span>
+                  <XCircleIcon className="size-[18px]" />{t('ui.job_expire')}</span>
               ) : (
                 <span className="flex items-center gap-1.5">
                   <CalendarIcon className="size-[18px]" />
@@ -161,23 +162,19 @@ export function SavedJobRow({
           <button
             type="button"
             onClick={onToggleSave}
-            aria-label={saved ? 'Remove from favorites' : 'Add to favorites'}
+            aria-label={saved ? t('ui.remove_from_favorites') : t('ui.add_to_favorites')}
             className={saved ? 'text-ink' : 'text-muted-slate'}
           >
             <BookmarkIcon className={`size-6 ${saved ? 'fill-current' : ''}`} />
           </button>
         )}
         {isExpired ? (
-          <span className="rounded-[3px] bg-surface-alt px-6 py-2.5 text-sm font-semibold text-muted">
-            Deadline Expired
-          </span>
+          <span className="rounded-[3px] bg-surface-alt px-6 py-2.5 text-sm font-semibold text-muted">{t('ui.deadline_expired')}</span>
         ) : (
           <Link
             to={jobDetailPath(job)}
             className="flex items-center gap-2 rounded-[3px] bg-brand-50 px-6 py-2.5 text-sm font-semibold text-brand hover:bg-brand-100"
-          >
-            Apply Now
-            <ArrowRightIcon className="size-4" />
+          >{t('ui.apply_now')}<ArrowRightIcon className="size-4" />
           </Link>
         )}
       </div>

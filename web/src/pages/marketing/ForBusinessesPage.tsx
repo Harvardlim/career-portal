@@ -29,13 +29,13 @@ export function ForBusinessesPage() {
         />
         <div className="mt-10 grid gap-4 md:grid-cols-2">
           <div className="rounded-xl border border-gold/40 bg-gold-50 p-6">
-            <p className="text-sm font-semibold uppercase tracking-wide text-gold">Trust</p>
+            <p className="text-sm font-semibold uppercase tracking-wide text-gold">{t('mkt.trust')}</p>
             <p className="mt-2 text-navy">{t('biz.trust')}</p>
           </div>
           <div className="rounded-xl border border-line bg-cream p-6">
-            <p className="text-sm font-semibold uppercase tracking-wide text-muted">Your matches</p>
+            <p className="text-sm font-semibold uppercase tracking-wide text-muted">{t('mkt.matches')}</p>
             <p className="mt-2 text-navy">
-              You see up to 10 matched experts per posting ,  a fixed shortlist, not a rolling feed.{' '}
+              {t('mkt.up_to_10')}{' '}
               <em>{t('biz.scarcity')}</em>
             </p>
           </div>

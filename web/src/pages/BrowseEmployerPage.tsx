@@ -13,10 +13,12 @@ import {
 } from '@/components/icons'
 import { errMessage } from '@/lib/errors'
 import { fetchEmployers, logoColor, type EmployerListRow } from '@/lib/employers'
+import { useT } from '@/lib/i18n'
 
 const PAGE_SIZE = 8
 
 export function BrowseEmployerPage() {
+  const t = useT()
   const [rows, setRows] = useState<EmployerListRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -68,8 +70,8 @@ export function BrowseEmployerPage() {
   return (
     <AppShell>
       <Breadcrumb
-        title="Find Employers"
-        trail={[{ label: 'Home', to: '/' }, { label: 'Find Employers' }]}
+        title={t('ui.find_employers')}
+        trail={[{ label: t('ui.home'), to: '/' }, { label: t('ui.find_employers') }]}
       />
 
       <div className="bg-surface-alt">
@@ -83,7 +85,7 @@ export function BrowseEmployerPage() {
                 <SearchIcon className="size-6 shrink-0 text-brand" />
                 <input
                   type="text"
-                  placeholder="Company name..."
+                  placeholder={t('ui.company_name')}
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
                   className="min-w-0 flex-1 bg-transparent text-base text-ink outline-none placeholder:text-muted-400"
@@ -93,7 +95,7 @@ export function BrowseEmployerPage() {
                 <MapPinIcon className="size-6 shrink-0 text-brand" />
                 <input
                   type="text"
-                  placeholder="Location"
+                  placeholder={t('ui.location')}
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   className="min-w-0 flex-1 bg-transparent text-base text-ink outline-none placeholder:text-muted-400"
@@ -103,11 +105,11 @@ export function BrowseEmployerPage() {
                 <Dropdown
                   className="flex-1 text-base"
                   icon={<BriefcaseIcon className="size-6 shrink-0 text-brand" />}
-                  placeholder="All industries"
+                  placeholder={t('ui.all_industries')}
                   value={industry}
                   onChange={setIndustry}
                   options={[
-                    { value: '', label: 'All industries' },
+                    { value: '', label: t('ui.all_industries') },
                     ...industries.map((i) => ({ value: i, label: i })),
                   ]}
                 />
@@ -116,16 +118,14 @@ export function BrowseEmployerPage() {
             <button
               type="submit"
               className="shrink-0 rounded-[4px] bg-brand px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-brand-600"
-            >
-              Search
-            </button>
+            >{t('ui.search')}</button>
           </form>
         </div>
       </div>
 
       <div className="mx-auto flex w-full max-w-[1320px] items-center justify-between gap-4 px-6 py-4 lg:px-10">
         <span className="text-sm text-muted">
-          {loading ? 'Loading employers…' : `${filtered.length} employers`}
+          {loading ? t('ui.loading_employers') : t('ui.employers', { length: filtered.length })}
         </span>
         <label className="flex items-center gap-2 text-sm text-ink-600">
           <input
@@ -133,9 +133,7 @@ export function BrowseEmployerPage() {
             checked={onlyHiring}
             onChange={(e) => setOnlyHiring(e.target.checked)}
             className="size-4 accent-brand"
-          />
-          Only currently hiring
-        </label>
+          />{t('ui.only_currently_hiring')}</label>
       </div>
 
       <div className="mx-auto w-full max-w-[1320px] px-6 pb-12 lg:px-10">
@@ -144,11 +142,9 @@ export function BrowseEmployerPage() {
             {error}
           </p>
         ) : loading ? (
-          <p className="py-10 text-center text-sm text-muted">Loading employers…</p>
+          <p className="py-10 text-center text-sm text-muted">{t('ui.loading_employers')}</p>
         ) : visible.length === 0 ? (
-          <p className="rounded-lg bg-surface-alt px-4 py-12 text-center text-sm text-muted">
-            No employers match your search.
-          </p>
+          <p className="rounded-lg bg-surface-alt px-4 py-12 text-center text-sm text-muted">{t('ui.no_employers_match_your_search')}</p>
         ) : (
           <>
             <div className="flex flex-col gap-4">
@@ -179,8 +175,7 @@ export function BrowseEmployerPage() {
                           </span>
                         )}
                         <span className="flex items-center gap-1.5">
-                          <BriefcaseIcon className="size-[18px]" />
-                          {e.open_jobs} open {e.open_jobs === 1 ? 'job' : 'jobs'}
+                          <BriefcaseIcon className="size-[18px]" />{t('ui.open', { open_jobs: e.open_jobs })}{' '}{e.open_jobs === 1 ? 'job' : 'jobs'}
                         </span>
                         {e.field[0] && (
                           <span className="rounded-full bg-surface-alt px-3 py-0.5 text-xs text-ink-600">
@@ -193,9 +188,7 @@ export function BrowseEmployerPage() {
                   <Link
                     to="/employer-detail"
                     className="flex shrink-0 items-center gap-3 rounded-[3px] bg-brand-50 px-6 py-3 text-base font-semibold text-brand transition-colors hover:bg-brand-100"
-                  >
-                    Open Position
-                    <ArrowRightIcon className="size-5" />
+                  >{t('ui.open_position')}<ArrowRightIcon className="size-5" />
                   </Link>
                 </article>
               ))}

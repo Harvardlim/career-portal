@@ -39,7 +39,7 @@ export function MobileMenu() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Open menu"
+        aria-label={t('ui.open_menu')}
         aria-expanded={open}
         className="grid size-11 place-items-center rounded-[3px] border border-line text-ink"
       >
@@ -49,13 +49,13 @@ export function MobileMenu() {
         <div className="fixed inset-0 z-50">
           <div className="absolute inset-0 bg-ink/40" onClick={() => setOpen(false)} aria-hidden="true" />
           <nav
-            aria-label="Menu"
+            aria-label={t('ui.menu')}
             className="absolute inset-y-0 right-0 flex w-[min(320px,88vw)] flex-col overflow-y-auto bg-surface p-4 shadow-2xl"
           >
             <button
               type="button"
               onClick={() => setOpen(false)}
-              aria-label="Close menu"
+              aria-label={t('ui.close_menu')}
               className="ml-auto grid size-11 place-items-center rounded-full text-muted hover:bg-surface-alt"
             >
               <CloseIcon className="size-5" />

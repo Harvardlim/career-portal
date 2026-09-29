@@ -3,6 +3,7 @@ import { Breadcrumb } from '@/components/app/Breadcrumb'
 import { Pagination } from '@/components/app/Pagination'
 import { BlogSidebar } from '@/components/blog/BlogSidebar'
 import { ArrowRightIcon, CalendarIcon } from '@/components/icons'
+import { useT } from '@/lib/i18n'
 
 const posts = [
   'Proin sit amet massa eget odio consectetur ultricies.',
@@ -19,9 +20,10 @@ const excerpt =
   'Integer imperdiet mauris eget nisi ultrices, quis hendrerit est consequat. Vivamus et volutpat odio. Maecenas porta erat sed massa bibendum pellentesque.'
 
 export function BlogPage() {
+  const t = useT()
   return (
     <>
-      <Breadcrumb title="Blog" trail={[{ label: 'Home', to: '/' }, { label: 'Blog' }]} />
+      <Breadcrumb title={t('ui.blog')} trail={[{ label: t('ui.home'), to: '/' }, { label: t('ui.blog') }]} />
       <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-10 px-6 py-12 lg:flex-row lg:px-10">
         <BlogSidebar />
         <div className="flex flex-1 flex-col gap-8">
@@ -36,10 +38,8 @@ export function BlogPage() {
               <div className="flex flex-col gap-3 p-6 sm:pl-0">
                 <div className="flex flex-wrap items-center gap-4 text-sm text-muted">
                   <span className="flex items-center gap-1.5">
-                    <CalendarIcon className="size-4 text-brand" />
-                    Nov 12, 2021
-                  </span>
-                  <span>25 Comments</span>
+                    <CalendarIcon className="size-4 text-brand" />{t('ui.nov_12_2021')}</span>
+                  <span>{t('ui.25_comments')}</span>
                 </div>
                 <h2
                   className={`text-xl font-medium ${
@@ -52,9 +52,7 @@ export function BlogPage() {
                 <Link
                   to="/blog/post"
                   className="flex items-center gap-1.5 text-sm font-medium text-brand"
-                >
-                  Read more
-                  <ArrowRightIcon className="size-4" />
+                >{t('ui.read_more')}<ArrowRightIcon className="size-4" />
                 </Link>
               </div>
             </article>

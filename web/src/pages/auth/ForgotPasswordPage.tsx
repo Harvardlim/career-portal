@@ -5,8 +5,10 @@ import { AuthField, AuthSubmit } from '@/components/auth/fields'
 import { supabase } from '@/lib/supabase'
 import { SITE_URL } from '@/lib/site'
 import { errMessage } from '@/lib/errors'
+import { useT } from '@/lib/i18n'
 
 export function ForgotPasswordPage() {
+  const t = useT()
   const [email, setEmail] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -33,14 +35,9 @@ export function ForgotPasswordPage() {
     return (
       <AuthLayout>
         <div className="flex flex-col gap-6">
-          <h1 className="text-3xl font-medium leading-10 text-ink">Check your email</h1>
-          <p className="text-base text-ink-600">
-            If an account exists for {email}, we&apos;ve sent a link to reset your
-            password.
-          </p>
-          <Link to="/sign-in" className="font-medium text-brand">
-            Back to Sign In
-          </Link>
+          <h1 className="text-3xl font-medium leading-10 text-ink">{t('ui.check_your_email')}</h1>
+          <p className="text-base text-ink-600">{t('ui.if_an_account_exists_for_we', { email })}</p>
+          <Link to="/sign-in" className="font-medium text-brand">{t('ui.back_to_sign_in')}</Link>
         </div>
       </AuthLayout>
     )
@@ -50,21 +47,11 @@ export function ForgotPasswordPage() {
     <AuthLayout>
       <form onSubmit={handleSubmit} className="flex flex-col gap-8">
         <div className="flex flex-col gap-6">
-          <h1 className="text-3xl font-medium leading-10 text-ink">
-            Forget Password
-          </h1>
+          <h1 className="text-3xl font-medium leading-10 text-ink">{t('ui.forget_password')}</h1>
           <div className="flex flex-col gap-2 text-base">
-            <p className="text-ink-600">
-              Go back to{' '}
-              <Link to="/sign-in" className="font-medium text-brand">
-                Sign In
-              </Link>
+            <p className="text-ink-600">{t('ui.go_back_to')}<Link to="/sign-in" className="font-medium text-brand">{t('ui.sign_in_2')}</Link>
             </p>
-            <p className="text-ink-600">
-              Don&rsquo;t have account{' '}
-              <Link to="/create-account" className="font-medium text-brand">
-                Create Account
-              </Link>
+            <p className="text-ink-600">{t('ui.don_t_have_account')}<Link to="/create-account" className="font-medium text-brand">{t('ui.create_account_2')}</Link>
             </p>
           </div>
         </div>
@@ -74,7 +61,7 @@ export function ForgotPasswordPage() {
         )}
 
         <AuthField
-          label="Email address"
+          label={t('ui.email_address')}
           name="email"
           type="email"
           autoComplete="email"
@@ -84,7 +71,7 @@ export function ForgotPasswordPage() {
         />
 
         <AuthSubmit disabled={submitting}>
-          {submitting ? 'Sending...' : 'Reset Password'}
+          {submitting ? t('ui.sending_2') : t('ui.reset_password')}
         </AuthSubmit>
       </form>
     </AuthLayout>

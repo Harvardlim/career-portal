@@ -1,4 +1,5 @@
 import { MapPinIcon, SearchIcon } from '@/components/icons'
+import { useT } from '@/lib/i18n'
 
 const suggestions = [
   { label: 'Designer,', highlight: false },
@@ -9,18 +10,14 @@ const suggestions = [
 ]
 
 export function HeroSection() {
+  const t = useT()
   return (
     <section className="bg-surface-alt/60">
       <div className="mx-auto flex w-full max-w-[1320px] flex-col items-center gap-12 px-6 py-16 lg:flex-row lg:justify-between lg:gap-8 lg:py-[109px] lg:px-10">
         <div className="flex w-full flex-col gap-8 lg:max-w-[652px]">
           <div className="flex flex-col gap-6">
-            <h1 className="text-4xl font-medium leading-tight text-ink sm:text-5xl lg:text-[56px] lg:leading-[64px]">
-              Find a job that suits your interest &amp; skills.
-            </h1>
-            <p className="max-w-[536px] text-lg leading-7 text-ink-600">
-              Aliquam vitae turpis in diam convallis finibus in at risus. Nullam
-              in scelerisque leo, eget sollicitudin velit bestibulum.
-            </p>
+            <h1 className="text-4xl font-medium leading-tight text-ink sm:text-5xl lg:text-[56px] lg:leading-[64px]">{t('ui.find_a_job_that_suits_your')}</h1>
+            <p className="max-w-[536px] text-lg leading-7 text-ink-600">{t('ui.aliquam_vitae_turpis_in_diam_convallis')}</p>
           </div>
 
           <div className="flex flex-col gap-6">
@@ -32,7 +29,7 @@ export function HeroSection() {
                 <SearchIcon className="size-6 shrink-0 text-brand" />
                 <input
                   type="text"
-                  placeholder="Job tittle, Keyword..."
+                  placeholder={t('ui.job_tittle_keyword')}
                   className="min-w-0 flex-1 bg-transparent text-base text-ink outline-none placeholder:text-muted-400"
                 />
               </div>
@@ -41,21 +38,17 @@ export function HeroSection() {
                 <MapPinIcon className="size-6 shrink-0 text-brand" />
                 <input
                   type="text"
-                  placeholder="Your Location"
+                  placeholder={t('ui.your_location')}
                   className="min-w-0 flex-1 bg-transparent text-base text-ink outline-none placeholder:text-muted-400"
                 />
               </div>
               <button
                 type="submit"
                 className="shrink-0 rounded bg-brand px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-brand-600"
-              >
-                Find Job
-              </button>
+              >{t('ui.find_job')}</button>
             </form>
 
-            <p className="text-sm text-muted-400">
-              Suggestion:{' '}
-              {suggestions.map((s, i) => (
+            <p className="text-sm text-muted-400">{t('ui.suggestion')}{suggestions.map((s, i) => (
                 <span
                   key={s.label}
                   className={s.highlight ? 'font-medium text-brand' : 'text-ink-700'}
@@ -71,7 +64,7 @@ export function HeroSection() {
         <div className="w-full max-w-[492px] shrink-0">
           <img
             src="/figma/hero-illustration.png"
-            alt="Illustration of a person searching for a job on a laptop"
+            alt={t('ui.illustration_of_a_person_searching_for')}
             className="h-auto w-full"
             width={492}
             height={382}

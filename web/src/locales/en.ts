@@ -1,3 +1,5 @@
+import { enUi } from './en.ui'
+
 // English source strings for the marketing site. Every other locale is a
 // Partial<> of this shape and falls back to English key by key.
 export const en = {
@@ -173,6 +175,7 @@ export const en = {
   // Language switcher
   'lang.label': 'Language',
   'lang.comingSoon': 'coming soon',
+  ...enUi,
 } as const
 
 export type TranslationKey = keyof typeof en

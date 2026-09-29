@@ -1,3 +1,4 @@
+import { useT } from '@/lib/i18n'
 type Vacancy = { title: string; positions: string; highlight?: boolean }
 
 const vacancies: Vacancy[] = [
@@ -16,12 +17,11 @@ const vacancies: Vacancy[] = [
 ]
 
 export function VacanciesSection() {
+  const t = useT()
   return (
     <section className="border-b border-line bg-surface">
       <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-12 px-6 py-20 lg:gap-[50px] lg:px-10 lg:py-25">
-        <h2 className="text-3xl font-medium text-ink lg:text-[40px] lg:leading-[48px]">
-          Most Popular Vacancies
-        </h2>
+        <h2 className="text-3xl font-medium text-ink lg:text-[40px] lg:leading-[48px]">{t('ui.most_popular_vacancies')}</h2>
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {vacancies.map((v) => (
             <a key={v.title} href="#" className="flex flex-col gap-2">

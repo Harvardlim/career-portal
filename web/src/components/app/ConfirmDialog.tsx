@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react'
 import { PrimaryButton, SecondaryButton } from '@/components/partly/ui'
+import { useT, tr } from '@/lib/i18n'
 
 /**
  * The one confirm modal for the app ,  replaces browser `confirm()` popups,
@@ -9,8 +10,8 @@ export function ConfirmDialog({
   open,
   title,
   message,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  confirmLabel = tr('ui.confirm'),
+  cancelLabel = tr('ui.cancel'),
   tone = 'default',
   busy = false,
   error = null,
@@ -28,6 +29,7 @@ export function ConfirmDialog({
   onConfirm: () => void
   onCancel: () => void
 }) {
+  const t = useT()
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
@@ -48,7 +50,7 @@ export function ConfirmDialog({
     >
       <button
         type="button"
-        aria-label="Cancel"
+        aria-label={t('ui.cancel')}
         onClick={() => !busy && onCancel()}
         className="fixed inset-0 cursor-default bg-ink/40"
       />
@@ -69,7 +71,7 @@ export function ConfirmDialog({
             onClick={onConfirm}
             disabled={busy}
           >
-            {busy ? 'Working…' : confirmLabel}
+            {busy ? t('ui.working') : confirmLabel}
           </PrimaryButton>
         </div>
       </div>

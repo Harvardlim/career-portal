@@ -1,4 +1,5 @@
 import { ChevronDownIcon } from '@/components/icons'
+import { useT } from '@/lib/i18n'
 
 export type FilterGroup = {
   title: string
@@ -9,12 +10,12 @@ export type FilterGroup = {
 }
 
 export function SidebarFilter({ groups }: { groups: FilterGroup[] }) {
+  const t = useT()
   return (
     <aside className="flex w-full flex-col gap-6 lg:w-[280px] lg:shrink-0">
       <section className="flex flex-col gap-4 border-b border-line pb-6">
         <div className="flex items-center justify-between">
-          <p className="text-base text-ink">
-            Location Radius: <span className="font-medium text-brand">32 miles</span>
+          <p className="text-base text-ink">{t('ui.location_radius')}{' '}<span className="font-medium text-brand">{t('ui.32_miles')}</span>
           </p>
           <ChevronDownIcon className="size-5 -rotate-180 text-muted" />
         </div>
@@ -24,7 +25,7 @@ export function SidebarFilter({ groups }: { groups: FilterGroup[] }) {
           max={100}
           defaultValue={50}
           className="w-full accent-brand"
-          aria-label="Location radius"
+          aria-label={t('ui.location_radius_2')}
         />
       </section>
 

@@ -9,8 +9,10 @@ import { AppliedJobRow } from '@/components/dashboard/JobRows'
 import { fetchAppliedJobs, fetchDashboardCounts, useCandidate, type AppliedJobRecord } from '@/lib/dashboard'
 import { ArrowRightIcon, BookmarkIcon, BriefcaseIcon } from '@/components/icons'
 import { initialsFromName } from '@/lib/name'
+import { useT } from '@/lib/i18n'
 
 export function DashboardOverviewPage() {
+  const t = useT()
   const { candidate, loading: candidateLoading } = useCandidate()
   const [counts, setCounts] = useState({ applied: 0, saved: 0 })
   const [recent, setRecent] = useState<AppliedJobRecord[]>([])
@@ -41,8 +43,8 @@ export function DashboardOverviewPage() {
   const badgeLive = !!candidate?.verified_badge_until && new Date(candidate.verified_badge_until) > new Date()
 
   const stats = [
-    { value: counts.applied, label: 'Applied jobs', Icon: BriefcaseIcon, bg: 'bg-brand-50', fg: 'text-brand' },
-    { value: counts.saved, label: 'Favorite jobs', Icon: BookmarkIcon, bg: 'bg-[#fff6e6]', fg: 'text-[#ffaa00]' },
+    { value: counts.applied, label: t('ui.applied_jobs_2'), Icon: BriefcaseIcon, bg: 'bg-brand-50', fg: 'text-brand' },
+    { value: counts.saved, label: t('ui.favorite_jobs'), Icon: BookmarkIcon, bg: 'bg-[#fff6e6]', fg: 'text-[#ffaa00]' },
   ]
 
   const firstName = candidate?.full_name?.split(' ')[0] ?? 'there'
@@ -51,11 +53,10 @@ export function DashboardOverviewPage() {
     <DashboardLayout>
       <div className="flex flex-col gap-8">
         <div>
-          <h1 className="flex flex-wrap items-center gap-3 text-2xl font-medium text-ink">
-            Hello, {candidate?.full_name ?? 'there'}
+          <h1 className="flex flex-wrap items-center gap-3 text-2xl font-medium text-ink">{t('ui.hello')}{' '}{candidate?.full_name ?? 'there'}
             <VerifiedChips identity={candidate?.identity_verified} badge={badgeLive} />
           </h1>
-          <p className="mt-1 text-muted">Here is your daily activities and applications</p>
+          <p className="mt-1 text-muted">{t('ui.here_is_your_daily_activities_and')}</p>
         </div>
 
         {warmLeads > 0 && (
@@ -65,15 +66,12 @@ export function DashboardOverviewPage() {
           >
             <span>
               <span className="block text-base font-semibold text-navy">
-                {warmLeads === 1 ? 'You have a warm lead' : `You have ${warmLeads} warm leads`}
+                {warmLeads === 1 ? t('ui.you_have_a_warm_lead') : t('ui.you_have_warm_leads', { warmLeads })}
               </span>
               <span className="block text-sm text-ink-600">
-                {warmLeads === 1 ? 'A business is' : 'Businesses are'} interested in you. Pay the fixed unlock fee within 2 days to
-                exchange contact ,  if you don&apos;t, you&apos;re not charged.
-              </span>
+                {warmLeads === 1 ? t('ui.a_business_is') : t('ui.businesses_are')}{' '}{t('ui.interested_in_you_pay_the_fixed')}</span>
             </span>
-            <span className="flex shrink-0 items-center gap-2 text-sm font-semibold text-navy">
-              View warm leads <ArrowRightIcon className="size-4" />
+            <span className="flex shrink-0 items-center gap-2 text-sm font-semibold text-navy">{t('ui.view_warm_leads')}{' '}<ArrowRightIcon className="size-4" />
             </span>
           </Link>
         )}
@@ -107,7 +105,7 @@ export function DashboardOverviewPage() {
               {candidate?.avatar_path ? (
                 <img
                   src={candidate.avatar_path}
-                  alt={candidate.full_name ?? 'Profile'}
+                  alt={candidate.full_name ?? t('ui.profile')}
                   className="size-14 shrink-0 rounded-full object-cover ring-2 ring-white/40"
                 />
               ) : (
@@ -116,40 +114,34 @@ export function DashboardOverviewPage() {
                 </span>
               )}
               <div>
-                <p className="text-lg font-medium">Your profile editing is not completed.</p>
-                <p className="text-sm text-white/80">
-                  Complete your profile editing &amp; build your custom Resume
-                </p>
+                <p className="text-lg font-medium">{t('ui.your_profile_editing_is_not_completed')}</p>
+                <p className="text-sm text-white/80">{t('ui.complete_your_profile_editing_build_your')}</p>
               </div>
             </div>
             <Link
               to="/dashboard/expert-profile"
               className="flex shrink-0 items-center gap-2 rounded-[4px] bg-surface px-6 py-3 text-sm font-semibold text-brand"
-            >
-              Edit Profile
-              <ArrowRightIcon className="size-4" />
+            >{t('ui.edit_profile')}<ArrowRightIcon className="size-4" />
             </Link>
           </div>
         )}
 
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium text-ink">Recently Applied</h2>
+            <h2 className="text-lg font-medium text-ink">{t('ui.recently_applied')}</h2>
             <Link
               to="/dashboard/applied-jobs"
               className="flex items-center gap-1.5 text-sm text-muted-600"
-            >
-              View all
-              <ArrowRightIcon className="size-4" />
+            >{t('ui.view_all_2')}<ArrowRightIcon className="size-4" />
             </Link>
           </div>
           {recent.length > 0 ? (
             <>
               <div className="grid grid-cols-1 gap-2 rounded-lg bg-surface-alt px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-600 sm:grid-cols-[1fr_auto_auto_auto] sm:gap-8">
-                <span>Job</span>
-                <span className="sm:w-[150px]">Date Applied</span>
-                <span>Status</span>
-                <span>Action</span>
+                <span>{t('ui.job')}</span>
+                <span className="sm:w-[150px]">{t('ui.date_applied')}</span>
+                <span>{t('ui.status')}</span>
+                <span>{t('ui.action')}</span>
               </div>
               <div className="flex flex-col divide-y divide-line">
                 {recent.map(
@@ -167,7 +159,7 @@ export function DashboardOverviewPage() {
             </>
           ) : (
             <p className="rounded-lg bg-surface-alt px-4 py-8 text-center text-sm text-muted">
-              {loading ? 'Loading…' : `No applications yet, ${firstName}. Browse jobs to get started.`}
+              {loading ? t('ui.loading_2') : t('ui.no_applications_yet_browse_jobs_to', { firstName })}
             </p>
           )}
         </div>

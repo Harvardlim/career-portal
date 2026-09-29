@@ -17,8 +17,10 @@ import {
   type Role,
 } from '@/lib/useDisplayUser'
 import { errMessage } from '@/lib/errors'
+import { useT } from '@/lib/i18n'
 
 export function SignInPage() {
+  const t = useT()
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const remembered = getRememberedEmail()
@@ -43,7 +45,7 @@ export function SignInPage() {
   // browser; drop it so the person actually signs in from the login page.
   useEffect(() => {
     if (params.get('confirmed') !== '1') return
-    toast.success('Your email is confirmed ,  sign in to continue.')
+    toast.success(t('ui.your_email_is_confirmed_sign_in'))
     void supabase.auth.getSession().then(({ data }) => {
       if (data.session) return supabase.auth.signOut()
     })
@@ -81,7 +83,7 @@ export function SignInPage() {
         setError(
           candidateRow?.suspended_reason ??
             employerRow?.suspended_reason ??
-            'Your account has been suspended. Contact partly.asia support if you think this is a mistake.',
+            t('ui.your_account_has_been_suspended_contact'),
         )
         return
       }
@@ -99,7 +101,7 @@ export function SignInPage() {
         return
       }
 
-      setError('No expert or business profile found for this account.')
+      setError(t('ui.no_expert_or_business_profile_found'))
     } catch (err) {
       setError(errMessage(err))
     } finally {
@@ -111,28 +113,19 @@ export function SignInPage() {
     return (
       <AuthLayout variant="centered">
         <div className="flex flex-col items-center gap-6 text-center">
-          <h1 className="text-3xl font-medium leading-10 text-ink">
-            Continue as…
-          </h1>
-          <p className="text-base text-ink-600">
-            This email has both an expert and a business profile. You can
-            switch anytime from the menu.
-          </p>
+          <h1 className="text-3xl font-medium leading-10 text-ink">{t('ui.continue_as')}</h1>
+          <p className="text-base text-ink-600">{t('ui.this_email_has_both_an_expert')}</p>
           <div className="flex w-full flex-col gap-3">
             <button
               type="button"
               onClick={() => goAs('candidate')}
               className="rounded-[4px] bg-brand px-6 py-3 text-base font-semibold text-white hover:bg-brand-600"
-            >
-              Expert
-            </button>
+            >{t('ui.expert')}</button>
             <button
               type="button"
               onClick={() => goAs('employer')}
               className="rounded-[4px] border border-brand px-6 py-3 text-base font-semibold text-brand hover:bg-brand-50"
-            >
-              Business
-            </button>
+            >{t('ui.business')}</button>
           </div>
         </div>
       </AuthLayout>
@@ -143,19 +136,13 @@ export function SignInPage() {
     <AuthLayout>
       <form onSubmit={handleSubmit} className="flex flex-col gap-8">
         <div className="flex flex-col gap-4">
-          <h1 className="text-3xl font-medium leading-10 text-ink">Sign in</h1>
-          <p className="text-base text-ink-600">
-            Don&rsquo;t have account{' '}
-            <Link to="/create-account" className="font-medium text-brand">
-              Create Account
-            </Link>
+          <h1 className="text-3xl font-medium leading-10 text-ink">{t('ui.sign_in')}</h1>
+          <p className="text-base text-ink-600">{t('ui.don_t_have_account')}<Link to="/create-account" className="font-medium text-brand">{t('ui.create_account_2')}</Link>
           </p>
         </div>
 
         {suspendedNotice && !error && (
-          <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-600">
-            You were signed out: {suspendedNotice}
-          </p>
+          <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-600">{t('ui.you_were_signed_out', { suspendedNotice })}</p>
         )}
         {error && (
           <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>
@@ -163,7 +150,7 @@ export function SignInPage() {
 
         <div className="flex flex-col gap-5">
           <AuthField
-            label="Email address"
+            label={t('ui.email_address')}
             name="email"
             type="email"
             autoComplete="email"
@@ -172,7 +159,7 @@ export function SignInPage() {
             onChange={(e) => setEmail(e.target.value)}
           />
           <AuthField
-            label="Password"
+            label={t('ui.password')}
             name="password"
             password
             autoComplete="current-password"
@@ -185,20 +172,16 @@ export function SignInPage() {
               name="remember"
               checked={remember}
               onChange={(e) => setRemember(e.target.checked)}
-            >
-              Remember Me
-            </AuthCheckbox>
+            >{t('ui.remember_me')}</AuthCheckbox>
             <Link
               to="/forgot-password"
               className="text-sm font-medium text-brand"
-            >
-              Forget password
-            </Link>
+            >{t('ui.forget_password_2')}</Link>
           </div>
         </div>
 
         <AuthSubmit disabled={submitting}>
-          {submitting ? 'Signing in...' : 'Sign in'}
+          {submitting ? t('ui.signing_in') : t('ui.sign_in')}
         </AuthSubmit>
       </form>
     </AuthLayout>

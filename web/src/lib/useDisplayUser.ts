@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { tr } from './i18n'
 import { supabase } from './supabase'
 import { useSession } from './useSession'
 
@@ -51,7 +52,7 @@ const SUSPENDED_REASON_KEY = 'account-suspended-reason'
 export class SuspendedAccountError extends Error {
   reason: string | null
   constructor(reason: string | null) {
-    super(reason ?? 'Your account has been suspended.')
+    super(reason ?? tr('err.suspended'))
     this.name = 'SuspendedAccountError'
     this.reason = reason
   }
@@ -75,7 +76,7 @@ export function clearSuspendedReason() {
 
 function setSuspendedReason(reason: string | null) {
   try {
-    sessionStorage.setItem(SUSPENDED_REASON_KEY, reason ?? 'Your account has been suspended.')
+    sessionStorage.setItem(SUSPENDED_REASON_KEY, reason ?? tr('err.suspended'))
   } catch {
     /* storage unavailable */
   }

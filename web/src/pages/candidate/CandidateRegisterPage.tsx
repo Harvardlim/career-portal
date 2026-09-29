@@ -20,6 +20,7 @@ import { toStoredPhone, validateCountryPhone } from '@/lib/phone'
 import {
   EXPERT_COUNTRIES,
   ID_TYPE_BY_COUNTRY,
+  ID_TYPE_EN,
   countryName,
   saveIdentityDigits,
   idLast4Problem,
@@ -36,11 +37,13 @@ import {
   UploadIcon,
   UserIcon,
 } from '@/components/icons'
+import { useT, tr } from '@/lib/i18n'
+import { categoryLabel } from '@/lib/categoryNames'
 
 const steps: WizardStep[] = [
-  { label: 'About you', Icon: UserIcon },
-  { label: 'Your expertise', Icon: BriefcaseIcon },
-  { label: 'Identity & consent', Icon: CircleCheckIcon },
+  { get label() { return tr('step.about') }, Icon: UserIcon },
+  { get label() { return tr('step.expertise') }, Icon: BriefcaseIcon },
+  { get label() { return tr('step.identity') }, Icon: CircleCheckIcon },
 ]
 
 type FormState = {
@@ -78,6 +81,7 @@ const initialState: FormState = {
 }
 
 function CvUpload({ file, onChange }: { file: File | null; onChange: (file: File | null) => void }) {
+  const t = useT()
   const id = useId()
   return (
     <label
@@ -90,11 +94,10 @@ function CvUpload({ file, onChange }: { file: File | null; onChange: (file: File
           file.name
         ) : (
           <>
-            <span className="text-brand">Browse file</span> or drop here
-          </>
+            <span className="text-brand">{t('ui.browse_file')}</span>{' '}{t('ui.or_drop_here')}</>
         )}
       </p>
-      <p className="text-xs text-muted">PDF or DOCX, max 10 MB. Optional ,  your profile is what businesses see.</p>
+      <p className="text-xs text-muted">{t('ui.pdf_or_docx_max_10_mb')}</p>
       <input id={id} type="file" accept=".pdf,.doc,.docx" className="sr-only" onChange={(e) => onChange(e.target.files?.[0] ?? null)} />
     </label>
   )
@@ -102,6 +105,7 @@ function CvUpload({ file, onChange }: { file: File | null; onChange: (file: File
 
 /** Expert sign-up: LinkedIn-style profile + the mandatory identity step. */
 export function CandidateRegisterPage() {
+  const t = useT()
   const { categories: allCategories } = useCategories()
   const navigate = useNavigate()
   const { session } = useSession()
@@ -130,7 +134,7 @@ export function CandidateRegisterPage() {
     setForm((f) => {
       const on = f.categories.includes(name)
       if (!on && f.categories.length >= MAX_CATEGORIES) {
-        toast.error(`Pick up to ${MAX_CATEGORIES} main categories.`)
+        toast.error(t('ui.pick_up_to_main_categories', { MAX_CATEGORIES }))
         return f
       }
       const cat = allCategories.find((c) => c.name === name)
@@ -156,16 +160,16 @@ export function CandidateRegisterPage() {
       if (emailErr) return toast.error(emailErr)
       const phoneErr = validateCountryPhone(form.country, form.contactNumber)
       if (phoneErr) return toast.error(phoneErr)
-      if (!session && form.password !== form.confirmPassword) return toast.error('Passwords do not match.')
+      if (!session && form.password !== form.confirmPassword) return toast.error(t('ui.passwords_do_not_match'))
       // Catch an already-registered email on the first step, not at the end.
       setSubmitting(true)
       const check = await lookupEmail(form.email).catch(() => ({ role: null }))
       setSubmitting(false)
       if (check.role) return setDupRole(check.role)
     }
-    if (step === 1 && form.categories.length === 0) return toast.error('Pick at least one area of expertise.')
-    if (step === 1 && !form.yearsExperience) return toast.error('Select your years of experience ,  you can\u2019t apply without it.')
-    if (step === 1 && !form.pastExperience.trim()) return toast.error('Add a short experience summary ,  businesses read it before choosing you.')
+    if (step === 1 && form.categories.length === 0) return toast.error(t('ui.pick_at_least_one_area_of'))
+    if (step === 1 && !form.yearsExperience) return toast.error(t('ui.select_your_years_of_experience_you'))
+    if (step === 1 && !form.pastExperience.trim()) return toast.error(t('ui.add_a_short_experience_summary_businesses'))
 
     if (step < steps.length - 1) {
       setStep((s) => s + 1)
@@ -179,7 +183,7 @@ export function CandidateRegisterPage() {
       return
     }
     if (!consented) {
-      setError('Please agree to the Consent, Terms & Conditions, and Privacy Policy.')
+      setError(t('ui.please_agree_to_the_consent_terms'))
       return
     }
 
@@ -196,7 +200,7 @@ export function CandidateRegisterPage() {
       const { userId, needsConfirm } = await resolveAccountForRegister(form.email, form.password)
 
       const { data: existing } = await supabase.from('candidates').select('id').eq('user_id', userId).maybeSingle()
-      if (existing) throw new Error('This email already has an expert account ,  just sign in.')
+      if (existing) throw new Error(t('err.expert_exists'))
 
       let resumePath: string | null = null
       if (resumeFile) {
@@ -211,7 +215,7 @@ export function CandidateRegisterPage() {
           user_id: userId,
           full_name: form.fullName,
           country_code: form.country,
-          id_type: ID_TYPE_BY_COUNTRY[form.country],
+          id_type: ID_TYPE_EN[form.country],
           resume_path: resumePath,
           headline: form.headline || null,
           business_name: form.businessName.trim() || null,
@@ -246,10 +250,10 @@ export function CandidateRegisterPage() {
       if (!needsConfirm) {
         clearDisplayUserCache()
         if (idSaved) {
-          toast.success('Expert profile created ,  you\u2019re Basic verified. Get Fully verified to attract more interested leads.')
+          toast.success(t('ui.expert_profile_created_you_re_basic'))
           navigate('/dashboard')
         } else {
-          toast.error('Profile created, but your ID digits could not be saved. Please enter them once more to finish Basic verification.')
+          toast.error(t('ui.profile_created_but_your_id_digits'))
           navigate('/dashboard/verification')
         }
       } else {
@@ -288,20 +292,13 @@ export function CandidateRegisterPage() {
           <GoldCircle size={96}>
             <CheckIcon className="size-10" />
           </GoldCircle>
-          <h1 className="text-2xl font-medium text-navy" style={{ fontFamily: 'Georgia, serif' }}>
-            Almost there ,  confirm your email
-          </h1>
-          <p className="max-w-md text-muted-600">Thanks, {form.fullName.split(' ')[0] || 'there'}.</p>
-          <p className="max-w-md text-sm text-muted">
-            We&apos;ve sent a confirmation link to <b>{form.email}</b>. Click it and you&apos;ll land on the sign-in
-            page.{' '}
-            {identityDeferred
-              ? 'Your ID digits could not be saved just now ,  after signing in, enter them once on the Verification page so you can start applying.'
-              : 'You’re already Basic verified, so you can start applying as soon as you sign in.'}
+          <h1 className="text-2xl font-medium text-navy" style={{ fontFamily: 'Georgia, serif' }}>{t('ui.almost_there_confirm_your_email')}</h1>
+          <p className="max-w-md text-muted-600">{t('ui.thanks')}{' '}{form.fullName.split(' ')[0] || 'there'}.</p>
+          <p className="max-w-md text-sm text-muted">{t('ui.we_ve_sent_a_confirmation_link')}{' '}<b>{form.email}</b>{t('ui.click_it_and_you_ll_land')}{identityDeferred
+              ? t('ui.your_id_digits_could_not_be')
+              : t('ui.you_re_already_basic_verified_so')}
           </p>
-          <Link to="/sign-in" className="rounded-md bg-navy px-6 py-3 text-base font-semibold text-white">
-            Go to Sign In
-          </Link>
+          <Link to="/sign-in" className="rounded-md bg-navy px-6 py-3 text-base font-semibold text-white">{t('ui.go_to_sign_in')}</Link>
         </div>
       </RegWizardLayout>
     )
@@ -322,14 +319,14 @@ export function CandidateRegisterPage() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <div>
           <h1 className="text-2xl font-medium text-navy" style={{ fontFamily: 'Georgia, serif' }}>
-            {step === 0 ? 'Create your expert profile' : step === 1 ? 'What do you do?' : 'Verify it’s you'}
+            {step === 0 ? t('ui.create_your_expert_profile') : step === 1 ? t('ui.what_do_you_do') : t('ui.verify_it_s_you')}
           </h1>
           <p className="mt-1 text-sm text-ink-600">
             {step === 0
-              ? 'Real leads. Real businesses. You choose ,  and you only pay when a business shows real interest.'
+              ? t('ui.real_leads_real_businesses_you_choose')
               : step === 1
-                ? 'Businesses see this on your match card. Pick the categories and sub-categories you serve.'
-                : 'The free Basic verified check is just these digits ,  you can apply right away. The paid Fully verified badge later adds a document review on top.'}
+                ? t('ui.businesses_see_this_on_your_match')
+                : t('ui.the_free_basic_verified_check_is')}
           </p>
         </div>
 
@@ -338,15 +335,13 @@ export function CandidateRegisterPage() {
         {step === 0 && (
           <>
             {session && (
-              <p className="rounded-md bg-brand-50 px-4 py-3 text-sm text-brand">
-                You&apos;re signed in as <b>{signedInEmail}</b>. This finishes setting up your expert account.
-              </p>
+              <p className="rounded-md bg-brand-50 px-4 py-3 text-sm text-brand">{t('ui.you_re_signed_in_as')}{' '}<b>{signedInEmail}</b>{t('ui.this_finishes_setting_up_your_expert')}</p>
             )}
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Full name, exactly as on your ID">
-                <TextInput required placeholder="Full name" value={form.fullName} onChange={(e) => update('fullName', e.target.value)} />
+              <Field label={t('ui.full_name_exactly_as_on_your')}>
+                <TextInput required placeholder={t('ui.full_name')} value={form.fullName} onChange={(e) => update('fullName', e.target.value)} />
               </Field>
-              <Field label="Country you’re based in">
+              <Field label={t('ui.country_you_re_based_in')}>
                 <SelectMenu
                   value={form.country}
                   onChange={(v) => update('country', v as ExpertCountry)}
@@ -354,42 +349,42 @@ export function CandidateRegisterPage() {
                 />
               </Field>
             </div>
-            <Field label="Contact number">
+            <Field label={t('ui.contact_number')}>
               <PhoneInput required country={form.country} value={form.contactNumber} onChange={(v) => update('contactNumber', v)} invalid={!!form.contactNumber.trim() && !!validateCountryPhone(form.country, form.contactNumber)} />
               {form.contactNumber.trim() && validateCountryPhone(form.country, form.contactNumber) && (
                 <p className="mt-1 text-xs text-danger">{validateCountryPhone(form.country, form.contactNumber)}</p>
               )}
             </Field>
-            <Field label="Business name (optional)">
-              <TextInput placeholder="If you work through your own company, e.g. Lim Advisory Pte Ltd" value={form.businessName} onChange={(e) => update('businessName', e.target.value)} />
+            <Field label={t('ui.business_name_optional')}>
+              <TextInput placeholder={t('ui.if_you_work_through_your_own')} value={form.businessName} onChange={(e) => update('businessName', e.target.value)} />
             </Field>
-            <Field label="Email">
-              <TextInput required type="email" placeholder="you@example.com" icon={<MailIcon className="size-5" />} value={form.email} readOnly={!!session} onChange={(e) => update('email', e.target.value)} />
+            <Field label={t('ui.email')}>
+              <TextInput required type="email" placeholder={t('ui.you_example_com')} icon={<MailIcon className="size-5" />} value={form.email} readOnly={!!session} onChange={(e) => update('email', e.target.value)} />
               {!session && form.email.trim() && validateEmail(form.email) && (
                 <p className="mt-1 text-xs text-danger">{validateEmail(form.email)}</p>
               )}
             </Field>
             {!session && (
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Password">
-                  <TextInput required type="password" minLength={6} placeholder="At least 6 characters" autoComplete="new-password" value={form.password} onChange={(e) => update('password', e.target.value)} />
+                <Field label={t('ui.password')}>
+                  <TextInput required type="password" minLength={6} placeholder={t('ui.at_least_6_characters')} autoComplete="new-password" value={form.password} onChange={(e) => update('password', e.target.value)} />
                 </Field>
-                <Field label="Confirm password">
-                  <TextInput required type="password" minLength={6} placeholder="Re-enter your password" autoComplete="new-password" value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} />
+                <Field label={t('ui.confirm_password_2')}>
+                  <TextInput required type="password" minLength={6} placeholder={t('ui.re_enter_your_password')} autoComplete="new-password" value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} />
                 </Field>
               </div>
             )}
-            <p className="text-xs text-muted">Experts on partly.asia are based in Singapore, Malaysia, Indonesia, Thailand, Vietnam or the Philippines. Businesses can be anywhere.</p>
+            <p className="text-xs text-muted">{t('ui.experts_on_partly_asia_are_based')}</p>
           </>
         )}
 
         {step === 1 && (
           <>
-            <Field label="Headline">
-              <TextInput placeholder="e.g. Fractional CFO · Series A–B fundraising · SaaS" value={form.headline} onChange={(e) => update('headline', e.target.value)} />
+            <Field label={t('ui.headline')}>
+              <TextInput placeholder={t('ui.e_g_fractional_cfo_series_a')} value={form.headline} onChange={(e) => update('headline', e.target.value)} />
             </Field>
             <div>
-              <p className="mb-2 text-sm text-ink">Areas of expertise (required to apply)</p>
+              <p className="mb-2 text-sm text-ink">{t('ui.areas_of_expertise_required_to_apply')}</p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {allCategories.map((c) => (
                   <button
@@ -400,14 +395,14 @@ export function CandidateRegisterPage() {
                       form.categories.includes(c.name) ? 'border-gold bg-gold-50 font-medium text-navy' : 'border-line text-ink-600 hover:bg-surface-alt'
                     }`}
                   >
-                    {c.name}
+                    {categoryLabel(c.name)}
                   </button>
                 ))}
               </div>
             </div>
             {pickedCategories.map((c) => (
               <div key={c.id}>
-                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">{c.name} ,  what you serve</p>
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">{t('ui.what_you_serve', { name: c.name })}</p>
                 <div className="flex flex-wrap gap-2">
                   {c.subcategories.map((s) => (
                     <button
@@ -419,30 +414,30 @@ export function CandidateRegisterPage() {
                         form.subcategoryIds.includes(s.id) ? 'border-navy bg-navy text-white' : 'border-line text-ink-600 hover:bg-surface-alt'
                       }`}
                     >
-                      {s.name}
+                      {categoryLabel(s.name)}
                     </button>
                   ))}
                 </div>
               </div>
             ))}
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Years of experience (required to apply)">
+              <Field label={t('ui.years_of_experience_required_to_apply')}>
                 <Select value={form.yearsExperience} onChange={(v) => update('yearsExperience', v)} options={['Select...', ...experienceRanges]} />
               </Field>
-              <Field label="LinkedIn profile (optional)">
-                <TextInput placeholder="https://www.linkedin.com/in/…" icon={<LinkedinIcon className="size-5" />} value={form.linkedin} onChange={(e) => update('linkedin', e.target.value)} />
+              <Field label={t('ui.linkedin_profile_optional')}>
+                <TextInput placeholder={t('ui.https_www_linkedin_com_in')} icon={<LinkedinIcon className="size-5" />} value={form.linkedin} onChange={(e) => update('linkedin', e.target.value)} />
               </Field>
             </div>
-            <Field label="Experience summary (required to apply)">
+            <Field label={t('ui.experience_summary_required_to_apply')}>
               <textarea
                 rows={4}
-                placeholder="Roles, outcomes, the kind of problems you solve…"
+                placeholder={t('ui.roles_outcomes_the_kind_of_problems')}
                 className="w-full resize-none rounded-md border border-line bg-surface p-4 text-base text-ink outline-none focus:border-brand placeholder:text-muted-400"
                 value={form.pastExperience}
                 onChange={(e) => update('pastExperience', e.target.value)}
               />
             </Field>
-            <Field label="CV (optional)">
+            <Field label={t('ui.cv_optional')}>
               <CvUpload file={resumeFile} onChange={setResumeFile} />
             </Field>
           </>
@@ -451,7 +446,7 @@ export function CandidateRegisterPage() {
         {step === 2 && (
           <>
             <div className="rounded-xl border border-gold/40 bg-gold-50 p-5">
-              <Field label={`Last 4 characters of your ${ID_TYPE_BY_COUNTRY[form.country]} (${countryName(form.country)})`}>
+              <Field label={t('ui.last_4_characters_of_your', { v: ID_TYPE_BY_COUNTRY[form.country], country: countryName(form.country) })}>
                 <TextInput
                   required
                   placeholder={`e.g. ${ID_LAST4_FORMAT[form.country].example}`}
@@ -461,10 +456,7 @@ export function CandidateRegisterPage() {
                   onChange={(e) => update('last4', e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4))}
                 />
               </Field>
-              <p className="mt-2 text-xs text-ink-600">
-                Encrypted before it is stored and never displayed back ,  not to you, not to any business, not to any
-                third party. This makes you <b>Basic verified</b> ,  you can apply the moment you sign in.
-              </p>
+              <p className="mt-2 text-xs text-ink-600">{t('ui.encrypted_before_it_is_stored_and')}{' '}<b>{t('ui.basic_verified')}</b>{' '}{t('ui.you_can_apply_the_moment_you')}</p>
               <div className="mt-4">
                 <FullyVerifiedBubble audience="expert" />
               </div>
@@ -475,7 +467,7 @@ export function CandidateRegisterPage() {
 
         <WizardButtons
           onPrev={step > 0 ? () => setStep((s) => s - 1) : undefined}
-          nextLabel={isLastStep ? (submitting ? 'Creating profile…' : 'Create my expert profile') : 'Save & continue'}
+          nextLabel={isLastStep ? (submitting ? t('ui.creating_profile') : t('ui.create_my_expert_profile')) : t('ui.save_continue')}
           nextDisabled={submitting || (step === 0 && !isStep0Filled) || (isLastStep && (!consented || form.last4.length !== 4))}
         />
       </form>

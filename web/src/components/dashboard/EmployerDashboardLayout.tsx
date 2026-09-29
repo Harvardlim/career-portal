@@ -11,18 +11,20 @@ import {
   ShareIcon,
   UserCircleIcon,
 } from '@/components/icons'
+import { useT, tr } from '@/lib/i18n'
 
 const nav = [
-  { label: 'Overview', to: '/employer/dashboard', end: true, Icon: LayersIcon },
-  { label: 'Post a need', to: '/employer/post-need', Icon: PlusCircleIcon },
-  { label: 'My postings & matches', to: '/employer/postings', Icon: BriefcaseIcon },
-  { label: 'Verification', to: '/employer/verification', Icon: CircleCheckIcon },
-  { label: 'Business profile', to: '/company/register', Icon: UserCircleIcon },
-  { label: 'Affiliate', to: '/employer/affiliate', Icon: ShareIcon },
-  { label: 'Settings', to: '/employer/settings', Icon: GearIcon },
+  { get label() { return tr('dash.overview') }, to: '/employer/dashboard', end: true, Icon: LayersIcon },
+  { get label() { return tr('dash.post_need') }, to: '/employer/post-need', Icon: PlusCircleIcon },
+  { get label() { return tr('dash.my_postings') }, to: '/employer/postings', Icon: BriefcaseIcon },
+  { get label() { return tr('dash.verification_biz') }, to: '/employer/verification', Icon: CircleCheckIcon },
+  { get label() { return tr('dash.biz_profile') }, to: '/company/register', Icon: UserCircleIcon },
+  { get label() { return tr('dash.affiliate') }, to: '/employer/affiliate', Icon: ShareIcon },
+  { get label() { return tr('dash.settings') }, to: '/employer/settings', Icon: GearIcon },
 ]
 
 export function EmployerDashboardLayout({ children }: { children: ReactNode }) {
+  const t = useT()
   const { user, loading } = useDisplayUser()
 
   // Business-only area ,  send experts (or accounts with no business profile)
@@ -32,7 +34,7 @@ export function EmployerDashboardLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <DashboardShell heading="Business Dashboard" nav={nav}>
+    <DashboardShell heading={t('ui.business_dashboard')} nav={nav}>
       {children}
     </DashboardShell>
   )

@@ -26,8 +26,10 @@ import {
 import { useCheckoutReturn } from '@/lib/useCheckoutReturn'
 import { formatDateTime } from '@/lib/format'
 import { formatStoredPhone } from '@/lib/phone'
+import { useT } from '@/lib/i18n'
 
 export function LeadUnlockPage() {
+  const t = useT()
   const { id = '' } = useParams()
   const { candidate, loading: candidateLoading } = useCandidate()
   const { pricing } = usePricing()
@@ -55,8 +57,8 @@ export function LeadUnlockPage() {
 
   // Return from Stripe: confirm server-side so the contact appears immediately.
   const { confirming } = useCheckoutReturn({
-    successMessage: 'Contact unlocked.',
-    cancelledMessage: 'Payment cancelled ,  the lead is still yours until the window closes.',
+    successMessage: t('lu.unlocked'),
+    cancelledMessage: t('lu.cancelled'),
     onConfirmed: load,
   })
 
@@ -67,7 +69,7 @@ export function LeadUnlockPage() {
     try {
       await startLeadUnlock(id, pay)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not start payment')
+      toast.error(err instanceof Error ? err.message : t('ui.could_not_start_payment'))
       setBusy(false)
     }
   }
@@ -75,14 +77,14 @@ export function LeadUnlockPage() {
   if (loading || candidateLoading) {
     return (
       <DashboardLayout>
-        <p className="text-sm text-muted">Loading…</p>
+        <p className="text-sm text-muted">{t('ui.loading_2')}</p>
       </DashboardLayout>
     )
   }
   if (!lead) {
     return (
       <DashboardLayout>
-        <EmptyState>Lead not found.</EmptyState>
+        <EmptyState>{t('ui.lead_not_found')}</EmptyState>
       </DashboardLayout>
     )
   }
@@ -93,15 +95,13 @@ export function LeadUnlockPage() {
     <DashboardLayout>
       {confirming && <PaymentConfirmingOverlay />}
       <div className="flex max-w-2xl flex-col gap-5">
-        <Link to="/dashboard/leads" className="text-xs text-muted hover:text-brand">
-          ← Warm leads
-        </Link>
+        <Link to="/dashboard/leads" className="text-xs text-muted hover:text-brand">{t('ui.warm_leads_2')}</Link>
 
         {/* Only what the expert already saw when applying -- nothing more. */}
         <Card className="flex flex-col gap-2">
-          <h1 className="text-xl font-semibold text-ink">{job?.title ?? 'Released lead'}</h1>
+          <h1 className="text-xl font-semibold text-ink">{job?.title ?? t('ui.released_lead')}</h1>
           <div className="flex flex-wrap gap-2 text-sm">
-            <Pill>{job?.category ?? 'Category'}</Pill>
+            <Pill>{job?.category ?? t('ui.category')}</Pill>
             <Pill>{countryName(job?.country)}</Pill>
             <Pill>{projectTypeLabel(job?.project_type)}</Pill>
           </div>
@@ -111,21 +111,16 @@ export function LeadUnlockPage() {
             </div>
           )}
           {job?.slug && (
-            <Link to={`/job/${job.slug}`} className="mt-1 w-fit text-sm font-medium text-brand hover:underline">
-              View the full job posting
-            </Link>
+            <Link to={`/job/${job.slug}`} className="mt-1 w-fit text-sm font-medium text-brand hover:underline">{t('ui.view_the_full_job_posting')}</Link>
           )}
           {lead.others_released > 0 && lead.status === 'awaiting_payment' && (
-            <p className="mt-1 text-xs text-amber-800">
-              This business also released contact to {lead.others_released} other expert
-              {lead.others_released === 1 ? '' : 's'} ,  you are one of {lead.cohort_size} being considered.
-            </p>
+            <p className="mt-1 text-xs text-amber-800">{t('ui.this_business_also_released_contact_to', { others_released: lead.others_released })}{lead.others_released === 1 ? '' : t('ui.plural_s')}{' '}{t('ui.you_are_one_of_being_considered', { cohort_size: lead.cohort_size })}</p>
           )}
         </Card>
 
         {lead.status === 'paid' && (
           <Card className="border-emerald-200 bg-emerald-50/40">
-            <h2 className="font-semibold text-ink">Business contact</h2>
+            <h2 className="font-semibold text-ink">{t('ui.business_contact')}</h2>
             {contact ? (
               <>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
@@ -152,20 +147,13 @@ export function LeadUnlockPage() {
                     </span>
                   )}
                 </div>
-                <Notice tone="warning">
-                  These details are visible until <strong>{formatDateTime(contact.contact_expires_at)}</strong>{' '}
-                  (5 calendar days). For security and privacy, refer to this lead only through partly.asia ,  we never
-                  email contact details out.
-                </Notice>
+                <Notice tone="warning">{t('ui.these_details_are_visible_until')}{' '}<strong>{formatDateTime(contact.contact_expires_at)}</strong>{t('ui.5_calendar_days_for_security_and')}</Notice>
                 <div className="mt-4">
-                  <RatingWidget releaseId={id} raterKind="candidate" raterLabel="this business" />
+                  <RatingWidget releaseId={id} raterKind="candidate" raterLabel={t('ui.this_business')} />
                 </div>
               </>
             ) : (
-              <p className="mt-2 text-sm text-muted">
-                The 5-day contact window has ended. The business received your details at the same time, so the
-                conversation can continue off-platform.
-              </p>
+              <p className="mt-2 text-sm text-muted">{t('ui.the_5_day_contact_window_has')}</p>
             )}
           </Card>
         )}
@@ -175,27 +163,16 @@ export function LeadUnlockPage() {
         {lead.status === 'awaiting_payment' && lead.window_open && (
           <Card className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="font-semibold text-ink">Pay to unlock contact</h2>
+              <h2 className="font-semibold text-ink">{t('ui.pay_to_unlock_contact')}</h2>
               <Countdown until={lead.window_expires_at} />
             </div>
-            <p className="text-sm text-muted">
-              A fixed fee unlocks the business's full contact details, and sends yours to them at the same time.
-              After that, everything happens directly between you.
-            </p>
+            <p className="text-sm text-muted">{t('ui.a_fixed_fee_unlocks_the_business')}</p>
             {price && (
-              <p className="text-sm font-medium text-ink">
-                Unlock fee: {formatBoth(price, price.lead_fee_local, price.lead_fee_usd)}
-              </p>
+              <p className="text-sm font-medium text-ink">{t('ui.unlock_fee', { lead_fee_usd: formatBoth(price, price.lead_fee_local, price.lead_fee_usd) })}</p>
             )}
 
             {!price ? (
-              <Notice tone="warning">
-                Set your country on the{' '}
-                <Link to="/dashboard/verification" className="underline">
-                  verification page
-                </Link>{' '}
-                so we can show your market's fixed price.
-              </Notice>
+              <Notice tone="warning">{t('ui.set_your_country_on_the')}<Link to="/dashboard/verification" className="underline">{t('ui.verification_page')}</Link>{t('ui.so_we_can_show_your_market')}</Notice>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
                 <button
@@ -203,41 +180,35 @@ export function LeadUnlockPage() {
                   onClick={() => setPay('local')}
                   className={`rounded-lg border p-4 text-left ${pay === 'local' ? 'border-brand bg-brand-50' : 'border-line'}`}
                 >
-                  <p className="text-xs uppercase tracking-wide text-muted">Pay in {price.currency}</p>
+                  <p className="text-xs uppercase tracking-wide text-muted">{t('ui.pay_in', { currency: price.currency })}</p>
                   <p className="mt-1 text-2xl font-semibold text-ink">{formatLocal(price, price.lead_fee_local)}</p>
-                  <p className="text-xs text-muted">Fixed {price.name} price</p>
+                  <p className="text-xs text-muted">{t('ui.fixed_price', { name: price.name })}</p>
                 </button>
                 <button
                   type="button"
                   onClick={() => setPay('usd')}
                   className={`rounded-lg border p-4 text-left ${pay === 'usd' ? 'border-brand bg-brand-50' : 'border-line'}`}
                 >
-                  <p className="text-xs uppercase tracking-wide text-muted">Pay in USD</p>
+                  <p className="text-xs uppercase tracking-wide text-muted">{t('ui.pay_in_usd')}</p>
                   <p className="mt-1 text-2xl font-semibold text-ink">{formatUsd(price.lead_fee_usd)}</p>
-                  <p className="text-xs text-muted">Forex exchange absorbed</p>
+                  <p className="text-xs text-muted">{t('ui.forex_exchange_absorbed')}</p>
                 </button>
               </div>
             )}
 
             <PrimaryButton onClick={handlePay} disabled={busy || !price} className="w-full">
-              {busy ? 'Redirecting to payment…' : 'Pay to Unlock Contact'}
+              {busy ? t('ui.redirecting_to_payment') : t('ui.pay_to_unlock_contact_2')}
             </PrimaryButton>
-            <p className="text-center text-xs text-muted">
-              Secure checkout by Stripe. If you don't pay within the window the lead simply goes cold ,  no charge.
-            </p>
+            <p className="text-center text-xs text-muted">{t('ui.secure_checkout_by_stripe_if_you')}</p>
           </Card>
         )}
 
         {lead.status === 'awaiting_payment' && !lead.window_open && (
-          <Notice tone="brand" title="The window has closed">
-            This lead went cold. You were not charged.
-          </Notice>
+          <Notice tone="brand" title={t('ui.the_window_has_closed')}>{t('ui.this_lead_went_cold_you_were')}</Notice>
         )}
         {(lead.status === 'cold' || lead.status === 'job_closed') && (
-          <Notice tone="brand" title={lead.status === 'job_closed' ? 'Lead went cold ,  job closed' : 'Lead went cold'}>
-            {lead.ended_reason ?? 'The window closed before payment.'} You were not charged ,  this is a normal part of
-            the process.
-          </Notice>
+          <Notice tone="brand" title={lead.status === 'job_closed' ? t('ui.lead_went_cold_job_closed') : t('ui.lead_went_cold')}>
+            {lead.ended_reason ?? t('ui.the_window_closed_before_payment')}{' '}{t('ui.you_were_not_charged_this_is')}</Notice>
         )}
       </div>
     </DashboardLayout>

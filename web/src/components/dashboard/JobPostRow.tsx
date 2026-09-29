@@ -7,8 +7,10 @@ import {
   UsersIcon,
   XCircleIcon,
 } from '@/components/icons'
+import { useT } from '@/lib/i18n'
 
 export function JobPostRow({ job }: { job: EmployerJob }) {
+  const t = useT()
   const [menu, setMenu] = useState(false)
   const active = job.status === 'active'
   return (
@@ -29,12 +31,10 @@ export function JobPostRow({ job }: { job: EmployerJob }) {
         }`}
       >
         {active ? <CheckIcon className="size-4" /> : <XCircleIcon className="size-4" />}
-        {active ? 'Active' : 'Expire'}
+        {active ? t('ui.active') : t('ui.expire')}
       </span>
       <span className="flex items-center gap-2 text-sm text-ink-600">
-        <UsersIcon className="size-4" />
-        {job.applications} Applications
-      </span>
+        <UsersIcon className="size-4" />{t('ui.applications', { applications: job.applications })}</span>
       <div className="flex items-center gap-2">
         <Link
           to="/employer/applications"
@@ -43,13 +43,11 @@ export function JobPostRow({ job }: { job: EmployerJob }) {
               ? 'bg-brand text-white'
               : 'bg-brand-50 text-brand hover:bg-brand-100'
           }`}
-        >
-          View Applications
-        </Link>
+        >{t('ui.view_applications')}</Link>
         <div className="relative">
           <button
             type="button"
-            aria-label="Job actions"
+            aria-label={t('ui.job_actions')}
             onClick={() => setMenu((v) => !v)}
             className="grid size-9 place-items-center rounded text-muted hover:bg-surface-alt"
           >
@@ -57,15 +55,9 @@ export function JobPostRow({ job }: { job: EmployerJob }) {
           </button>
           {menu && (
             <div className="absolute right-0 top-10 z-10 w-44 rounded-lg border border-line bg-surface py-1 text-sm shadow-lg">
-              <button className="block w-full px-4 py-2 text-left text-brand hover:bg-surface-alt">
-                Promote Job
-              </button>
-              <button className="block w-full px-4 py-2 text-left text-ink-600 hover:bg-surface-alt">
-                View Detail
-              </button>
-              <button className="block w-full px-4 py-2 text-left text-ink-600 hover:bg-surface-alt">
-                Make it Expire
-              </button>
+              <button className="block w-full px-4 py-2 text-left text-brand hover:bg-surface-alt">{t('ui.promote_job')}</button>
+              <button className="block w-full px-4 py-2 text-left text-ink-600 hover:bg-surface-alt">{t('ui.view_detail')}</button>
+              <button className="block w-full px-4 py-2 text-left text-ink-600 hover:bg-surface-alt">{t('ui.make_it_expire')}</button>
             </div>
           )}
         </div>

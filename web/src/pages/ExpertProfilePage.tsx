@@ -6,6 +6,7 @@ import { countryName, fetchRatingsFor, type RatingWithAuthor } from '@/lib/partl
 import { supabase } from '@/lib/supabase'
 import { useSeo } from '@/lib/seo'
 import { formatDate } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 
 type PublicProfile = {
   candidate_id: string
@@ -28,6 +29,7 @@ type PublicProfile = {
 
 /** The page a "Hire me on partly.asia" badge links to. Contact-free by design. */
 export function ExpertProfilePage() {
+  const t = useT()
   const { slug = '' } = useParams()
   const [params] = useSearchParams()
   const [profile, setProfile] = useState<PublicProfile | null>(null)
@@ -35,9 +37,9 @@ export function ExpertProfilePage() {
   const [loading, setLoading] = useState(true)
 
   useSeo({
-    title: profile ? `${profile.full_name} ,  ${profile.headline ?? profile.title ?? 'Expert on partly.asia'}` : 'Expert profile',
+    title: profile ? t('seo.expert_title', { name: profile.full_name, headline: profile.headline ?? profile.title ?? t('seo.expert_default') }) : t('seo.expert_profile'),
     description: profile
-      ? `${profile.full_name}${profile.business_name ? ` (${profile.business_name})` : ''} ,  ${(profile.expertise_field ?? []).join(', ') || 'verified expert'} based in ${countryName(profile.country_code)}. Hire through partly.asia.`
+      ? t('seo.expert_desc', { name: profile.full_name, biz: profile.business_name ? ` (${profile.business_name})` : '', fields: (profile.expertise_field ?? []).join(', ') || t('seo.verified_expert'), country: countryName(profile.country_code) })
       : undefined,
     type: 'profile',
     image: profile?.avatar_path ?? undefined,
@@ -73,11 +75,11 @@ export function ExpertProfilePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug])
 
-  if (loading) return <div className="px-6 py-16 text-center text-sm text-muted">Loading…</div>
+  if (loading) return <div className="px-6 py-16 text-center text-sm text-muted">{t('ui.loading_2')}</div>
   if (!profile) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-16">
-        <EmptyState>This expert profile isn't public.</EmptyState>
+        <EmptyState>{t('ui.this_expert_profile_isn_t_public')}</EmptyState>
       </div>
     )
   }
@@ -91,11 +93,11 @@ export function ExpertProfilePage() {
           <Avatar name={profile.full_name} src={profile.avatar_path} size={72} />
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-semibold text-ink">{profile.full_name}</h1>
-            <p className="text-ink-600">{profile.headline ?? profile.title ?? 'Expert on partly.asia'}</p>
+            <p className="text-ink-600">{profile.headline ?? profile.title ?? t('ui.expert_on_partly_asia')}</p>
             {profile.business_name && <p className="text-sm text-ink-600">{profile.business_name}</p>}
             <p className="mt-1 text-sm text-muted">
               {countryName(profile.country_code)}
-              {profile.years_experience ? ` · ${profile.years_experience} experience` : ''}
+              {profile.years_experience ? t('ui.experience_2', { years_experience: profile.years_experience }) : ''}
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-3">
               <VerifiedChips identity={profile.identity_verified} badge={profile.badge_verified} />
@@ -127,29 +129,26 @@ export function ExpertProfilePage() {
         )}
 
         <div className="rounded-lg bg-brand-50 p-4">
-          <p className="font-medium text-brand-800">Want to work with {profile.full_name.split(' ')[0]}?</p>
-          <p className="mt-1 text-sm text-ink-600">
-            Post your need free on partly.asia. If {profile.full_name.split(' ')[0]} applies and you release contact,
-            you'll be connected directly ,  no recruiter fees.
-          </p>
+          <p className="font-medium text-brand-800">{t('ui.want_to_work_with', { v: profile.full_name.split(' ')[0] })}</p>
+          <p className="mt-1 text-sm text-ink-600">{t('ui.post_your_need_free_on_partly', { v: profile.full_name.split(' ')[0] })}</p>
           <Link to="/employer/post-need" className="mt-3 inline-block">
-            <PrimaryButton>Post your project ,  it's free</PrimaryButton>
+            <PrimaryButton>{t('ui.post_your_project_it_s_free')}</PrimaryButton>
           </Link>
         </div>
 
         {reviews.length > 0 && (
           <div className="flex flex-col gap-3 border-t border-line pt-5">
-            <p className="text-sm font-semibold text-ink">Reviews from businesses</p>
+            <p className="text-sm font-semibold text-ink">{t('ui.reviews_from_businesses')}</p>
             {reviews.map((r) => (
               <div key={r.id} className="flex flex-col gap-1 rounded-md bg-surface-alt/60 p-3">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium text-ink">{r.rater_name ?? 'A business'}</span>
+                  <span className="text-sm font-medium text-ink">{r.rater_name ?? t('ui.a_business')}</span>
                   <StarRating value={r.stars} showEmpty={false} />
                 </div>
                 {r.comment && <p className="text-sm text-ink-600">{r.comment}</p>}
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-xs text-muted">{formatDate(r.created_at)}</p>
-                  <ReportButton targetKind="rating" targetId={r.id} label="Report" />
+                  <ReportButton targetKind="rating" targetId={r.id} label={t('ui.report')} />
                 </div>
               </div>
             ))}
@@ -157,7 +156,7 @@ export function ExpertProfilePage() {
         )}
 
         <div className="flex justify-end">
-          <ReportButton targetKind="candidate" targetId={profile.candidate_id} label="Report this profile" />
+          <ReportButton targetKind="candidate" targetId={profile.candidate_id} label={t('ui.report_this_profile')} />
         </div>
       </Card>
     </div>

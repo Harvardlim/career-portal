@@ -5,10 +5,12 @@ import {
   TwitterIcon,
   YoutubeIcon,
 } from '@/components/icons'
+import { useT, tr } from '@/lib/i18n'
 
 const icons = [FacebookIcon, TwitterIcon, InstagramIcon, YoutubeIcon, LinkedinIcon]
 
 export function SocialLinks({ label }: { label?: string }) {
+  const t = useT()
   return (
     <div className="flex flex-col gap-4">
       {label && <p className="text-base font-medium text-ink">{label}</p>}
@@ -17,7 +19,7 @@ export function SocialLinks({ label }: { label?: string }) {
           <a
             key={i}
             href="#"
-            aria-label="Social link"
+            aria-label={t('ui.social_link')}
             className={`grid size-9 place-items-center rounded ${
               i === 1
                 ? 'bg-brand text-white'
@@ -32,14 +34,15 @@ export function SocialLinks({ label }: { label?: string }) {
   )
 }
 
-export function ShareRow({ label = 'Share this job:' }: { label?: string }) {
+export function ShareRow({ label = tr('ui.share_this_job') }: { label?: string }) {
+  const t = useT()
   return (
     <div className="flex flex-wrap items-center gap-3">
       <span className="text-sm font-medium text-ink">{label}</span>
       {[
-        { Icon: FacebookIcon, text: 'Facebook', color: 'text-[#1877f2]' },
-        { Icon: TwitterIcon, text: 'Twitter', color: 'text-[#1da1f2]' },
-        { Icon: InstagramIcon, text: 'Pinterest', color: 'text-[#e60023]' },
+        { Icon: FacebookIcon, text: t('ui.facebook'), color: 'text-[#1877f2]' },
+        { Icon: TwitterIcon, text: t('ui.twitter'), color: 'text-[#1da1f2]' },
+        { Icon: InstagramIcon, text: t('ui.pinterest'), color: 'text-[#e60023]' },
       ].map(({ Icon, text, color }) => (
         <a
           key={text}

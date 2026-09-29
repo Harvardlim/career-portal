@@ -1,4 +1,5 @@
 import { SearchIcon, ChevronDownIcon } from '@/components/icons'
+import { useT } from '@/lib/i18n'
 
 const categories = [
   'Graphics & Design',
@@ -21,14 +22,15 @@ const tags = [
 ]
 
 export function BlogSidebar() {
+  const t = useT()
   return (
     <aside className="flex w-full flex-col gap-6 lg:w-[320px] lg:shrink-0">
       <section className="rounded-lg border border-line p-6">
-        <h3 className="mb-4 text-base font-medium text-ink">Search</h3>
+        <h3 className="mb-4 text-base font-medium text-ink">{t('ui.search')}</h3>
         <label className="flex h-11 items-center gap-2 rounded-md border border-line px-3">
           <SearchIcon className="size-5 text-muted" />
           <input
-            placeholder="Search"
+            placeholder={t('ui.search')}
             className="min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-muted-400"
           />
         </label>
@@ -36,7 +38,7 @@ export function BlogSidebar() {
 
       <section className="rounded-lg border border-line p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-base font-medium text-ink">Category</h3>
+          <h3 className="text-base font-medium text-ink">{t('ui.category')}</h3>
           <ChevronDownIcon className="size-4 -rotate-180 text-muted" />
         </div>
         <div className="flex flex-col gap-3">
@@ -54,17 +56,14 @@ export function BlogSidebar() {
       </section>
 
       <section className="rounded-lg border border-line p-6">
-        <h3 className="mb-4 text-base font-medium text-ink">Recent Post</h3>
+        <h3 className="mb-4 text-base font-medium text-ink">{t('ui.recent_post')}</h3>
         <div className="flex flex-col gap-4">
           {[0, 1, 2].map((i) => (
             <a key={i} href="#" className="flex gap-3">
               <span className="size-16 shrink-0 rounded bg-surface-alt" />
               <span className="flex flex-col gap-1">
-                <span className="text-xs text-muted">Nov 12, 2021 • 25 Comments</span>
-                <span className="text-sm font-medium text-ink">
-                  Integer volutpat fringilla ipsum, nec tempor risus facilisis
-                  eget.
-                </span>
+                <span className="text-xs text-muted">{t('ui.nov_12_2021_25_comments')}</span>
+                <span className="text-sm font-medium text-ink">{t('ui.integer_volutpat_fringilla_ipsum_nec_tempor')}</span>
               </span>
             </a>
           ))}
@@ -72,7 +71,7 @@ export function BlogSidebar() {
       </section>
 
       <section className="rounded-lg border border-line p-6">
-        <h3 className="mb-4 text-base font-medium text-ink">Gallery</h3>
+        <h3 className="mb-4 text-base font-medium text-ink">{t('ui.gallery')}</h3>
         <div className="grid grid-cols-3 gap-2">
           {Array.from({ length: 9 }).map((_, i) => (
             <span key={i} className="aspect-square rounded bg-surface-alt" />
@@ -81,7 +80,7 @@ export function BlogSidebar() {
       </section>
 
       <section className="rounded-lg border border-line p-6">
-        <h3 className="mb-4 text-base font-medium text-ink">Popular Tag</h3>
+        <h3 className="mb-4 text-base font-medium text-ink">{t('ui.popular_tag')}</h3>
         <div className="flex flex-wrap gap-2">
           {tags.map((t, i) => (
             <a

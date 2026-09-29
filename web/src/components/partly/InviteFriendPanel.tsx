@@ -33,9 +33,9 @@ export function InviteFriendPanel({ audience }: { audience: 'business' | 'expert
     if (!link) return
     try {
       await navigator.clipboard.writeText(link)
-      toast.success('Invite link copied.')
+      toast.success(t('ui.invite_link_copied'))
     } catch {
-      toast.error('Could not copy ,  select and copy it manually.')
+      toast.error(t('ui.could_not_copy_manual'))
     }
   }
 
@@ -47,15 +47,13 @@ export function InviteFriendPanel({ audience }: { audience: 'business' | 'expert
     <Card className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <ShareIcon className="size-5 text-brand" />
-        <h2 className="font-semibold text-ink">Invite a friend</h2>
+        <h2 className="font-semibold text-ink">{t('inv.title')}</h2>
       </div>
       <p className="text-sm text-ink-600">{audience === 'business' ? t('share.invite.business') : t('share.invite.expert')}</p>
       {!link ? (
         <p className="text-sm text-muted">
-          <Link to={affiliatePath} className="font-medium text-brand underline">
-            Get your referral link
-          </Link>{' '}
-          to invite people ,  you'll earn a commission when they succeed.
+          <Link to={affiliatePath} className="font-medium text-brand underline">{t('inv.get_link')}</Link>{' '}
+          {t('inv.suffix')}
         </p>
       ) : (
         <>
@@ -67,13 +65,11 @@ export function InviteFriendPanel({ audience }: { audience: 'business' | 'expert
               className="h-10 flex-1 rounded-md border border-line bg-surface px-3 text-sm text-ink"
             />
             <SecondaryButton className="h-10 px-3" onClick={copy}>
-              <LinkIcon className="size-4" /> Copy
+              <LinkIcon className="size-4" /> {t('ui.copy')}
             </SecondaryButton>
           </div>
           <label className="flex items-start gap-2 text-xs text-muted">
-            <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5" />
-            I'll share this myself. partly.asia never contacts anyone on my behalf, and only my referral link is included.
-          </label>
+            <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5" />{t('inv.consent')}</label>
           <div className="flex flex-wrap gap-2">
             <SecondaryButton
               className="h-9 px-3 text-xs"
@@ -92,10 +88,8 @@ export function InviteFriendPanel({ audience }: { audience: 'business' | 'expert
             <SecondaryButton
               className="h-9 px-3 text-xs"
               disabled={!agreed}
-              onClick={() => open(`mailto:?subject=${encodeURIComponent('Join me on partly.asia')}&body=${encodeURIComponent(message)}`)}
-            >
-              Email
-            </SecondaryButton>
+              onClick={() => open(`mailto:?subject=${encodeURIComponent(t('share.mail_subject_join'))}&body=${encodeURIComponent(message)}`)}
+            >{t('ui.email')}</SecondaryButton>
           </div>
         </>
       )}

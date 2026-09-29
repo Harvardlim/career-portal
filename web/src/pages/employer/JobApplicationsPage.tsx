@@ -14,25 +14,27 @@ import {
   type ApplicationStatus,
 } from '@/lib/employers'
 import { formatDate } from '@/lib/format'
+import { useT, tr } from '@/lib/i18n'
 
 const COLUMNS: { key: ApplicationStatus; label: string }[] = [
-  { key: 'active', label: 'New Applications' },
-  { key: 'shortlisted', label: 'Shortlisted' },
-  { key: 'rejected', label: 'Rejected' },
-  { key: 'interested', label: 'Interested' },
+  { key: 'active', get label() { return tr('col.new') } },
+  { key: 'shortlisted', get label() { return tr('col.shortlisted') } },
+  { key: 'rejected', get label() { return tr('col.rejected') } },
+  { key: 'interested', get label() { return tr('col.interested') } },
 ]
 
 /** Cards reach "Interested" only by releasing contact, so it is never a manual move target. */
 const MOVE_TARGETS = COLUMNS.filter((c) => c.key !== 'interested')
 
 const RELEASE_LABEL: Record<string, { text: string; tone: 'warning' | 'success' | 'neutral' }> = {
-  awaiting_payment: { text: 'Awaiting unlock', tone: 'warning' },
-  paid: { text: 'Unlocked', tone: 'success' },
-  cold: { text: 'Went cold', tone: 'neutral' },
-  job_closed: { text: 'Job closed', tone: 'neutral' },
+  awaiting_payment: { get text() { return tr('rel.awaiting') }, tone: 'warning' },
+  paid: { get text() { return tr('rel.paid') }, tone: 'success' },
+  cold: { get text() { return tr('rel.cold') }, tone: 'neutral' },
+  job_closed: { get text() { return tr('rel.closed') }, tone: 'neutral' },
 }
 
 export function JobApplicationsPage() {
+  const t = useT()
   const { employer, loading: employerLoading } = useEmployer()
   const [params] = useSearchParams()
   const jobFilter = params.get('job')
@@ -85,22 +87,18 @@ export function JobApplicationsPage() {
       <div className="flex flex-col gap-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-lg font-medium text-ink">
-            {jobTitle ? `Applications · ${jobTitle}` : 'Job Applications'}{' '}
+            {jobTitle ? t('ui.applications_2', { jobTitle }) : t('ui.job_applications')}{' '}
             <span className="text-muted">({visible.length})</span>
           </h1>
           {jobFilter && (
-            <Link to="/employer/applications" className="text-sm font-medium text-brand">
-              Show all jobs
-            </Link>
+            <Link to="/employer/applications" className="text-sm font-medium text-brand">{t('ui.show_all_jobs')}</Link>
           )}
         </div>
 
         {loading ? (
-          <p className="py-10 text-center text-sm text-muted">Loading…</p>
+          <p className="py-10 text-center text-sm text-muted">{t('ui.loading_2')}</p>
         ) : visible.length === 0 ? (
-          <p className="rounded-lg bg-surface-alt px-4 py-12 text-center text-sm text-muted">
-            No applications yet.
-          </p>
+          <p className="rounded-lg bg-surface-alt px-4 py-12 text-center text-sm text-muted">{t('ui.no_applications_yet')}</p>
         ) : (
           <div className="grid gap-4 lg:grid-cols-4">
             {COLUMNS.map((col) => {
@@ -123,7 +121,7 @@ export function JobApplicationsPage() {
                           </span>
                           <div className="flex flex-col">
                             <span className="text-sm font-medium text-ink">
-                              {row.candidate?.full_name ?? 'Unknown'}
+                              {row.candidate?.full_name ?? t('ui.unknown')}
                             </span>
                             <span className="text-xs text-muted">
                               {row.candidate?.headline ||
@@ -137,7 +135,7 @@ export function JobApplicationsPage() {
                         <div className="relative">
                           <button
                             type="button"
-                            aria-label="Move applicant"
+                            aria-label={t('ui.move_applicant')}
                             onClick={() =>
                               setOpenMenu(openMenu === row.id ? null : row.id)
                             }
@@ -154,9 +152,7 @@ export function JobApplicationsPage() {
                                     type="button"
                                     onClick={() => move(row, c.key)}
                                     className="block w-full px-4 py-2 text-left text-ink-600 hover:bg-surface-alt"
-                                  >
-                                    Move to {c.label}
-                                  </button>
+                                  >{t('ui.move_to', { label: c.label })}</button>
                                 ),
                               )}
                             </div>
@@ -183,15 +179,11 @@ export function JobApplicationsPage() {
                           jobFilter ? `&job=${jobFilter}` : ''
                         }`}
                         className="rounded-[4px] bg-brand-50 py-2 text-center text-xs font-semibold text-brand hover:bg-brand-100"
-                      >
-                        View Profile
-                      </Link>
+                      >{t('ui.view_profile')}</Link>
                     </div>
                   ))}
                   {items.length === 0 && (
-                    <p className="px-1 py-4 text-center text-xs text-muted">
-                      Nothing here
-                    </p>
+                    <p className="px-1 py-4 text-center text-xs text-muted">{t('ui.nothing_here')}</p>
                   )}
                 </div>
               )

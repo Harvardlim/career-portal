@@ -1,6 +1,7 @@
 import { useId, useState } from 'react'
 import type { InputHTMLAttributes, ReactNode } from 'react'
 import { ArrowRightIcon, EyeIcon, EyeOffIcon } from '@/components/icons'
+import { useT } from '@/lib/i18n'
 
 /* ---------- Input field ---------- */
 
@@ -18,6 +19,7 @@ export function AuthField({
   className,
   ...rest
 }: AuthFieldProps) {
+  const t = useT()
   const id = useId()
   const [reveal, setReveal] = useState(false)
   const resolvedType = password ? (reveal ? 'text' : 'password') : type
@@ -42,7 +44,7 @@ export function AuthField({
         <button
           type="button"
           onClick={() => setReveal((v) => !v)}
-          aria-label={reveal ? 'Hide password' : 'Show password'}
+          aria-label={reveal ? t('ui.hide_password') : t('ui.show_password')}
           className="absolute right-[17px] top-1/2 -translate-y-1/2 text-muted"
         >
           {reveal ? (

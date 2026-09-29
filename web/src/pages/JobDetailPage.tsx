@@ -29,6 +29,7 @@ import {
   DollarIcon,
   MapPinIcon,
 } from '@/components/icons'
+import { useT } from '@/lib/i18n'
 
 function formatDate(value: string | null): string {
   if (!value) return ', '
@@ -93,11 +94,10 @@ function RichTextSection({
 }
 
 function ApplyButton({ job }: { job: JobRow }) {
+  const t = useT()
   if (isExpired(job.expires_at)) {
     return (
-      <span className="flex cursor-not-allowed items-center gap-3 rounded-[4px] bg-surface-alt px-8 py-4 text-base font-semibold text-muted">
-        Expired
-      </span>
+      <span className="flex cursor-not-allowed items-center gap-3 rounded-[4px] bg-surface-alt px-8 py-4 text-base font-semibold text-muted">{t('ui.expired')}</span>
     )
   }
   // Applications are on-platform only.
@@ -105,13 +105,13 @@ function ApplyButton({ job }: { job: JobRow }) {
     <Link
       to={`/apply-job?job=${job.slug}`}
       className="flex items-center gap-3 rounded-[4px] bg-brand px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-brand-600"
-    >
-      Apply Now <ArrowRightIcon className="size-5" />
+    >{t('ui.apply_now')}{' '}<ArrowRightIcon className="size-5" />
     </Link>
   )
 }
 
 export function JobDetailPage() {
+  const t = useT()
   const { slug } = useParams()
   const [job, setJob] = useState<JobRow | null>(null)
   const [related, setRelated] = useState<JobRow[]>([])
@@ -138,9 +138,7 @@ export function JobDetailPage() {
   if (loading) {
     return (
       <AppShell>
-        <div className="mx-auto max-w-[1320px] px-6 py-20 text-sm text-muted lg:px-10">
-          Loading...
-        </div>
+        <div className="mx-auto max-w-[1320px] px-6 py-20 text-sm text-muted lg:px-10">{t('ui.loading')}</div>
       </AppShell>
     )
   }
@@ -150,11 +148,9 @@ export function JobDetailPage() {
       <AppShell>
         <div className="mx-auto flex max-w-[1320px] flex-col items-start gap-4 px-6 py-20 lg:px-10">
           <p className="text-lg font-medium text-ink">
-            {error ? 'Could not load this job.' : 'Job not found.'}
+            {error ? t('ui.could_not_load_this_job') : t('ui.job_not_found')}
           </p>
-          <Link to="/find-job" className="text-sm font-semibold text-brand">
-            Browse all jobs
-          </Link>
+          <Link to="/find-job" className="text-sm font-semibold text-brand">{t('ui.browse_all_jobs')}</Link>
         </div>
       </AppShell>
     )
@@ -165,20 +161,20 @@ export function JobDetailPage() {
   const jobType = jobTypeText(job)
   const duration = job.project_duration || job.duration
   const overview = [
-    { Icon: CalendarIcon, label: 'Job Posted', value: formatDate(job.posted_at) },
+    { Icon: CalendarIcon, label: t('ui.job_posted'), value: formatDate(job.posted_at) },
     {
       Icon: ClockIcon,
-      label: expired ? 'Job Expired' : 'Job Expires',
+      label: expired ? t('jd.expired') : t('jd.expires'),
       value: formatDate(job.expires_at),
     },
-    { Icon: DollarIcon, label: 'Rate', value: jobSalaryText(job) },
-    { Icon: MapPinIcon, label: 'Location', value: location || ', ' },
-    { Icon: BriefcaseIcon, label: 'Job Type', value: jobType || ', ' },
-    { Icon: CalendarIcon, label: 'Duration', value: duration || ', ' },
+    { Icon: DollarIcon, label: t('ui.rate_3'), value: jobSalaryText(job) },
+    { Icon: MapPinIcon, label: t('ui.location'), value: location || ', ' },
+    { Icon: BriefcaseIcon, label: t('ui.job_type'), value: jobType || ', ' },
+    { Icon: CalendarIcon, label: t('ui.duration'), value: duration || ', ' },
     // Legacy job-board fields: only worth a row when the posting has them.
-    ...(job.people_required ? [{ Icon: BriefcaseIcon, label: 'Experts needed', value: String(job.people_required) }] : []),
-    ...(job.workplace_type ? [{ Icon: BriefcaseIcon, label: 'Workplace', value: job.workplace_type }] : []),
-    ...(job.hours ? [{ Icon: ClockIcon, label: 'Hours', value: job.hours }] : []),
+    ...(job.people_required ? [{ Icon: BriefcaseIcon, label: t('ui.experts_needed'), value: String(job.people_required) }] : []),
+    ...(job.workplace_type ? [{ Icon: BriefcaseIcon, label: t('ui.workplace'), value: job.workplace_type }] : []),
+    ...(job.hours ? [{ Icon: ClockIcon, label: t('ui.hours'), value: job.hours }] : []),
   ]
 
   const company = companyInfo(job)
@@ -186,10 +182,10 @@ export function JobDetailPage() {
   return (
     <AppShell>
       <Breadcrumb
-        title="Job Details"
+        title={t('ui.job_details')}
         trail={[
-          { label: 'Home', to: '/' },
-          { label: 'Find Job', to: '/find-job' },
+          { label: t('ui.home'), to: '/' },
+          { label: t('ui.find_job'), to: '/find-job' },
           ...(job.category ? [{ label: job.category }] : []),
           { label: job.title },
         ]}
@@ -203,9 +199,7 @@ export function JobDetailPage() {
               <div className="flex flex-wrap items-center gap-3">
                 <h1 className="text-2xl font-medium text-ink">{job.title}</h1>
                 {job.featured && (
-                  <span className="rounded-full bg-danger-50 px-3 py-0.5 text-sm text-danger">
-                    Featured
-                  </span>
+                  <span className="rounded-full bg-danger-50 px-3 py-0.5 text-sm text-danger">{t('ui.featured')}</span>
                 )}
                 {job.workplace_type && (
                   <span className="rounded-full bg-brand-tint px-3 py-0.5 text-sm text-brand">
@@ -233,11 +227,9 @@ export function JobDetailPage() {
                   badge={!!job.employer.verified_badge_until && new Date(job.employer.verified_badge_until) > new Date()}
                 />
               )}
-              <p className="text-xs text-muted">
-                Full business name and contact details are shared only after a paid contact unlock.
-              </p>
+              <p className="text-xs text-muted">{t('ui.full_business_name_and_contact_details')}</p>
               {job.employer_id && (
-                <ReportButton targetKind="employer" targetId={job.employer_id} label="Report this business" />
+                <ReportButton targetKind="employer" targetId={job.employer_id} label={t('ui.report_this_business')} />
               )}
             </div>
           </div>
@@ -249,7 +241,7 @@ export function JobDetailPage() {
             </div>
             {job.expires_at && (
               <p className="text-sm text-muted">
-                {expired ? 'Job expired:' : 'Job expires:'}{' '}
+                {expired ? t('ui.job_expired_2') : t('ui.job_expires')}{' '}
                 <span className="font-medium text-danger">
                   {formatDate(job.expires_at)}
                 </span>
@@ -266,10 +258,10 @@ export function JobDetailPage() {
               {job.summary}
             </p>
           )}
-          <RichTextSection title="Job Description" text={job.description} />
+          <RichTextSection title={t('ui.job_description')} text={job.description} />
           {job.skill_requirements && job.skill_requirements.length > 0 && (
             <section className="flex flex-col gap-4">
-              <h2 className="text-xl font-medium text-ink">Skills &amp; requirements</h2>
+              <h2 className="text-xl font-medium text-ink">{t('ui.skills_requirements')}</h2>
               <ul className="flex flex-wrap gap-2">
                 {job.skill_requirements.map((skill) => (
                   <li key={skill} className="rounded-full bg-surface-alt px-3 py-1 text-sm text-ink-600">
@@ -279,17 +271,17 @@ export function JobDetailPage() {
               </ul>
             </section>
           )}
-          <RichTextSection title="Responsibilities" text={job.responsibilities} />
-          <RichTextSection title="Requirements" text={job.requirements} />
-          <RichTextSection title="Benefits" text={job.benefits} />
+          <RichTextSection title={t('ui.responsibilities')} text={job.responsibilities} />
+          <RichTextSection title={t('ui.requirements')} text={job.requirements} />
+          <RichTextSection title={t('ui.benefits')} text={job.benefits} />
         </div>
 
         <aside className="flex flex-col gap-6">
-          <InfoCard title="Job Overview">
+          <InfoCard title={t('ui.job_overview')}>
             <OverviewGrid items={overview} />
           </InfoCard>
           <div className="flex justify-end">
-            <ReportButton targetKind="job" targetId={job.id} label="Report this posting" />
+            <ReportButton targetKind="job" targetId={job.id} label={t('ui.report_this_posting')} />
           </div>
         </aside>
       </div>
@@ -297,9 +289,7 @@ export function JobDetailPage() {
       {related.length > 0 && (
         <section className="bg-surface-alt/50">
           <div className="mx-auto w-full max-w-[1320px] px-6 py-16 lg:px-10">
-            <h2 className="mb-10 text-3xl font-medium text-ink lg:text-[40px]">
-              Related Jobs
-            </h2>
+            <h2 className="mb-10 text-3xl font-medium text-ink lg:text-[40px]">{t('ui.related_jobs')}</h2>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {related.map((r) => (
                 <JobCard key={r.id} job={toCardJob(r)} />

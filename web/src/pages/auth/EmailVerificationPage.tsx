@@ -1,7 +1,9 @@
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { AuthField, AuthSubmit } from '@/components/auth/fields'
+import { useT } from '@/lib/i18n'
 
 export function EmailVerificationPage() {
+  const t = useT()
   return (
     <AuthLayout variant="centered">
       <form
@@ -9,25 +11,15 @@ export function EmailVerificationPage() {
         className="flex flex-col items-center gap-9"
       >
         <div className="flex flex-col gap-6 text-center">
-          <h1 className="text-3xl font-medium leading-10 text-ink">
-            Email Verification
-          </h1>
-          <p className="text-base leading-6 text-muted">
-            We&rsquo;ve sent an verification to{' '}
-            <span className="text-ink">emailaddress@gmail.com</span> to verify
-            your email address and activate your account.
-          </p>
+          <h1 className="text-3xl font-medium leading-10 text-ink">{t('ui.email_verification')}</h1>
+          <p className="text-base leading-6 text-muted">{t('ui.we_ve_sent_an_verification_to')}<span className="text-ink">{t('ui.emailaddress_gmail_com')}</span>{' '}{t('ui.to_verify_your_email_address_and')}</p>
         </div>
 
-        <AuthField label="Verification Code" name="code" size="lg" />
+        <AuthField label={t('ui.verification_code')} name="code" size="lg" />
 
-        <AuthSubmit>Verify my Account</AuthSubmit>
+        <AuthSubmit>{t('ui.verify_my_account')}</AuthSubmit>
 
-        <p className="text-base text-ink-600">
-          Didn&rsquo;t recieve any code!{' '}
-          <button type="button" className="font-medium text-brand">
-            Resends
-          </button>
+        <p className="text-base text-ink-600">{t('ui.didn_t_recieve_any_code')}<button type="button" className="font-medium text-brand">{t('ui.resends')}</button>
         </p>
       </form>
     </AuthLayout>

@@ -5,11 +5,11 @@
 // home page's copy every time.
 import { useEffect } from 'react'
 import { SITE_URL } from './site'
+import { tr } from './i18n'
 
 export const SITE_NAME = 'partly.asia'
-export const DEFAULT_TITLE = 'partly.asia ,  Verified experts, matched to real business needs'
-export const DEFAULT_DESCRIPTION =
-  'partly.asia matches businesses with verified fractional experts across Southeast Asia ,  post free, pay only when a business shows real interest.'
+const defaultTitle = () => tr('seo.default_title')
+const defaultDescription = () => tr('seo.default_desc')
 export const OG_IMAGE = `${SITE_URL}/og-image.png`
 
 export type Seo = {
@@ -46,11 +46,11 @@ function upsertLink(rel: string, href: string) {
 
 export function applySeo(seo: Seo, currentPath: string) {
   const title = !seo.title
-    ? DEFAULT_TITLE
+    ? defaultTitle()
     : seo.title.includes(SITE_NAME)
       ? seo.title
       : `${seo.title} | ${SITE_NAME}`
-  const description = seo.description ?? DEFAULT_DESCRIPTION
+  const description = seo.description ?? defaultDescription()
   const path = seo.path ?? currentPath
   const url = `${SITE_URL}${path === '/' ? '/' : path.replace(/\/+$/, '')}`
   const image = seo.image ?? OG_IMAGE

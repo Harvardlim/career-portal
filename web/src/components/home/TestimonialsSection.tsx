@@ -1,4 +1,5 @@
 import { ArrowRightIcon, QuoteIcon, StarIcon } from '@/components/icons'
+import { useT } from '@/lib/i18n'
 
 type Testimonial = {
   quote: string
@@ -32,12 +33,11 @@ const testimonials: Testimonial[] = [
 ]
 
 export function TestimonialsSection() {
+  const t = useT()
   return (
     <section className="bg-surface-alt">
       <div className="mx-auto flex w-full max-w-[1320px] flex-col items-center gap-12 px-6 py-20 lg:gap-[50px] lg:px-10 lg:py-25">
-        <h2 className="text-center text-3xl font-medium text-ink-heading lg:text-[40px] lg:leading-[48px]">
-          Clients Testimonial
-        </h2>
+        <h2 className="text-center text-3xl font-medium text-ink-heading lg:text-[40px] lg:leading-[48px]">{t('ui.clients_testimonial')}</h2>
 
         <div className="grid w-full gap-6 md:grid-cols-2 lg:grid-cols-3">
           {testimonials.map((t) => (
@@ -80,7 +80,7 @@ export function TestimonialsSection() {
         <div className="flex items-center gap-6">
           <button
             type="button"
-            aria-label="Previous testimonial"
+            aria-label={t('ui.previous_testimonial')}
             className="rounded-[5px] bg-surface p-3 text-ink shadow-search"
           >
             <ArrowRightIcon className="size-6 -scale-x-100" />
@@ -94,7 +94,7 @@ export function TestimonialsSection() {
           </div>
           <button
             type="button"
-            aria-label="Next testimonial"
+            aria-label={t('ui.next_testimonial')}
             className="rounded-[5px] bg-surface p-3 text-ink shadow-search"
           >
             <ArrowRightIcon className="size-6" />

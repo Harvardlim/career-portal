@@ -4,11 +4,13 @@ import { Pagination } from '@/components/app/Pagination'
 import { FindJobToolbar } from '@/components/jobs/FindJobToolbar'
 import { JobRow } from '@/components/jobs/JobRow'
 import { jobs } from '@/data/jobs'
+import { useT } from '@/lib/i18n'
 
 export function FindJobListPage() {
+  const t = useT()
   return (
     <AppShell>
-      <Breadcrumb title="Find Job" trail={[{ label: 'Home', to: '/' }, { label: 'Find job' }]} />
+      <Breadcrumb title={t('ui.find_job')} trail={[{ label: t('ui.home'), to: '/' }, { label: t('ui.find_job_2') }]} />
       <FindJobToolbar view="list" />
       <div className="mx-auto w-full max-w-[1320px] px-6 py-12 lg:px-10">
         <div className="flex flex-col gap-4">

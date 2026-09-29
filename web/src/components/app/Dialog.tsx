@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { XCircleIcon } from '@/components/icons'
+import { useT } from '@/lib/i18n'
 
 /**
  * Centered modal used by the Apply Job and candidate-profile flows.
@@ -15,6 +16,7 @@ export function Dialog({
   closeTo: string
   width?: string
 }) {
+  const t = useT()
   const navigate = useNavigate()
   const close = () => navigate(closeTo)
 
@@ -24,7 +26,7 @@ export function Dialog({
         <button
           type="button"
           onClick={close}
-          aria-label="Close"
+          aria-label={t('ui.close')}
           className="absolute -right-3 -top-3 grid size-9 place-items-center rounded-full bg-surface text-ink shadow-md"
         >
           <XCircleIcon className="size-5" />

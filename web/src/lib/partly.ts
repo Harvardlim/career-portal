@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { apiViaProxy, supabase } from './supabase'
 import { SITE_URL } from './site'
+import { currentLocale, tr } from './i18n'
 import { useSession } from './useSession'
 
 /* ---------- Pricing ---------- */
@@ -30,7 +31,8 @@ export type PricingCountry = {
 export const EXPERT_COUNTRIES = ['SG', 'MY', 'ID', 'TH', 'VN', 'PH'] as const
 export type ExpertCountry = (typeof EXPERT_COUNTRIES)[number]
 
-export const ID_TYPE_BY_COUNTRY: Record<ExpertCountry, string> = {
+/** Stored as-is on the candidate row, so always English. */
+export const ID_TYPE_EN: Record<ExpertCountry, string> = {
   SG: 'NRIC / FIN',
   MY: 'MyKad',
   ID: 'KTP',
@@ -39,21 +41,35 @@ export const ID_TYPE_BY_COUNTRY: Record<ExpertCountry, string> = {
   PH: 'PhilSys National ID',
 }
 
+/** Same ID types, named in the active language for display. */
+export const ID_TYPE_BY_COUNTRY: Record<ExpertCountry, string> = {
+  SG: 'NRIC / FIN',
+  MY: 'MyKad',
+  ID: 'KTP',
+  get TH() {
+    return tr('id.type.th')
+  },
+  VN: 'CCCD',
+  get PH() {
+    return tr('id.type.ph')
+  },
+}
+
 /** Same formats the expert-identity edge function enforces ,  keep in sync. */
 export const ID_LAST4_FORMAT: Record<ExpertCountry, { pattern: RegExp; hint: string; example: string }> = {
-  SG: { pattern: /^[0-9]{3}[A-Z]$/, hint: '3 digits + the checksum letter', example: '567D' },
-  MY: { pattern: /^[0-9]{4}$/, hint: 'last 4 digits', example: '1234' },
-  ID: { pattern: /^[0-9]{4}$/, hint: 'last 4 digits of your NIK', example: '1234' },
-  TH: { pattern: /^[0-9]{4}$/, hint: 'last 4 digits', example: '1234' },
-  VN: { pattern: /^[0-9]{4}$/, hint: 'last 4 digits', example: '1234' },
-  PH: { pattern: /^[0-9]{4}$/, hint: 'last 4 digits of your PSN', example: '1234' },
+  SG: { pattern: /^[0-9]{3}[A-Z]$/, get hint() { return tr('id.hint.sg') }, example: '567D' },
+  MY: { pattern: /^[0-9]{4}$/, get hint() { return tr('id.hint.last4') }, example: '1234' },
+  ID: { pattern: /^[0-9]{4}$/, get hint() { return tr('id.hint.nik') }, example: '1234' },
+  TH: { pattern: /^[0-9]{4}$/, get hint() { return tr('id.hint.last4') }, example: '1234' },
+  VN: { pattern: /^[0-9]{4}$/, get hint() { return tr('id.hint.last4') }, example: '1234' },
+  PH: { pattern: /^[0-9]{4}$/, get hint() { return tr('id.hint.psn') }, example: '1234' },
 }
 
 /** Null when the digits are fine for that country, else a message to show. */
 export function idLast4Problem(country: ExpertCountry, last4: string): string | null {
   const f = ID_LAST4_FORMAT[country]
   if (f.pattern.test(last4)) return null
-  return `Enter the last 4 characters of your ${ID_TYPE_BY_COUNTRY[country]} ,  ${f.hint}, e.g. ${f.example}.`
+  return tr('val.id_last4', { idType: ID_TYPE_BY_COUNTRY[country], hint: f.hint, example: f.example })
 }
 
 export async function fetchPricing(): Promise<PricingCountry[]> {
@@ -113,12 +129,12 @@ export function formatPaid(
 export type ProjectType = 'hourly' | 'project' | 'time_based' | 'fractional' | 'ongoing' | 'full_time'
 
 export const PROJECT_TYPES: { value: ProjectType; label: string; hint: string }[] = [
-  { value: 'hourly', label: 'Hourly', hint: 'Pay by the hour, as needed' },
-  { value: 'project', label: 'Project-based', hint: 'A defined deliverable' },
-  { value: 'time_based', label: 'Time-based', hint: 'e.g. 1 month, 3 months' },
-  { value: 'fractional', label: 'Fractional', hint: 'A few days a week, ongoing' },
-  { value: 'ongoing', label: 'Ongoing', hint: 'Open-ended engagement' },
-  { value: 'full_time', label: 'Full-time', hint: 'A dedicated, full-time hire' },
+  { value: 'hourly', get label() { return tr('pt.hourly') }, get hint() { return tr('pt.hourly.hint') } },
+  { value: 'project', get label() { return tr('pt.project') }, get hint() { return tr('pt.project.hint') } },
+  { value: 'time_based', get label() { return tr('pt.time_based') }, get hint() { return tr('pt.time_based.hint') } },
+  { value: 'fractional', get label() { return tr('pt.fractional') }, get hint() { return tr('pt.fractional.hint') } },
+  { value: 'ongoing', get label() { return tr('pt.ongoing') }, get hint() { return tr('pt.ongoing.hint') } },
+  { value: 'full_time', get label() { return tr('pt.full_time') }, get hint() { return tr('pt.full_time.hint') } },
 ]
 
 export type MatchingStatus =
@@ -156,20 +172,20 @@ export function validatePostingInput(
   input: PostingInput,
   opts: { requireSubcategory?: boolean } = {},
 ): string | null {
-  if (input.title.trim().length < 5) return 'Give your need a clear title (at least 5 characters).'
-  if (!input.main_category_id) return 'Pick a main category.'
-  if (opts.requireSubcategory && input.subcategory_ids.length === 0) return 'Pick at least one sub-category.'
+  if (input.title.trim().length < 5) return tr('val.title')
+  if (!input.main_category_id) return tr('val.main_category')
+  if (opts.requireSubcategory && input.subcategory_ids.length === 0) return tr('val.subcategory')
   if (input.description.trim().length < 30) {
-    return 'Describe the project in the brief ,  the problem and the outcome you want (at least 30 characters).'
+    return tr('val.brief')
   }
-  if (!input.country) return 'Pick the country where the work sits.'
-  if (!input.project_type) return 'Pick a project type.'
-  if (!input.project_duration?.trim()) return 'Add a duration or timeline.'
-  if (input.skill_requirements.length === 0) return 'List at least one skill or requirement.'
-  if (!Number.isFinite(input.people_required) || input.people_required < 1) return 'People required must be at least 1.'
-  if (input.budget_min == null || input.budget_max == null) return 'Enter a budget range ,  both From and To.'
-  if (input.budget_min <= 0 || input.budget_max <= 0) return 'Budget must be greater than zero.'
-  if (input.budget_min > input.budget_max) return 'Budget "From" can\'t be higher than "To".'
+  if (!input.country) return tr('val.country')
+  if (!input.project_type) return tr('val.project_type')
+  if (!input.project_duration?.trim()) return tr('val.duration')
+  if (input.skill_requirements.length === 0) return tr('val.skills')
+  if (!Number.isFinite(input.people_required) || input.people_required < 1) return tr('val.people')
+  if (input.budget_min == null || input.budget_max == null) return tr('val.budget_range')
+  if (input.budget_min <= 0 || input.budget_max <= 0) return tr('val.budget_positive')
+  if (input.budget_min > input.budget_max) return tr('val.budget_order')
   return null
 }
 
@@ -496,7 +512,7 @@ export async function expressInterest(jobId: string, candidateId: string): Promi
   const matches = await fetchMatches(jobId)
   if (!matches.some((m) => m.candidate_id === candidateId)) {
     throw new Error(
-      'This expert is not on the shortlist of 10 drawn for this posting, so contact can\'t be released to them.',
+      tr('err.not_on_shortlist'),
     )
   }
   const n = await releaseContact(jobId, [candidateId])
@@ -664,7 +680,7 @@ async function invokeCheckout(body: Record<string, unknown>): Promise<never> {
     body: { ...body, origin: SITE_URL },
   })
   if (error) {
-    let message = 'Could not start checkout. Please try again.'
+    let message = tr('err.checkout')
     const ctx = (error as { context?: Response }).context
     if (ctx && typeof ctx.json === 'function') {
       try {
@@ -679,7 +695,7 @@ async function invokeCheckout(body: Record<string, unknown>): Promise<never> {
     throw new Error(message)
   }
   const url = (data as { url?: string } | null)?.url
-  if (!url) throw new Error('Stripe did not return a checkout URL.')
+  if (!url) throw new Error(tr('err.no_checkout_url'))
   window.location.href = url
   return new Promise<never>(() => {})
 }
@@ -758,9 +774,9 @@ export async function saveIdentityDigits(countryCode: string, last4: string, sig
       const parsed = (await ctx.json().catch(() => null)) as { error?: string } | null
       if (parsed?.error) throw new Error(parsed.error)
     }
-    throw new Error(error.message || 'Could not save your ID details.')
+    throw new Error(error.message || tr('err.save_id'))
   }
-  if (!(data as { ok?: boolean } | null)?.ok) throw new Error('Could not save your ID details.')
+  if (!(data as { ok?: boolean } | null)?.ok) throw new Error(tr('err.save_id'))
 }
 
 export type BadgeStatus = 'pending' | 'awaiting_review' | 'active' | 'superseded' | 'expired' | 'cancelled'
@@ -799,9 +815,9 @@ export function missingApplyProfile(c: {
 }): string[] {
   const missing: string[] = []
   const years = (c.years_experience ?? '').trim()
-  if (!years || years === 'Select...') missing.push('years of experience')
-  if (!(c.past_experience ?? '').trim()) missing.push('experience summary')
-  if ((c.expertise_field ?? []).length === 0) missing.push('expert categories')
+  if (!years || years === 'Select...') missing.push(tr('prof.years'))
+  if (!(c.past_experience ?? '').trim()) missing.push(tr('prof.summary'))
+  if ((c.expertise_field ?? []).length === 0) missing.push(tr('prof.categories'))
   return missing
 }
 
@@ -883,11 +899,11 @@ export async function fileReport(args: {
 /* ---------- Issue reports (product feedback) ---------- */
 
 export const ISSUE_CATEGORIES = [
-  { value: 'bug', label: 'Something isn\u2019t working' },
-  { value: 'payment', label: 'Payment or billing' },
-  { value: 'account', label: 'Account or verification' },
-  { value: 'suggestion', label: 'Suggestion' },
-  { value: 'other', label: 'Something else' },
+  { value: 'bug', get label() { return tr('issue.bug') } },
+  { value: 'payment', get label() { return tr('issue.payment') } },
+  { value: 'account', get label() { return tr('issue.account') } },
+  { value: 'suggestion', get label() { return tr('issue.suggestion') } },
+  { value: 'other', get label() { return tr('issue.other') } },
 ] as const
 
 export type IssueCategory = (typeof ISSUE_CATEGORIES)[number]['value']
@@ -895,10 +911,10 @@ export type IssueCategory = (typeof ISSUE_CATEGORIES)[number]['value']
 /** Files a product issue as the signed-in user; staff see it in the backoffice. */
 export async function fileIssueReport(args: { category: IssueCategory; message: string }): Promise<void> {
   const message = args.message.trim()
-  if (message.length < 5) throw new Error('Please describe the issue (at least 5 characters).')
+  if (message.length < 5) throw new Error(tr('err.issue_short'))
   const { data } = await supabase.auth.getUser()
   const user = data.user
-  if (!user) throw new Error('Sign in to report an issue.')
+  if (!user) throw new Error(tr('err.issue_signin'))
 
   const [{ data: cand }, { data: emp }] = await Promise.all([
     supabase.from('candidates').select('id').eq('user_id', user.id).maybeSingle(),
@@ -1141,12 +1157,12 @@ export function budgetLabel(p: {
   const cur = p.budget_currency ?? 'USD'
   const fmt = (n: number) => n.toLocaleString('en-US')
   // An hourly need's budget is a rate, not a total.
-  const per = p.project_type === 'hourly' ? ' / hour' : ''
+  const per = p.project_type === 'hourly' ? tr('budget.per_hour') : ''
   if (p.budget_min != null && p.budget_max != null) return `${cur} ${fmt(p.budget_min)} – ${fmt(p.budget_max)}${per}`
-  if (p.budget_min != null) return `From ${cur} ${fmt(p.budget_min)}${per}`
-  if (p.budget_max != null) return `Up to ${cur} ${fmt(p.budget_max)}${per}`
+  if (p.budget_min != null) return tr('budget.from', { amount: `${cur} ${fmt(p.budget_min)}${per}` })
+  if (p.budget_max != null) return tr('budget.up_to', { amount: `${cur} ${fmt(p.budget_max)}${per}` })
   if (p.salary_label) return p.salary_label
-  return 'Budget on request'
+  return tr('budget.on_request')
 }
 
 export function projectTypeLabel(t: ProjectType | null | undefined, legacyJobType?: string | null): string {
@@ -1164,7 +1180,10 @@ export function postingCountry(p: { country: string | null; location?: string | 
   return p.location ?? ', '
 }
 
-export const COUNTRY_NAMES: Record<string, string> = {
+const COUNTRY_CODES = ['SG', 'MY', 'ID', 'TH', 'VN', 'US', 'GB', 'AU', 'HK', 'PH', 'IN', 'JP', 'KR', 'CN', 'DE', 'FR', 'NL', 'AE'] as const
+
+/** English names. Some columns store the country by name, so those keep using these and translate only the label. */
+export const COUNTRY_NAMES_EN: Record<string, string> = {
   SG: 'Singapore',
   MY: 'Malaysia',
   ID: 'Indonesia',
@@ -1185,6 +1204,24 @@ export const COUNTRY_NAMES: Record<string, string> = {
   AE: 'United Arab Emirates',
   OTHER: 'Other',
 }
+
+/** Region name in the active language (falls back to the code if the browser has no data). */
+function regionName(code: string): string {
+  try {
+    return new Intl.DisplayNames([currentLocale()], { type: 'region' }).of(code) ?? code
+  } catch {
+    return code
+  }
+}
+
+// Getters, so names follow the language switcher; Object.values() reads them fresh each render.
+export const COUNTRY_NAMES: Record<string, string> = Object.defineProperties(
+  {} as Record<string, string>,
+  {
+    ...Object.fromEntries(COUNTRY_CODES.map((c) => [c, { enumerable: true, get: () => regionName(c) }])),
+    OTHER: { enumerable: true, get: () => tr('country.other') },
+  },
+)
 
 export function countryName(code: string | null | undefined): string {
   if (!code) return ', '
@@ -1215,20 +1252,20 @@ export function useCountdown(until: string | null | undefined): {
 
 /** Business registration number formats, per the spec's per-country validation. */
 export const BUSINESS_REG_FORMATS: Record<string, { label: string; placeholder: string; pattern: RegExp; hint: string }> = {
-  SG: { label: 'UEN', placeholder: '202412345K', pattern: /^[0-9]{8,9}[A-Z]$|^[TSR][0-9]{2}[A-Z]{2}[0-9]{4}[A-Z]$/i, hint: 'ACRA UEN, e.g. 202412345K or T08LL1234A' },
-  MY: { label: 'SSM registration no.', placeholder: '202301012345 (1234567-X)', pattern: /^[0-9]{12}$|^[0-9]{6,7}-[A-Z]$/i, hint: 'New 12-digit SSM number, or the old 1234567-X format' },
-  ID: { label: 'NIB', placeholder: '1234567890123', pattern: /^[0-9]{13}$/, hint: '13-digit Nomor Induk Berusaha (OSS)' },
-  TH: { label: 'Juristic person ID', placeholder: '0105561012345', pattern: /^[0-9]{13}$/, hint: '13-digit DBD registration number' },
-  VN: { label: 'Enterprise code', placeholder: '0312345678', pattern: /^[0-9]{10}(-[0-9]{3})?$/, hint: '10-digit Mã số doanh nghiệp (tax code)' },
-  PH: { label: 'SEC / DTI registration no.', placeholder: 'CS201912345', pattern: /^[A-Z0-9][A-Z0-9-]{5,15}$/i, hint: 'SEC registration number (e.g. CS201912345) or DTI business name number' },
+  SG: { label: 'UEN', placeholder: '202412345K', pattern: /^[0-9]{8,9}[A-Z]$|^[TSR][0-9]{2}[A-Z]{2}[0-9]{4}[A-Z]$/i, get hint() { return tr('reg.sg.hint') } },
+  MY: { get label() { return tr('reg.my.label') }, placeholder: '202301012345 (1234567-X)', pattern: /^[0-9]{12}$|^[0-9]{6,7}-[A-Z]$/i, get hint() { return tr('reg.my.hint') } },
+  ID: { label: 'NIB', placeholder: '1234567890123', pattern: /^[0-9]{13}$/, get hint() { return tr('reg.id.hint') } },
+  TH: { get label() { return tr('reg.th.label') }, placeholder: '0105561012345', pattern: /^[0-9]{13}$/, get hint() { return tr('reg.th.hint') } },
+  VN: { get label() { return tr('reg.vn.label') }, placeholder: '0312345678', pattern: /^[0-9]{10}(-[0-9]{3})?$/, get hint() { return tr('reg.vn.hint') } },
+  PH: { get label() { return tr('reg.ph.label') }, placeholder: 'CS201912345', pattern: /^[A-Z0-9][A-Z0-9-]{5,15}$/i, get hint() { return tr('reg.ph.hint') } },
 }
 
 export function validateBusinessRegNo(country: string, value: string): string | null {
   const f = BUSINESS_REG_FORMATS[country]
   const v = value.trim()
-  if (!v) return 'Enter your business registration number.'
-  if (f && !f.pattern.test(v)) return `That doesn't look like a ${f.label} ,  ${f.hint}.`
-  if (!f && v.length < 4) return 'Enter your full registration number.'
+  if (!v) return tr('val.reg_no')
+  if (f && !f.pattern.test(v)) return tr('val.reg_no_format', { label: f.label, hint: f.hint })
+  if (!f && v.length < 4) return tr('val.reg_no_full')
   return null
 }
 
@@ -1257,7 +1294,7 @@ const EMAIL_SHAPE =
 /** Format check for any email (experts may use Gmail, Yahoo, etc.). Businesses use validateBusinessEmail. */
 export function validateEmail(email: string): string | null {
   const v = email.trim()
-  if (!v) return 'Enter an email address.'
+  if (!v) return tr('val.email')
   const local = v.split('@')[0]
   if (
     v.length > 254 ||
@@ -1267,7 +1304,7 @@ export function validateEmail(email: string): string | null {
     local.endsWith('.') ||
     !EMAIL_SHAPE.test(v)
   ) {
-    return 'Enter a valid email address, e.g. you@example.com.'
+    return tr('val.email_valid')
   }
   return null
 }
@@ -1277,7 +1314,7 @@ export function validateBusinessEmail(email: string): string | null {
   const formatErr = validateEmail(v)
   if (formatErr) return formatErr
   if (isFreeEmailDomain(v)) {
-    return 'Please use your business email on your company domain (e.g. you@yourcompany.com) ,  Gmail, Yahoo, Outlook and other free mailboxes aren’t accepted.'
+    return tr('val.email_business')
   }
   return null
 }
@@ -1285,11 +1322,11 @@ export function validateBusinessEmail(email: string): string | null {
 /** Digits with an optional leading + and common separators; 8–15 digits (E.164 max). */
 export function validatePhone(value: string): string | null {
   const v = value.trim()
-  if (!v) return 'Enter a phone number.'
+  if (!v) return tr('val.phone')
   const digits = v.replace(/\D/g, '')
   const shapeOk = /^\+?[0-9(][0-9\s().-]*$/.test(v) && !/[\s.-]{2,}/.test(v) && !/[\s.-]$/.test(v)
   if (!shapeOk || digits.length < 8 || digits.length > 15) {
-    return 'Enter a valid phone number with country code, e.g. +65 6123 4567 (8–15 digits; "+" only at the start).'
+    return tr('val.phone_valid')
   }
   return null
 }
@@ -1310,7 +1347,7 @@ export function plainTextLength(html: string): number {
  * stay hidden until then. "Acme Consulting Pte Ltd" -> "A••• C•••••••• P•• L••".
  */
 export function maskCompanyName(name: string | null | undefined): string {
-  if (!name) return 'Verified Business'
+  if (!name) return tr('lbl.verified_business')
   return name
     .split(' ')
     .map((word) => (word.length <= 1 ? word : word[0] + '•'.repeat(Math.min(word.length - 1, 8))))

@@ -12,6 +12,7 @@ import {
   PhoneIcon,
   UsersIcon,
 } from '@/components/icons'
+import { useT } from '@/lib/i18n'
 
 const coverLetter = [
   'Dear Sir,',
@@ -22,16 +23,15 @@ const coverLetter = [
 ]
 
 export function CandidateProfileBody({ actions }: { actions: ReactNode }) {
+  const t = useT()
   return (
     <div className="flex flex-col gap-8 p-8">
       <div className="flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <span className="grid size-16 place-items-center rounded-full bg-muted-slate/40 text-lg font-medium text-white">
-            EH
-          </span>
+          <span className="grid size-16 place-items-center rounded-full bg-muted-slate/40 text-lg font-medium text-white">{t('ui.eh')}</span>
           <div>
-            <p className="text-2xl font-medium text-ink">Esther Howard</p>
-            <p className="text-sm text-muted">Website Designer (UI/UX)</p>
+            <p className="text-2xl font-medium text-ink">{t('ui.esther_howard')}</p>
+            <p className="text-sm text-muted">{t('ui.website_designer_ui_ux')}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">{actions}</div>
@@ -40,26 +40,18 @@ export function CandidateProfileBody({ actions }: { actions: ReactNode }) {
       <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
         <div className="flex flex-col gap-8">
           <section className="flex flex-col gap-3">
-            <h3 className="text-xs uppercase tracking-wide text-muted-400">Biography</h3>
-            <p className="text-sm leading-6 text-muted-600">
-              I&apos;ve been passionate about graphic design and digital art from an
-              early age with a keen interest in Website and Mobile Application User
-              Interfaces. I can create high-quality and aesthetically pleasing
-              designs in a quick turnaround time. Check out the portfolio section of
-              my profile to see samples of my work and feel free to discuss your
-              designing needs. I mostly use Adobe Photoshop, Illustrator, XD and
-              Figma.
-            </p>
+            <h3 className="text-xs uppercase tracking-wide text-muted-400">{t('ui.biography')}</h3>
+            <p className="text-sm leading-6 text-muted-600">{t('ui.i_ve_been_passionate_about_graphic')}</p>
           </section>
           <section className="flex flex-col gap-3">
-            <h3 className="text-xs uppercase tracking-wide text-muted-400">Cover Letter</h3>
+            <h3 className="text-xs uppercase tracking-wide text-muted-400">{t('ui.cover_letter')}</h3>
             {coverLetter.map((p, i) => (
               <p key={i} className="text-sm leading-6 text-muted-600">
                 {p}
               </p>
             ))}
           </section>
-          <SocialLinks label="Follow me Social Media" />
+          <SocialLinks label={t('ui.follow_me_social_media')} />
         </div>
 
         <aside className="flex flex-col gap-6">
@@ -67,41 +59,41 @@ export function CandidateProfileBody({ actions }: { actions: ReactNode }) {
             <OverviewGrid
               columns={2}
               items={[
-                { Icon: GlobeIcon, label: 'Notionality', value: 'Bangladesh' },
-                { Icon: UsersIcon, label: 'Gender', value: 'Male' },
-                { Icon: BriefcaseIcon, label: 'Experience', value: '7 Years' },
-                { Icon: LayersIcon, label: 'Educations', value: 'Master Degree' },
+                { Icon: GlobeIcon, label: t('ui.notionality'), value: 'Bangladesh' },
+                { Icon: UsersIcon, label: t('ui.gender'), value: 'Male' },
+                { Icon: BriefcaseIcon, label: t('ui.experience'), value: '7 Years' },
+                { Icon: LayersIcon, label: t('ui.educations'), value: 'Master Degree' },
               ]}
             />
           </InfoCard>
-          <InfoCard title="Download My Resume">
+          <InfoCard title={t('ui.download_my_resume')}>
             <div className="flex items-center justify-between gap-3 rounded-lg bg-surface-alt/60 p-3">
               <span className="flex items-center gap-3">
                 <FileIcon className="size-8 text-brand" />
                 <span className="flex flex-col">
-                  <span className="text-sm font-medium text-ink">Esther Howard</span>
-                  <span className="text-xs text-muted">PDF</span>
+                  <span className="text-sm font-medium text-ink">{t('ui.esther_howard')}</span>
+                  <span className="text-xs text-muted">{t('ui.pdf')}</span>
                 </span>
               </span>
               <button
                 type="button"
-                aria-label="Download resume"
+                aria-label={t('ui.download_resume')}
                 className="grid size-9 place-items-center rounded bg-brand text-white"
               >
                 <DownloadIcon className="size-5" />
               </button>
             </div>
           </InfoCard>
-          <InfoCard title="Contact Information">
-            <ContactRow Icon={GlobeIcon} label="Website" value="www.estherhoward.com" />
+          <InfoCard title={t('ui.contact_information')}>
+            <ContactRow Icon={GlobeIcon} label={t('ui.website')} value="www.estherhoward.com" />
             <ContactRow
               Icon={MapPinIcon}
-              label="Location"
+              label={t('ui.location')}
               value="Beverly Hills, California 90202, Zone/Block Basement 1 Unit B2, 1372 Spring Avenue, Portland,"
             />
-            <ContactRow Icon={PhoneIcon} label="Phone" value="+1-202-555-0141" />
-            <ContactRow Icon={PhoneIcon} label="Secondary Phone" value="+1-202-555-0189" />
-            <ContactRow Icon={MailIcon} label="Email address" value="esther.howard@gmail.com" />
+            <ContactRow Icon={PhoneIcon} label={t('ui.phone')} value="+1-202-555-0141" />
+            <ContactRow Icon={PhoneIcon} label={t('ui.secondary_phone')} value="+1-202-555-0189" />
+            <ContactRow Icon={MailIcon} label={t('ui.email_address')} value="esther.howard@gmail.com" />
           </InfoCard>
         </aside>
       </div>

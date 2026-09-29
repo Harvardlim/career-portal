@@ -4,10 +4,7 @@ import { toast } from 'sonner'
 import { MailIcon, ShareIcon, XCircleIcon } from '@/components/icons'
 import { GoldCircle } from '@/components/marketing/blocks'
 import { SITE_URL } from '@/lib/site'
-
-const MESSAGE = `I found partly.asia ,  warm leads matched to real business needs across Southeast Asia. Have a look: ${SITE_URL}`
-const WHATSAPP_HREF = `https://wa.me/?text=${encodeURIComponent(MESSAGE)}`
-const EMAIL_HREF = `mailto:?subject=${encodeURIComponent('Have a look at partly.asia')}&body=${encodeURIComponent(MESSAGE)}`
+import { useT } from '@/lib/i18n'
 
 /**
  * The "invite your friends" pop-out a visitor sees on arriving at the home
@@ -15,6 +12,8 @@ const EMAIL_HREF = `mailto:?subject=${encodeURIComponent('Have a look at partly.
  * channel ,  partly.asia never contacts anyone on their behalf.
  */
 export function InviteFriendsPopup() {
+  const t = useT()
+  const message = t('invite.msg', { url: SITE_URL })
   const [open, setOpen] = useState(false)
 
   // Shown on every visit to the home page (by request), not once per session.
@@ -36,10 +35,10 @@ export function InviteFriendsPopup() {
 
   async function copyMessage() {
     try {
-      await navigator.clipboard.writeText(MESSAGE)
-      toast.success('Invite message copied ,  paste it anywhere.')
+      await navigator.clipboard.writeText(message)
+      toast.success(t('ui.invite_message_copied_paste_it_anywhere'))
     } catch {
-      toast.error('Could not copy the invite. Please share the link by hand: ' + SITE_URL)
+      toast.error(t('share.copy_failed') + ' ' + SITE_URL)
     }
   }
 
@@ -58,7 +57,7 @@ export function InviteFriendsPopup() {
         <button
           type="button"
           onClick={close}
-          aria-label="Close"
+          aria-label={t('ui.close')}
           className="absolute right-3 top-3 grid size-9 place-items-center rounded-full text-muted hover:bg-surface-alt hover:text-ink"
         >
           <XCircleIcon className="size-5" />
@@ -73,46 +72,33 @@ export function InviteFriendsPopup() {
           id="invite-popup-title"
           className="text-2xl font-medium text-navy"
           style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
-        >
-          Know someone who&apos;d love partly.asia?
-        </h2>
-        <p className="mt-3 text-sm leading-6 text-ink-600">
-          Invite your friends to visit ,  businesses find verified experts, and experts find real projects. Once you
-          have an account, your referral link also earns you a commission every time an invite pays off.
-        </p>
+        >{t('ui.know_someone_who_d_love_partly')}</h2>
+        <p className="mt-3 text-sm leading-6 text-ink-600">{t('ui.invite_your_friends_to_visit_businesses')}</p>
 
-        <p className="mt-4 rounded-md bg-surface-alt p-3 text-left text-sm leading-6 text-ink-600">{MESSAGE}</p>
+        <p className="mt-4 rounded-md bg-surface-alt p-3 text-left text-sm leading-6 text-ink-600">{message}</p>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <a
-            href={WHATSAPP_HREF}
+            href={`https://wa.me/?text=${encodeURIComponent(message)}`}
             target="_blank"
             rel="noopener noreferrer"
             onClick={close}
             className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-[#25D366] px-6 text-base font-semibold text-white transition-opacity hover:opacity-90"
           >
-            <ShareIcon className="size-5" /> WhatsApp
-          </a>
+            <ShareIcon className="size-5" />{' '}{t('ui.whatsapp')}</a>
           <a
-            href={EMAIL_HREF}
+            href={`mailto:?subject=${encodeURIComponent(t('share.mail_subject_look'))}&body=${encodeURIComponent(message)}`}
             onClick={close}
             className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-brand px-6 text-base font-semibold text-white transition-colors hover:bg-brand-600"
           >
-            <MailIcon className="size-5" /> Email
-          </a>
+            <MailIcon className="size-5" />{' '}{t('ui.email')}</a>
         </div>
-        <button type="button" onClick={copyMessage} className="mt-3 text-sm font-medium text-brand underline hover:text-brand-600">
-          Copy message instead
-        </button>
+        <button type="button" onClick={copyMessage} className="mt-3 text-sm font-medium text-brand underline hover:text-brand-600">{t('ui.copy_message_instead')}</button>
 
         <p className="mt-5 text-xs text-muted">
-          <Link to="/affiliate" onClick={close} className="underline hover:text-ink">
-            How referral commissions work
-          </Link>
+          <Link to="/affiliate" onClick={close} className="underline hover:text-ink">{t('ui.how_referral_commissions_work')}</Link>
           {' · '}
-          <button type="button" onClick={close} className="underline hover:text-ink">
-            Maybe later
-          </button>
+          <button type="button" onClick={close} className="underline hover:text-ink">{t('ui.maybe_later')}</button>
         </p>
       </div>
     </div>

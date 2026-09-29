@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { tr } from './i18n'
 import { supabase } from './supabase'
 import { useSession } from './useSession'
 import { fetchMyCandidate, type CandidateProfileRow } from './candidateProfile'
@@ -66,7 +67,7 @@ export function useCandidate() {
     try {
       setCandidate(await fetchMyCandidate(session.user.id))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load profile')
+      setError(err instanceof Error ? err.message : tr('err.load_profile'))
     } finally {
       setLoading(false)
     }
@@ -209,11 +210,11 @@ export async function fetchDashboardCounts(candidateId: string) {
 
 /** "4 Days Remaining" / "Job Expire" helper shared by the job rows. */
 export function expiryLabel(expiresAt: string | null): { text: string; expired: boolean } {
-  if (!expiresAt) return { text: 'Open', expired: false }
+  if (!expiresAt) return { text: tr('lbl.open'), expired: false }
   const ms = new Date(expiresAt).getTime() - Date.now()
-  if (ms <= 0) return { text: 'Job Expire', expired: true }
+  if (ms <= 0) return { text: tr('lbl.job_expire'), expired: true }
   const days = Math.ceil(ms / 86_400_000)
-  return { text: `${days} Day${days === 1 ? '' : 's'} Remaining`, expired: false }
+  return { text: tr(days === 1 ? 'lbl.day_remaining' : 'lbl.days_remaining', { days }), expired: false }
 }
 
 export async function toggleSavedJob(

@@ -25,11 +25,12 @@ import {
   validateBusinessRegNo,
 } from '@/lib/partly'
 import { BriefcaseIcon, BuildingIcon, CheckIcon, CircleCheckIcon, MailIcon } from '@/components/icons'
+import { useT, tr } from '@/lib/i18n'
 
 const steps: WizardStep[] = [
-  { label: 'Your business', Icon: BuildingIcon },
-  { label: 'What you need', Icon: BriefcaseIcon },
-  { label: 'Consent', Icon: CircleCheckIcon },
+  { get label() { return tr('step.business') }, Icon: BuildingIcon },
+  { get label() { return tr('step.need') }, Icon: BriefcaseIcon },
+  { get label() { return tr('step.consent') }, Icon: CircleCheckIcon },
 ]
 
 type FormState = {
@@ -62,6 +63,7 @@ const initialState: FormState = {
 
 /** Business sign-up: registration number (validated per country) + what they need. */
 export function EmployerRegisterPage() {
+  const t = useT()
   const categoryOptions = useCategoryNames()
   const navigate = useNavigate()
   const { session } = useSession()
@@ -99,24 +101,24 @@ export function EmployerRegisterPage() {
       if (emailErr) return setError(emailErr)
       const phoneErr = validateCountryPhone(form.country, form.phone)
       if (phoneErr) return setError(phoneErr)
-      if (!session && form.password !== form.confirmPassword) return setError('Passwords do not match.')
+      if (!session && form.password !== form.confirmPassword) return setError(t('ui.passwords_do_not_match'))
       // Catch an already-registered email here, not three steps later.
       setSubmitting(true)
       const check = await lookupEmail(form.businessEmail).catch(() => ({ role: null }))
       setSubmitting(false)
       if (check.role) return setDupRole(check.role)
     }
-    if (step === 1 && form.lookingFor.length === 0) return setError('Pick at least one area you need help in.')
-    if (step === 1 && form.field.length === 0) return setError('Pick your industry / field.')
+    if (step === 1 && form.lookingFor.length === 0) return setError(t('ui.pick_at_least_one_area_you'))
+    if (step === 1 && form.field.length === 0) return setError(t('ui.pick_your_industry_field'))
     if (step === 1 && form.businessDetails.trim().length < MIN_BUSINESS_TEXT)
-      return setError(`Tell us about your business ,  at least ${MIN_BUSINESS_TEXT} characters.`)
+      return setError(t('ui.tell_us_about_your_business_at', { MIN_BUSINESS_TEXT }))
 
     if (step < steps.length - 1) {
       setStep((s) => s + 1)
       setError(null)
       return
     }
-    if (!consented) return setError('Please agree to the Consent, Terms & Conditions, and Privacy Policy.')
+    if (!consented) return setError(t('ui.please_agree_to_the_consent_terms'))
 
     setSubmitting(true)
     setError(null)
@@ -131,7 +133,7 @@ export function EmployerRegisterPage() {
       const { userId, needsConfirm } = await resolveAccountForRegister(form.businessEmail, form.password)
 
       const { data: existing } = await supabase.from('employers').select('id').eq('user_id', userId).maybeSingle()
-      if (existing) throw new Error('This email already has a business account ,  just sign in.')
+      if (existing) throw new Error(t('err.business_exists'))
 
       const { error: insertError } = await supabase.from('employers').insert({
         user_id: userId,
@@ -154,7 +156,7 @@ export function EmployerRegisterPage() {
         setDone(true)
       } else {
         clearDisplayUserCache()
-        toast.success('Business profile created ,  you\u2019re Basic verified. Get Fully verified to attract better experts.')
+        toast.success(t('ui.business_profile_created_you_re_basic'))
         navigate('/employer/dashboard')
       }
     } catch (err) {
@@ -184,18 +186,10 @@ export function EmployerRegisterPage() {
           <GoldCircle size={96}>
             <CheckIcon className="size-10" />
           </GoldCircle>
-          <h1 className="text-2xl font-medium text-navy" style={{ fontFamily: 'Georgia, serif' }}>
-            Almost there ,  confirm your email
-          </h1>
-          <p className="max-w-md text-muted-600">Thanks for registering {form.companyName}.</p>
-          <p className="max-w-md text-sm text-muted">
-            We&apos;ve sent a confirmation link to <b>{form.businessEmail}</b>. Click it and you&apos;ll land on the
-            sign-in page. Once you&apos;re in you&apos;re Basic verified and can post your first project free ,  upload
-            your registration document and activate the badge to become Fully verified.
-          </p>
-          <Link to="/sign-in" className="rounded-md bg-navy px-6 py-3 text-base font-semibold text-white">
-            Go to Sign In
-          </Link>
+          <h1 className="text-2xl font-medium text-navy" style={{ fontFamily: 'Georgia, serif' }}>{t('ui.almost_there_confirm_your_email')}</h1>
+          <p className="max-w-md text-muted-600">{t('ui.thanks_for_registering', { companyName: form.companyName })}</p>
+          <p className="max-w-md text-sm text-muted">{t('ui.we_ve_sent_a_confirmation_link')}{' '}<b>{form.businessEmail}</b>{t('ui.click_it_and_you_ll_land_2')}</p>
+          <Link to="/sign-in" className="rounded-md bg-navy px-6 py-3 text-base font-semibold text-white">{t('ui.go_to_sign_in')}</Link>
         </div>
       </RegWizardLayout>
     )
@@ -216,14 +210,14 @@ export function EmployerRegisterPage() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <div>
           <h1 className="text-2xl font-medium text-navy" style={{ fontFamily: 'Georgia, serif' }}>
-            {step === 0 ? 'Register your business' : step === 1 ? 'What do you need help with?' : 'One last thing'}
+            {step === 0 ? t('ui.register_your_business') : step === 1 ? t('ui.what_do_you_need_help_with') : t('ui.one_last_thing')}
           </h1>
           <p className="mt-1 text-sm text-ink-600">
             {step === 0
-              ? 'Post your project. Meet your expert. Solve your problems ,  posting is completely free.'
+              ? t('ui.post_your_project_meet_your_expert')
               : step === 1
-                ? 'This helps us route the right experts to you. You can be based anywhere in the world.'
-                : 'Your registration number gets you the Basic verified mark straight away.'}
+                ? t('ui.this_helps_us_route_the_right')
+                : t('ui.your_registration_number_gets_you_the')}
           </p>
         </div>
 
@@ -232,25 +226,23 @@ export function EmployerRegisterPage() {
         {step === 0 && (
           <>
             {session && (
-              <p className="rounded-md bg-brand-50 px-4 py-3 text-sm text-brand">
-                You&apos;re signed in as <b>{signedInEmail}</b>. This finishes setting up your business account.
-              </p>
+              <p className="rounded-md bg-brand-50 px-4 py-3 text-sm text-brand">{t('ui.you_re_signed_in_as')}{' '}<b>{signedInEmail}</b>{t('ui.this_finishes_setting_up_your_business')}</p>
             )}
-            <Field label="Registered company name">
-              <TextInput required placeholder="Company name as registered" value={form.companyName} onChange={(e) => update('companyName', e.target.value)} />
+            <Field label={t('ui.registered_company_name')}>
+              <TextInput required placeholder={t('ui.company_name_as_registered')} value={form.companyName} onChange={(e) => update('companyName', e.target.value)} />
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Country of registration">
+              <Field label={t('ui.country_of_registration')}>
                 <SelectMenu
                   value={form.country}
                   onChange={(v) => update('country', v)}
                   options={Object.entries(COUNTRY_NAMES).map(([code, name]) => ({ value: code, label: name }))}
                 />
               </Field>
-              <Field label={regFormat ? `${regFormat.label}` : 'Business registration number'}>
+              <Field label={regFormat ? `${regFormat.label}` : t('ui.business_registration_number')}>
                 <TextInput
                   required
-                  placeholder={regFormat?.placeholder ?? 'Registration number'}
+                  placeholder={regFormat?.placeholder ?? t('ui.registration_number')}
                   value={form.regNo}
                   onChange={(e) => update('regNo', e.target.value)}
                   className={regError ? 'border-danger' : ''}
@@ -258,28 +250,28 @@ export function EmployerRegisterPage() {
               </Field>
             </div>
             <p className={`-mt-3 text-xs ${regError ? 'text-danger' : 'text-muted'}`}>
-              {regError ?? regFormat?.hint ?? 'Enter it exactly as it appears on your registration; the format varies by country.'}
+              {regError ?? regFormat?.hint ?? t('ui.enter_it_exactly_as_it_appears')}
             </p>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Business email">
-                <TextInput required type="email" placeholder="you@company.com" icon={<MailIcon className="size-5" />} value={form.businessEmail} readOnly={!!session} onChange={(e) => update('businessEmail', e.target.value)} className={emailError ? 'border-danger' : ''} />
+              <Field label={t('ui.business_email_2')}>
+                <TextInput required type="email" placeholder={t('ui.you_company_com')} icon={<MailIcon className="size-5" />} value={form.businessEmail} readOnly={!!session} onChange={(e) => update('businessEmail', e.target.value)} className={emailError ? 'border-danger' : ''} />
                 {emailError && <p className="mt-1 text-xs text-danger">{emailError}</p>}
               </Field>
-              <Field label="Business phone">
+              <Field label={t('ui.business_phone')}>
                 <PhoneInput required country={form.country} value={form.phone} onChange={(v) => update('phone', v)} invalid={!!phoneError} />
                 {phoneError && <p className="mt-1 text-xs text-danger">{phoneError}</p>}
               </Field>
             </div>
-            <Field label="Website (optional)">
+            <Field label={t('ui.website_optional')}>
               <TextInput placeholder="https://" value={form.website} onChange={(e) => update('website', e.target.value)} />
             </Field>
             {!session && (
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Password">
-                  <TextInput required type="password" minLength={6} placeholder="At least 6 characters" autoComplete="new-password" value={form.password} onChange={(e) => update('password', e.target.value)} />
+                <Field label={t('ui.password')}>
+                  <TextInput required type="password" minLength={6} placeholder={t('ui.at_least_6_characters')} autoComplete="new-password" value={form.password} onChange={(e) => update('password', e.target.value)} />
                 </Field>
-                <Field label="Confirm password">
-                  <TextInput required type="password" minLength={6} placeholder="Re-enter your password" autoComplete="new-password" value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} />
+                <Field label={t('ui.confirm_password_2')}>
+                  <TextInput required type="password" minLength={6} placeholder={t('ui.re_enter_your_password')} autoComplete="new-password" value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} />
                 </Field>
               </div>
             )}
@@ -288,31 +280,26 @@ export function EmployerRegisterPage() {
 
         {step === 1 && (
           <>
-            <CheckboxGroup label="Which functions do you need expert help in?" options={categoryOptions} selected={form.lookingFor} onToggle={toggle('lookingFor')} />
-            <Field label="About your business">
+            <CheckboxGroup label={t('ui.which_functions_do_you_need_expert')} options={categoryOptions} selected={form.lookingFor} onToggle={toggle('lookingFor')} />
+            <Field label={t('ui.about_your_business')}>
               <textarea
                 required
                 minLength={MIN_BUSINESS_TEXT}
                 rows={5}
-                placeholder="What you do, your size, and the kind of problems you’re looking to solve…"
+                placeholder={t('ui.what_you_do_your_size_and')}
                 className="w-full resize-none rounded-md border border-line bg-surface p-4 text-base text-ink outline-none focus:border-brand placeholder:text-muted-400"
                 value={form.businessDetails}
                 onChange={(e) => update('businessDetails', e.target.value)}
               />
             </Field>
-            <CheckboxGroup label="Your industry / field" options={categoryOptions} selected={form.field} onToggle={toggle('field')} />
+            <CheckboxGroup label={t('ui.your_industry_field')} options={categoryOptions} selected={form.field} onToggle={toggle('field')} />
           </>
         )}
 
         {step === 2 && (
           <>
             <div className="flex flex-col gap-4 rounded-xl border border-gold/40 bg-gold-50 p-5 text-sm text-ink-600">
-              <p>
-                Your business starts as <b>Basic verified</b> ,  the registration number you just gave us is enough to
-                post. To become <b>Fully verified</b>, upload a copy of your business registration after sign-in and
-                activate the annual badge: our team confirms it by hand and your profile carries the Fully verified
-                mark. Every expert you match with is identity-verified too.
-              </p>
+              <p>{t('ui.your_business_starts_as')}{' '}<b>{t('ui.basic_verified')}</b>{' '}{t('ui.the_registration_number_you_just_gave')}{' '}<b>{t('ui.fully_verified')}</b>{t('ui.upload_a_copy_of_your_business')}</p>
               <FullyVerifiedBubble audience="business" />
             </div>
             <ConsentStep checked={consented} onChange={setConsented} referralOptIn={referralOptIn} onReferralOptInChange={setReferralOptIn} />
@@ -321,7 +308,7 @@ export function EmployerRegisterPage() {
 
         <WizardButtons
           onPrev={step > 0 ? () => setStep((s) => s - 1) : undefined}
-          nextLabel={isLastStep ? (submitting ? 'Creating profile…' : 'Create my business profile') : 'Save & continue'}
+          nextLabel={isLastStep ? (submitting ? t('ui.creating_profile') : t('ui.create_my_business_profile')) : t('ui.save_continue')}
           nextDisabled={submitting || (step === 0 && !isStep0Filled) || (isLastStep && !consented)}
         />
       </form>

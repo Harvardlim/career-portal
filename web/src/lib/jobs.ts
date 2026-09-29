@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { tr } from './i18n'
 import type { Job } from '@/data/jobs'
 import { budgetLabel, postingCountry, projectTypeLabel, type ProjectType } from './partly'
 
@@ -230,7 +231,7 @@ export function jobSalaryText(j: RateFields): string {
     const per = j.salary_type ? `/${j.salary_type.toLowerCase()}` : ''
     return `$${j.salary_min.toLocaleString()}-$${j.salary_max.toLocaleString()}${per}`
   }
-  return 'Negotiable'
+  return tr('lbl.negotiable')
 }
 
 /** Country of a need, else the legacy free-text location; null when neither is set. */
@@ -256,7 +257,7 @@ export function toCardJob(j: JobRow): Job {
     logoBg: j.logo_bg ?? '#2563eb',
     lightLogo: j.light_logo,
     location: jobLocationText(j) ?? '',
-    type: jobTypeText(j) ?? j.workplace_type ?? 'Full Time',
+    type: jobTypeText(j) ?? j.workplace_type ?? tr('lbl.full_time'),
     salary: jobSalaryText(j),
     featured: j.featured,
   }

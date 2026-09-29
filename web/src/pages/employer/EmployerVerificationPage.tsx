@@ -25,8 +25,11 @@ import {
 } from '@/lib/partly'
 import { useCheckoutReturn } from '@/lib/useCheckoutReturn'
 import { formatDate } from '@/lib/format'
+import { useT } from '@/lib/i18n'
+import { badgeStatusLabel } from '@/lib/optionLabels'
 
 export function EmployerVerificationPage() {
+  const t = useT()
   const { employer, session, loading, reload } = useEmployer()
   const { pricing } = usePricing()
   const navigate = useNavigate()
@@ -48,9 +51,9 @@ export function EmployerVerificationPage() {
   }, [employer])
 
   const { confirming } = useCheckoutReturn({
-    successMessage: 'Payment confirmed ,  your badge status is on your dashboard.',
-    successAction: { label: 'View dashboard', onClick: () => navigate('/employer/dashboard') },
-    cancelledMessage: 'Badge purchase cancelled.',
+    successMessage: t('badge.confirmed'),
+    successAction: { label: t('ui.view_dashboard'), onClick: () => navigate('/employer/dashboard') },
+    cancelledMessage: t('badge.cancelled'),
     onConfirmed: async () => {
       await reload()
       if (employer) await fetchMyEmployerBadges(employer.id).then(setBadges).catch(() => {})
@@ -64,10 +67,10 @@ export function EmployerVerificationPage() {
     setSaving(true)
     try {
       await updateMyEmployer(employer.id, { reg_no: regNo.trim(), country_code: country })
-      toast.success('Saved.')
+      toast.success(t('ui.saved'))
       await reload()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not save')
+      toast.error(err instanceof Error ? err.message : t('ui.could_not_save'))
     } finally {
       setSaving(false)
     }
@@ -78,7 +81,7 @@ export function EmployerVerificationPage() {
     try {
       await startEmployerBadgeCheckout(pay)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not start checkout')
+      toast.error(err instanceof Error ? err.message : t('ui.could_not_start_checkout'))
       setBuying(false)
     }
   }
@@ -94,58 +97,55 @@ export function EmployerVerificationPage() {
       {confirming && <PaymentConfirmingOverlay />}
       <div className="flex max-w-3xl flex-col gap-6">
         <div>
-          <h1 className="text-xl font-semibold text-ink">Business verification</h1>
+          <h1 className="text-xl font-semibold text-ink">{t('ui.business_verification')}</h1>
           <p className="mt-1 text-sm text-muted">
-            <strong>Basic verified</strong> is free ,  your registration number from sign-up is all it takes to post.
-            <strong> Fully verified</strong> is the paid annual badge: our team checks your registration document by
-            hand and your profile carries the Fully verified mark. You can be based anywhere in the world.
-          </p>
+            <strong>{t('ui.basic_verified')}</strong>{' '}{t('ui.is_free_your_registration_number_from')}<strong>{' '}{t('ui.fully_verified')}</strong>{' '}{t('ui.is_the_paid_annual_badge_our')}</p>
         </div>
 
         {!loading && employer && (
           <Notice tone={badgeLive ? 'success' : 'brand'}>
             <span className="flex flex-wrap items-center gap-2">
               {badgeLive
-                ? 'Your business is Fully verified.'
+                ? t('ui.your_business_is_fully_verified')
                 : awaitingReview
-                  ? 'Payment received ,  your Fully verified badge activates once your registration document is approved.'
+                  ? t('ui.payment_received_your_fully_verified_badge')
                   : employer.basic_verified
-                    ? 'Your business is Basic verified. Upload your registration document and activate the badge to become Fully verified.'
-                    : 'Add your registration number below to become Basic verified.'}
+                    ? t('ui.your_business_is_basic_verified_upload')
+                    : t('ui.add_your_registration_number_below_to')}
               <VerifiedChips identity={employer.basic_verified} badge={badgeLive} />
             </span>
           </Notice>
         )}
 
         <Card className="flex flex-col gap-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">1 · Basic verification (free)</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('ui.1_basic_verification_free')}</h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Country of registration">
+            <Field label={t('ui.country_of_registration')}>
               <SelectMenu
                 value={country}
                 onChange={setCountry}
                 options={Object.entries(COUNTRY_NAMES).map(([code, name]) => ({ value: code, label: name }))}
               />
             </Field>
-            <Field label="Business registration number">
-              <TextInput value={regNo} onChange={(e) => setRegNo(e.target.value)} placeholder="e.g. 202412345K (UEN), 1234567-X (SSM)…" />
+            <Field label={t('ui.business_registration_number')}>
+              <TextInput value={regNo} onChange={(e) => setRegNo(e.target.value)} placeholder={t('ui.e_g_202412345k_uen_1234567_x')} />
             </Field>
           </div>
-          <p className="text-xs text-muted">The format varies by country ,  enter it exactly as it appears on your registration.</p>
+          <p className="text-xs text-muted">{t('ui.the_format_varies_by_country_enter')}</p>
           <PrimaryButton className="w-fit" onClick={save} disabled={saving || !regNo.trim()}>
-            {saving ? 'Saving…' : 'Save details'}
+            {saving ? t('ui.saving') : t('ui.save_details')}
           </PrimaryButton>
         </Card>
 
         {employer && session && (
           <Card className="flex flex-col gap-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">2 · Registration document (for Fully verified)</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('ui.2_registration_document_for_fully_verified')}</h2>
             <VerificationDocs
               userId={session.user.id}
               ownerKind="employer"
               ownerId={employer.id}
               docType="business_registration"
-              hint="A copy of your business registration certificate or company profile (PDF or image)."
+              hint={t('ui.a_copy_of_your_business_registration')}
               onChange={() => {
                 void reload()
                 if (employer) hasUploadedRegistrationDoc(employer.id).then(setHasDoc)
@@ -156,30 +156,22 @@ export function EmployerVerificationPage() {
 
         <Card className="flex flex-col gap-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">3 · Fully verified badge (annual, paid)</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('ui.3_fully_verified_badge_annual_paid')}</h2>
             {badgeLive && employer?.verified_badge_until && (
-              <Pill tone="brand">Active until {formatDate(employer.verified_badge_until)}</Pill>
+              <Pill tone="brand">{t('ui.active_until', { verified_badge_until: formatDate(employer.verified_badge_until) })}</Pill>
             )}
           </div>
-          <p className="text-sm text-muted">
-            Same fixed fee as the Expert badge. Pay now and the badge switches on as soon as our team approves your
-            registration document ,  that approval is your business's identity check, the same way an Expert's ID
-            document works.
-          </p>
+          <p className="text-sm text-muted">{t('ui.same_fixed_fee_as_the_expert')}</p>
           <FullyVerifiedBubble audience="business" />
           {badgeLive ? (
-            <Notice tone="success">Your Fully verified badge is active and shows on your dashboard and postings.</Notice>
+            <Notice tone="success">{t('ui.your_fully_verified_badge_is_active_2')}</Notice>
           ) : awaitingReview ? (
-            <Notice tone="warning">
-              Payment received ,  your badge activates automatically once our team approves your registration document.
-            </Notice>
+            <Notice tone="warning">{t('ui.payment_received_your_badge_activates_automatically_2')}</Notice>
           ) : (
-            !hasDoc && <Notice tone="warning">Upload your registration document above before buying the badge.</Notice>
+            !hasDoc && <Notice tone="warning">{t('ui.upload_your_registration_document_above_before')}</Notice>
           )}
           {price && (
-            <p className="text-sm font-medium text-ink">
-              Annual fee: {formatBoth(price, price.badge_fee_local, price.badge_fee_usd)}
-            </p>
+            <p className="text-sm font-medium text-ink">{t('ui.annual_fee', { badge_fee_usd: formatBoth(price, price.badge_fee_local, price.badge_fee_usd) })}</p>
           )}
           {price ? (
             <div className="grid gap-3 sm:grid-cols-2">
@@ -188,56 +180,56 @@ export function EmployerVerificationPage() {
                 onClick={() => setPay('local')}
                 className={`rounded-lg border p-4 text-left ${pay === 'local' ? 'border-brand bg-brand-50' : 'border-line'}`}
               >
-                <p className="text-xs uppercase tracking-wide text-muted">Pay in {price.currency}</p>
+                <p className="text-xs uppercase tracking-wide text-muted">{t('ui.pay_in', { currency: price.currency })}</p>
                 <p className="mt-1 text-2xl font-semibold text-ink">
-                  {formatLocal(price, price.badge_fee_local)} <span className="text-sm font-normal text-muted">/ year</span>
+                  {formatLocal(price, price.badge_fee_local)} <span className="text-sm font-normal text-muted">{t('ui.year_2')}</span>
                 </p>
-                <p className="text-xs text-muted">Fixed {price.name} price</p>
+                <p className="text-xs text-muted">{t('ui.fixed_price', { name: price.name })}</p>
               </button>
               <button
                 type="button"
                 onClick={() => setPay('usd')}
                 className={`rounded-lg border p-4 text-left ${pay === 'usd' ? 'border-brand bg-brand-50' : 'border-line'}`}
               >
-                <p className="text-xs uppercase tracking-wide text-muted">Pay in USD</p>
+                <p className="text-xs uppercase tracking-wide text-muted">{t('ui.pay_in_usd')}</p>
                 <p className="mt-1 text-2xl font-semibold text-ink">
-                  {formatUsd(price.badge_fee_usd)} <span className="text-sm font-normal text-muted">/ year</span>
+                  {formatUsd(price.badge_fee_usd)} <span className="text-sm font-normal text-muted">{t('ui.year_2')}</span>
                 </p>
-                <p className="text-xs text-muted">Forex exchange absorbed</p>
+                <p className="text-xs text-muted">{t('ui.forex_exchange_absorbed')}</p>
               </button>
             </div>
           ) : (
-            <p className="text-sm text-muted">Save your country of registration above to see your market's fixed price.</p>
+            <p className="text-sm text-muted">{t('ui.save_your_country_of_registration_above')}</p>
           )}
           <div className="flex items-center gap-3">
             {badgeLive ? (
               <>
                 <SecondaryButton onClick={buyBadge} disabled={buying || !price || !hasDoc || !!renewalOpens || awaitingReview}>
-                  {buying ? 'Redirecting…' : 'Renew for another year'}
+                  {buying ? t('ui.redirecting') : t('ui.renew_for_another_year')}
                 </SecondaryButton>
                 {renewalOpens && (
-                  <span className="text-xs text-muted">Renewal opens {formatDate(renewalOpens.toISOString())}, 30 days before your badge expires.</span>
+                  <span className="text-xs text-muted">{t('ui.renewal_opens_30_days_before_your', { v: formatDate(renewalOpens.toISOString()) })}</span>
                 )}
               </>
             ) : (
               <PrimaryButton onClick={buyBadge} disabled={buying || !price || !hasDoc || awaitingReview}>
-                {buying ? 'Redirecting…' : awaitingReview ? 'Payment received' : 'Get Fully verified'}
+                {buying ? t('ui.redirecting') : awaitingReview ? t('ui.payment_received') : t('ui.get_fully_verified')}
               </PrimaryButton>
             )}
           </div>
           {badges.length > 0 && (
             <div className="border-t border-line pt-3">
-              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">Badge history</p>
+              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">{t('ui.badge_history')}</p>
               <ul className="flex flex-col gap-1 text-sm">
                 {badges.map((b) => (
                   <li key={b.id} className="flex items-center justify-between">
                     <span className="text-ink">
-                      {b.renewed_from ? 'Renewal' : 'Purchase'} · {formatPaid(pricing.find((p) => p.code === b.country_code), b)}
+                      {b.renewed_from ? t('ui.renewal') : t('ui.purchase')} · {formatPaid(pricing.find((p) => p.code === b.country_code), b)}
                       {b.purchased_at ? ` · ${formatDate(b.purchased_at)}` : ''}
                     </span>
                     <Pill tone={b.status === 'active' ? 'success' : b.status === 'awaiting_review' ? 'warning' : 'neutral'}>
-                      {b.status === 'awaiting_review' ? 'Paid ,  awaiting document review' : b.status}
-                      {b.expires_at && b.status === 'active' ? ` · until ${formatDate(b.expires_at)}` : ''}
+                      {b.status === 'awaiting_review' ? t('ui.paid_awaiting_document_review') : badgeStatusLabel(b.status)}
+                      {b.expires_at && b.status === 'active' ? t('ui.until', { expires_at: formatDate(b.expires_at) }) : ''}
                     </Pill>
                   </li>
                 ))}

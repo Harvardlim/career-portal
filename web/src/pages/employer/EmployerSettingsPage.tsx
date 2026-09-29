@@ -1,17 +1,19 @@
 import { EmployerDashboardLayout } from '@/components/dashboard/EmployerDashboardLayout'
 import { ChangePasswordForm } from '@/pages/dashboard/SettingsPage'
 import { useEmployer } from '@/lib/employers'
+import { useT } from '@/lib/i18n'
 
 export function EmployerSettingsPage() {
+  const t = useT()
   const { employer, session, loading } = useEmployer()
   const email = session?.user.email ?? employer?.business_email ?? ''
 
   return (
     <EmployerDashboardLayout>
       <div className="flex max-w-[720px] flex-col gap-8">
-        <h1 className="text-2xl font-medium text-ink">Settings</h1>
+        <h1 className="text-2xl font-medium text-ink">{t('ui.settings')}</h1>
         {loading ? (
-          <p className="text-sm text-muted">Loading…</p>
+          <p className="text-sm text-muted">{t('ui.loading_2')}</p>
         ) : (
           <ChangePasswordForm accountEmail={email} />
         )}

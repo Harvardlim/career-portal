@@ -1,4 +1,5 @@
 import type { TranslationKey } from './en'
+import { zhUi } from './zh.ui'
 
 // 中文 (Simplified Chinese). Anything missing falls back to English key by key.
 export const zh: Partial<Record<TranslationKey, string>> = {
@@ -166,4 +167,6 @@ export const zh: Partial<Record<TranslationKey, string>> = {
   // Language switcher
   'lang.label': '语言',
   'lang.comingSoon': '即将推出',
+
+  ...zhUi,
 }

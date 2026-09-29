@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom'
 import { CircleCheckIcon } from '@/components/icons'
 import { FullyVerifiedBubble, Pill, PrimaryButton } from '@/components/partly/ui'
+import { intlLocale, useT } from '@/lib/i18n'
 
-const dateFmt = new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
 
 /**
  * The dashboard's verification tile, shared by Experts and Businesses: where a
@@ -26,33 +26,34 @@ export function VerificationStatusCard({
   manageTo: string
   loading?: boolean
 }) {
+  const t = useT()
+  const dateFmt = new Intl.DateTimeFormat(intlLocale(), { day: 'numeric', month: 'long', year: 'numeric' })
   const full = !!badgeUntil && new Date(badgeUntil) > new Date()
 
   const heading = loading
     ? ', '
     : full
-      ? 'Fully verified'
+      ? t('ui.fully_verified')
       : awaitingReview
-        ? 'Payment received ,  awaiting review'
+        ? t('vsc.awaiting')
         : basic
-          ? 'Basic verified'
-          : 'Not verified yet'
+          ? t('ui.basic_verified')
+          : t('vsc.not_verified')
 
   const detail = full
-    ? `Your Fully verified badge is active until ${dateFmt.format(new Date(badgeUntil!))}. ${
-        audience === 'business'
-          ? 'It shows on every posting you make.'
-          : 'It shows on every match card and your public profile, with priority in match ranking.'
-      }`
+    ? t('vsc.active_until', {
+        date: dateFmt.format(new Date(badgeUntil!)),
+        detail: audience === 'business' ? t('vsc.shows_postings') : t('vsc.shows_cards'),
+      })
     : awaitingReview
-      ? 'Your payment is confirmed. The Fully verified badge switches on as soon as our team approves your document.'
+      ? t('vsc.paid_msg')
       : basic
         ? audience === 'business'
-          ? 'Your registration number is on file. Upload your registration document and activate the annual badge to become Fully verified.'
-          : 'Your ID check is done. Upload your ID document and activate the annual badge to become Fully verified.'
+          ? t('vsc.biz_basic')
+          : t('vsc.exp_basic')
         : audience === 'business'
-          ? 'Add your business registration number to get the Basic verified mark.'
-          : 'Add your ID digits to get the Basic verified mark and start applying.'
+          ? t('vsc.biz_none')
+          : t('vsc.exp_none')
 
   return (
     <div className="flex flex-col gap-4 rounded-lg border border-line p-6">
@@ -66,20 +67,20 @@ export function VerificationStatusCard({
             <CircleCheckIcon className="size-6" />
           </span>
           <div>
-            <p className="text-xs uppercase tracking-wide text-muted-400">Verification</p>
+            <p className="text-xs uppercase tracking-wide text-muted-400">{t('ui.verification')}</p>
             <p className="flex flex-wrap items-center gap-2 text-base font-medium text-ink">
               {heading}
-              {full && <Pill tone="brand">Active</Pill>}
-              {awaitingReview && !full && <Pill tone="warning">In review</Pill>}
+              {full && <Pill tone="brand">{t('ui.active')}</Pill>}
+              {awaitingReview && !full && <Pill tone="warning">{t('ui.in_review')}</Pill>}
             </p>
             <p className="mt-0.5 max-w-xl text-sm text-muted-600">{detail}</p>
           </div>
         </div>
         <Link to={manageTo} className="shrink-0">
           {full || awaitingReview ? (
-            <PrimaryButton className="h-10 bg-brand-50 text-brand hover:bg-brand-100">Manage badge</PrimaryButton>
+            <PrimaryButton className="h-10 bg-brand-50 text-brand hover:bg-brand-100">{t('ui.manage_badge')}</PrimaryButton>
           ) : (
-            <PrimaryButton className="h-10">{basic ? 'Get Fully verified' : 'Get verified'}</PrimaryButton>
+            <PrimaryButton className="h-10">{basic ? t('ui.get_fully_verified') : t('ui.get_verified')}</PrimaryButton>
           )}
         </Link>
       </div>

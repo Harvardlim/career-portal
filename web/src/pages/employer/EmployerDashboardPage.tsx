@@ -13,16 +13,18 @@ import {
 import { fetchEmployerStats, useEmployer } from '@/lib/employers'
 import { fetchMyEmployerBadges, fetchMyPostings, type MatchingStatus, type MyPostingRow } from '@/lib/partly'
 import { initialsFromName } from '@/lib/name'
+import { useT, tr } from '@/lib/i18n'
 
 const STATUS: Record<MatchingStatus, { label: string; tone: 'neutral' | 'brand' | 'success' | 'warning' }> = {
-  open: { label: 'Taking applications', tone: 'brand' },
-  matched: { label: 'Matches ready', tone: 'success' },
-  released: { label: 'Interested · contact released', tone: 'success' },
-  no_further_matches: { label: 'No further matches', tone: 'warning' },
-  closed: { label: 'Closed', tone: 'neutral' },
+  open: { get label() { return tr('st.open') }, tone: 'brand' },
+  matched: { get label() { return tr('st.matched') }, tone: 'success' },
+  released: { get label() { return tr('st.released_interested') }, tone: 'success' },
+  no_further_matches: { get label() { return tr('st.no_further') }, tone: 'warning' },
+  closed: { get label() { return tr('st.closed') }, tone: 'neutral' },
 }
 
 export function EmployerDashboardPage() {
+  const t = useT()
   const { employer, loading: employerLoading } = useEmployer()
   const [stats, setStats] = useState({ openJobs: 0, applications: 0, savedCandidates: 0 })
   const [postings, setPostings] = useState<MyPostingRow[]>([])
@@ -50,9 +52,9 @@ export function EmployerDashboardPage() {
   }, [employer, employerLoading, load])
 
   const cards = [
-    { value: stats.openJobs, label: 'Open needs', to: '/employer/postings', Icon: BriefcaseIcon, bg: 'bg-brand-50', fg: 'text-brand' },
-    { value: stats.applications, label: 'Applicants', to: '/employer/applications', Icon: UsersIcon, bg: 'bg-[#e7f6ec]', fg: 'text-[#0ba02c]' },
-    { value: stats.savedCandidates, label: 'Saved experts', to: '/employer/saved-candidates', Icon: UserCircleIcon, bg: 'bg-[#fff6e6]', fg: 'text-[#ffaa00]' },
+    { value: stats.openJobs, label: t('ui.open_needs'), to: '/employer/postings', Icon: BriefcaseIcon, bg: 'bg-brand-50', fg: 'text-brand' },
+    { value: stats.applications, label: t('ui.applicants'), to: '/employer/applications', Icon: UsersIcon, bg: 'bg-[#e7f6ec]', fg: 'text-[#0ba02c]' },
+    { value: stats.savedCandidates, label: t('ui.saved_experts'), to: '/employer/saved-candidates', Icon: UserCircleIcon, bg: 'bg-[#fff6e6]', fg: 'text-[#ffaa00]' },
   ]
   const badgeLive = !!employer?.verified_badge_until && new Date(employer.verified_badge_until) > new Date()
 
@@ -60,13 +62,10 @@ export function EmployerDashboardPage() {
     <EmployerDashboardLayout>
       <div className="flex flex-col gap-8">
         <div>
-          <h1 className="flex flex-wrap items-center gap-3 text-2xl font-medium text-ink">
-            Hello, {employer?.company_name ?? 'there'}
+          <h1 className="flex flex-wrap items-center gap-3 text-2xl font-medium text-ink">{t('ui.hello')}{' '}{employer?.company_name ?? 'there'}
             <VerifiedChips identity={employer?.basic_verified} badge={badgeLive} />
           </h1>
-          <p className="mt-1 text-muted">
-            Here is your daily activities and applications
-          </p>
+          <p className="mt-1 text-muted">{t('ui.here_is_your_daily_activities_and')}</p>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-3">
@@ -102,7 +101,7 @@ export function EmployerDashboardPage() {
               {employer?.logo_url ? (
                 <img
                   src={employer.logo_url}
-                  alt={employer.company_name ?? 'Company logo'}
+                  alt={employer.company_name ?? t('ui.company_logo_2')}
                   className="size-14 shrink-0 rounded-full object-cover ring-2 ring-white/40"
                 />
               ) : (
@@ -111,31 +110,25 @@ export function EmployerDashboardPage() {
                 </span>
               )}
               <div>
-                <p className="text-lg font-medium">Your profile editing is not completed.</p>
-                <p className="text-sm text-white/80">
-                  Complete your business profile so experts see who they&apos;re working with
-                </p>
+                <p className="text-lg font-medium">{t('ui.your_profile_editing_is_not_completed')}</p>
+                <p className="text-sm text-white/80">{t('ui.complete_your_business_profile_so_experts')}</p>
               </div>
             </div>
             <Link
               to="/company/register"
               className="flex shrink-0 items-center gap-2 rounded-[4px] bg-surface px-6 py-3 text-sm font-semibold text-brand"
-            >
-              Edit Profile
-              <ArrowRightIcon className="size-4" />
+            >{t('ui.edit_profile')}<ArrowRightIcon className="size-4" />
             </Link>
           </div>
         )}
 
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium text-ink">Recent postings</h2>
+            <h2 className="text-lg font-medium text-ink">{t('ui.recent_postings')}</h2>
             <Link
               to="/employer/postings"
               className="flex items-center gap-1.5 text-sm text-muted-600"
-            >
-              View all
-              <ArrowRightIcon className="size-4" />
+            >{t('ui.view_all_2')}<ArrowRightIcon className="size-4" />
             </Link>
           </div>
           {postings.length > 0 ? (
@@ -152,20 +145,16 @@ export function EmployerDashboardPage() {
                       <span className="font-medium text-ink">{p.title}</span>
                       <Pill tone={st.tone}>{st.label}</Pill>
                     </span>
-                    <span className="text-sm text-muted">
-                      {p.applications} applied · {p.released} interested · {p.unlocked} unlocked
-                    </span>
+                    <span className="text-sm text-muted">{t('ui.applied_interested_unlocked', { applications: p.applications, released: p.released, unlocked: p.unlocked })}</span>
                   </Link>
                 )
               })}
             </div>
           ) : (
             <p className="rounded-lg bg-surface-alt px-4 py-10 text-center text-sm text-muted">
-              {loading ? 'Loading…' : 'No postings yet.'}{' '}
+              {loading ? t('ui.loading_2') : t('ui.no_postings_yet')}{' '}
               {!loading && (
-                <Link to="/employer/post-need" className="font-medium text-brand">
-                  Post your first need ,  it&apos;s free
-                </Link>
+                <Link to="/employer/post-need" className="font-medium text-brand">{t('ui.post_your_first_need_it_s')}</Link>
               )}
             </p>
           )}

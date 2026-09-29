@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { StarIcon } from '@/components/icons'
 import { PrimaryButton } from '@/components/partly/ui'
 import { fetchMyRating, submitRating, type RatingKind } from '@/lib/partly'
+import { useT } from '@/lib/i18n'
 
 /**
  * 1-5 star picker + optional comment for rating the counterpart on an
@@ -21,6 +22,7 @@ export function RatingWidget({
   /** e.g. "this business" / "this expert" ,  used in the prompt copy. */
   raterLabel: string
 }) {
+  const t = useT()
   const [stars, setStars] = useState(0)
   const [hoverStars, setHoverStars] = useState(0)
   const [comment, setComment] = useState('')
@@ -47,17 +49,17 @@ export function RatingWidget({
 
   async function save() {
     if (stars < 1) {
-      toast.error('Pick a star rating first.')
+      toast.error(t('ui.pick_a_star_rating_first'))
       return
     }
     setSaving(true)
     try {
       await submitRating(releaseId, stars, comment)
-      toast.success(existing ? 'Rating updated.' : 'Thanks for rating.')
+      toast.success(existing ? t('ui.rating_updated') : t('ui.thanks_for_rating'))
       setExisting(true)
       setEditing(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not save rating')
+      toast.error(err instanceof Error ? err.message : t('ui.could_not_save_rating'))
     } finally {
       setSaving(false)
     }
@@ -74,16 +76,14 @@ export function RatingWidget({
           ))}
           {comment && <span className="ml-2 truncate text-xs text-muted-600">"{comment}"</span>}
         </span>
-        <button type="button" onClick={() => setEditing(true)} className="shrink-0 text-xs font-medium text-brand hover:underline">
-          Edit rating
-        </button>
+        <button type="button" onClick={() => setEditing(true)} className="shrink-0 text-xs font-medium text-brand hover:underline">{t('ui.edit_rating')}</button>
       </div>
     )
   }
 
   return (
     <div className="flex flex-col gap-2 rounded-md border border-line p-3">
-      <p className="text-xs font-medium text-ink">Rate {raterLabel}</p>
+      <p className="text-xs font-medium text-ink">{t('ui.rate', { raterLabel })}</p>
       <div className="flex items-center gap-1" onMouseLeave={() => setHoverStars(0)}>
         {[1, 2, 3, 4, 5].map((i) => (
           <button
@@ -91,7 +91,7 @@ export function RatingWidget({
             type="button"
             onClick={() => setStars(i)}
             onMouseEnter={() => setHoverStars(i)}
-            aria-label={`${i} star${i === 1 ? '' : 's'}`}
+            aria-label={t(i === 1 ? 'rating.star' : 'rating.stars', { n: i })}
             className="p-0.5"
           >
             <StarIcon className={`size-6 transition-colors ${i <= (hoverStars || stars) ? 'text-amber-400' : 'text-line'}`} />
@@ -103,17 +103,15 @@ export function RatingWidget({
         onChange={(e) => setComment(e.target.value)}
         rows={2}
         maxLength={500}
-        placeholder="Optional comment"
+        placeholder={t('ui.optional_comment')}
         className="w-full resize-none rounded-md border border-line bg-surface p-2 text-sm text-ink outline-none focus:border-brand placeholder:text-muted-400"
       />
       <div className="flex gap-2">
         <PrimaryButton className="h-9 px-4 text-xs" onClick={save} disabled={saving}>
-          {saving ? 'Saving…' : existing ? 'Update rating' : 'Submit rating'}
+          {saving ? t('ui.saving') : existing ? t('ui.update_rating') : t('ui.submit_rating')}
         </PrimaryButton>
         {existing && (
-          <button type="button" onClick={() => setEditing(false)} className="text-xs text-muted hover:text-ink">
-            Cancel
-          </button>
+          <button type="button" onClick={() => setEditing(false)} className="text-xs text-muted hover:text-ink">{t('ui.cancel')}</button>
         )}
       </div>
     </div>

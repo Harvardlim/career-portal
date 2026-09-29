@@ -1,3 +1,4 @@
+import { tr } from './i18n'
 /** Extracts a readable message from anything a try/catch might throw,
  *  including Supabase's PostgrestError/StorageError, which don't extend Error. */
 export function errMessage(err: unknown): string {
@@ -5,5 +6,5 @@ export function errMessage(err: unknown): string {
   if (typeof err === 'object' && err && 'message' in err) {
     return String((err as { message: unknown }).message)
   }
-  return 'Something went wrong. Please try again.'
+  return tr('err.generic')
 }

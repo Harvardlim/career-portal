@@ -8,8 +8,10 @@ import {
   MapPinIcon,
 } from '@/components/icons'
 import { CompanyLogo } from '@/components/jobs/CompanyLogo'
+import { useT } from '@/lib/i18n'
 
 export function JobRow({ job }: { job: Job }) {
+  const t = useT()
   return (
     <article
       className={`flex flex-col gap-6 rounded-xl border p-6 sm:flex-row sm:items-center sm:justify-between ${
@@ -26,9 +28,7 @@ export function JobRow({ job }: { job: Job }) {
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-lg font-medium text-ink">{job.title}</h3>
             {job.featured && (
-              <span className="rounded-full bg-danger-50 px-3 py-0.5 text-sm font-medium text-danger">
-                Featured
-              </span>
+              <span className="rounded-full bg-danger-50 px-3 py-0.5 text-sm font-medium text-danger">{t('ui.featured')}</span>
             )}
             <span className="rounded-full bg-brand-50 px-3 py-0.5 text-sm font-medium text-brand">
               {job.type}
@@ -45,7 +45,7 @@ export function JobRow({ job }: { job: Job }) {
             </span>
             <span className="flex items-center gap-1.5">
               <CalendarIcon className="size-[22px]" />
-              {job.remaining ?? '4 Days Remaining'}
+              {job.remaining ?? t('ui.4_days_remaining')}
             </span>
           </div>
         </div>
@@ -54,7 +54,7 @@ export function JobRow({ job }: { job: Job }) {
       <div className="flex shrink-0 items-center gap-3">
         <button
           type="button"
-          aria-label="Save job"
+          aria-label={t('ui.save_job')}
           className={`rounded-[5px] p-3 ${
             job.highlighted ? 'bg-brand-tint text-brand' : 'text-muted-slate'
           }`}
@@ -68,9 +68,7 @@ export function JobRow({ job }: { job: Job }) {
               ? 'bg-brand text-white hover:bg-brand-600'
               : 'bg-brand-50 text-brand hover:bg-brand-100'
           }`}
-        >
-          Apply Now
-          <ArrowRightIcon className="size-6" />
+        >{t('ui.apply_now')}<ArrowRightIcon className="size-6" />
         </Link>
       </div>
     </article>

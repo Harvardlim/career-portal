@@ -25,8 +25,10 @@ import {
   type ApplicationStatus,
 } from '@/lib/employers'
 import { countryName, expressInterest } from '@/lib/partly'
+import { useT } from '@/lib/i18n'
 
 export function SingleApplicantPage() {
+  const t = useT()
   const { employer, session } = useEmployer()
   const [params] = useSearchParams()
   const navigate = useNavigate()
@@ -61,7 +63,7 @@ export function SingleApplicantPage() {
     setBusy(true)
     try {
       await updateApplicationStatus(row.id, status)
-      toast.success(`Marked as ${status === 'active' ? 'new' : status}`)
+      toast.success(t('sa.marked', { status: status === 'active' ? t('sa.new') : status === 'shortlisted' ? t('col.shortlisted') : status === 'rejected' ? t('col.rejected') : status }))
       navigate(closeTo)
     } catch (err) {
       toast.error(errMessage(err))
@@ -77,8 +79,8 @@ export function SingleApplicantPage() {
       const result = await expressInterest(row.job.id, row.candidate.id)
       toast.success(
         result === 'released'
-          ? `${row.candidate.full_name} has been told you're interested. They have 2 days to unlock your contact.`
-          : 'You already told this expert you’re interested.',
+          ? t('ui.has_been_told_you_re_interested', { full_name: row.candidate.full_name })
+          : t('ui.you_already_told_this_expert_you'),
       )
       setConfirmInterest(false)
       navigate(closeTo)
@@ -93,7 +95,7 @@ export function SingleApplicantPage() {
     if (!row?.candidate || !employer || !session) return
     try {
       await saveCandidate(employer.id, session.user.id, row.candidate.id)
-      toast.success('Candidate saved')
+      toast.success(t('ui.candidate_saved'))
     } catch (err) {
       toast.error(errMessage(err))
     }
@@ -108,11 +110,9 @@ export function SingleApplicantPage() {
       <Dialog closeTo={closeTo} width="max-w-[720px]">
         <div className="flex flex-col gap-6 p-8">
           {loading ? (
-            <p className="py-8 text-center text-sm text-muted">Loading…</p>
+            <p className="py-8 text-center text-sm text-muted">{t('ui.loading_2')}</p>
           ) : !c ? (
-            <p className="py-8 text-center text-sm text-muted">
-              Applicant not found.
-            </p>
+            <p className="py-8 text-center text-sm text-muted">{t('ui.applicant_not_found')}</p>
           ) : (
             <>
               <div className="flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-center sm:justify-between">
@@ -121,8 +121,8 @@ export function SingleApplicantPage() {
                   <div className="flex flex-col gap-1">
                     <p className="text-2xl font-medium text-ink">{c.full_name}</p>
                     <p className="text-sm text-muted">
-                      {c.headline || c.title || c.expertise_field?.[0] || 'Expert'}
-                      {row?.job?.title ? ` · applied for ${row.job.title}` : ''}
+                      {c.headline || c.title || c.expertise_field?.[0] || t('ui.expert')}
+                      {row?.job?.title ? t('ui.applied_for', { title: row.job.title }) : ''}
                     </p>
                     <div className="flex flex-wrap items-center gap-2">
                       <VerifiedChips identity={c.identity_verified} badge={c.badge_verified} />
@@ -133,28 +133,25 @@ export function SingleApplicantPage() {
                 <button
                   type="button"
                   onClick={save}
-                  aria-label="Save candidate"
+                  aria-label={t('ui.save_candidate')}
                   className="w-fit rounded-[5px] bg-brand-50 p-3 text-brand hover:bg-brand-100"
                 >
                   <BookmarkIcon className="size-6" />
                 </button>
               </div>
 
-              <Notice tone="brand">
-                Contact details stay private. They're shared both ways only after you say you're interested and{' '}
-                {c.full_name.split(' ')[0]} unlocks the lead.
-              </Notice>
+              <Notice tone="brand">{t('ui.contact_details_stay_private_they_re', { v: c.full_name.split(' ')[0] })}</Notice>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <Detail Icon={BriefcaseIcon} label="Experience" value={c.years_experience} />
-                <Detail Icon={LayersIcon} label="Education" value={c.education} />
-                <Detail Icon={MapPinIcon} label="Based in" value={c.country_code ? countryName(c.country_code) : null} />
-                <Detail Icon={GlobeIcon} label="Nationality" value={c.nationality} />
-                {c.business_name && <Detail Icon={BriefcaseIcon} label="Business" value={c.business_name} />}
+                <Detail Icon={BriefcaseIcon} label={t('ui.experience')} value={c.years_experience} />
+                <Detail Icon={LayersIcon} label={t('ui.education')} value={c.education} />
+                <Detail Icon={MapPinIcon} label={t('ui.based_in')} value={c.country_code ? countryName(c.country_code) : null} />
+                <Detail Icon={GlobeIcon} label={t('ui.nationality')} value={c.nationality} />
+                {c.business_name && <Detail Icon={BriefcaseIcon} label={t('ui.business')} value={c.business_name} />}
               </div>
 
               {(c.expertise_field?.length ?? 0) > 0 && (
-                <Section title="Expertise">
+                <Section title={t('ui.expertise')}>
                   <div className="flex flex-wrap gap-2">
                     {c.expertise_field!.map((f) => (
                       <span key={f} className="rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand">
@@ -171,19 +168,19 @@ export function SingleApplicantPage() {
               )}
 
               {c.biography && (
-                <Section title="About">
+                <Section title={t('ui.about')}>
                   <p className="whitespace-pre-line text-sm leading-6 text-muted-600">{c.biography}</p>
                 </Section>
               )}
 
               {c.past_experience && (
-                <Section title="Experience summary">
+                <Section title={t('ui.experience_summary')}>
                   <p className="whitespace-pre-line text-sm leading-6 text-muted-600">{c.past_experience}</p>
                 </Section>
               )}
 
               {(c.portfolio_links?.length ?? 0) > 0 && (
-                <Section title="Portfolio">
+                <Section title={t('ui.portfolio')}>
                   <ul className="flex flex-col gap-1 text-sm">
                     {c.portfolio_links!.map((l) => (
                       <li key={l.url}>
@@ -197,7 +194,7 @@ export function SingleApplicantPage() {
               )}
 
               {row?.cover_letter && (
-                <Section title="Cover letter">
+                <Section title={t('ui.cover_letter_2')}>
                   <p className="whitespace-pre-line text-sm leading-6 text-muted-600">{row.cover_letter}</p>
                 </Section>
               )}
@@ -206,10 +203,10 @@ export function SingleApplicantPage() {
                 {isInterested ? (
                   <Pill tone={row?.release_status === 'paid' ? 'success' : 'warning'}>
                     {row?.release_status === 'paid'
-                      ? 'Interested · contact unlocked'
+                      ? t('ui.interested_contact_unlocked')
                       : row?.release_status === 'awaiting_payment'
-                        ? 'Interested · waiting for them to unlock'
-                        : 'Interested · lead went cold'}
+                        ? t('ui.interested_waiting_for_them_to_unlock')
+                        : t('ui.interested_lead_went_cold')}
                   </Pill>
                 ) : (
                   <>
@@ -219,27 +216,21 @@ export function SingleApplicantPage() {
                       onClick={() => setStatus('shortlisted')}
                       className="flex items-center gap-2 rounded-[4px] bg-brand-50 px-5 py-3 text-sm font-semibold text-brand disabled:opacity-50"
                     >
-                      <StarIcon className="size-5" />
-                      Shortlist
-                    </button>
+                      <StarIcon className="size-5" />{t('ui.shortlist')}</button>
                     <button
                       type="button"
                       disabled={busy}
                       onClick={() => setStatus('rejected')}
                       className="flex items-center gap-2 rounded-[4px] border border-line px-5 py-3 text-sm font-semibold text-ink-600 disabled:opacity-50"
                     >
-                      <XCircleIcon className="size-5" />
-                      Reject
-                    </button>
+                      <XCircleIcon className="size-5" />{t('ui.reject')}</button>
                     <button
                       type="button"
                       disabled={busy}
                       onClick={() => setConfirmInterest(true)}
                       className="flex items-center gap-2 rounded-[4px] bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
                     >
-                      <CheckIcon className="size-5" />
-                      I&apos;m interested
-                    </button>
+                      <CheckIcon className="size-5" />{t('ui.i_m_interested')}</button>
                   </>
                 )}
               </div>
@@ -250,9 +241,9 @@ export function SingleApplicantPage() {
 
       <ConfirmDialog
         open={confirmInterest}
-        title={`Tell ${c?.full_name ?? 'this expert'} you're interested?`}
-        message="Your contact is released to them. They have 2 days to pay a small fixed fee to unlock it ,  once they do, contact is exchanged both ways. If they don't, the lead goes cold and nobody is charged."
-        confirmLabel="I'm interested"
+        title={t('ui.tell_you_re_interested', { v: c?.full_name ?? 'this expert' })}
+        message={t('ui.your_contact_is_released_to_them')}
+        confirmLabel={t('ui.i_m_interested')}
         busy={busy}
         onConfirm={interested}
         onCancel={() => setConfirmInterest(false)}

@@ -36,7 +36,7 @@ export function AffiliatePage() {
     setJoining(true)
     try {
       setAffiliate(await joinAffiliate(userId))
-      toast.success("You're now an affiliate ,  share your referral link below.")
+      toast.success(t('aff.now_affiliate'))
     } catch (err) {
       toast.error(errMessage(err))
     } finally {
@@ -48,9 +48,9 @@ export function AffiliatePage() {
     if (!affiliate) return
     try {
       await navigator.clipboard.writeText(referralLink(affiliate.referral_code))
-      toast.success('Referral link copied')
+      toast.success(t('ui.referral_link_copied'))
     } catch {
-      toast.error('Could not copy ,  select and copy the link manually.')
+      toast.error(t('aff.copy_failed'))
     }
   }
 
@@ -78,11 +78,8 @@ export function AffiliatePage() {
                   type="button"
                   onClick={copyLink}
                   className="h-12 rounded-md bg-gold px-5 text-sm font-semibold text-navy hover:bg-amber-400"
-                >
-                  Copy link
-                </button>
-                <Link to={dashboardAffiliate} className="flex items-center gap-1 text-sm font-medium text-brand">
-                  Ledger & payouts <ArrowRightIcon className="size-4" />
+                >{t('ui.copy_link')}</button>
+                <Link to={dashboardAffiliate} className="flex items-center gap-1 text-sm font-medium text-brand">{t('aff.ledger')}<ArrowRightIcon className="size-4" />
                 </Link>
               </>
             ) : (
@@ -92,7 +89,7 @@ export function AffiliatePage() {
                 disabled={joining}
                 className="inline-flex h-12 items-center rounded-md bg-gold px-6 text-sm font-semibold text-navy hover:bg-amber-400 disabled:opacity-50"
               >
-                {joining ? 'Joining…' : t('aff.cta')}
+                {joining ? t('aff.joining') : t('aff.cta')}
               </button>
             )}
           </div>
